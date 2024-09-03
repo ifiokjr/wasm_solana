@@ -1,0 +1,9 @@
+{
+	"recommendations": [
+		"dprint.dprint",
+		"mkhl.direnv",
+		"ms-playwright.playwright",
+		"rust-lang.rust-analyzer",
+		"vadimcn.vscode-lldb"
+	]
+}

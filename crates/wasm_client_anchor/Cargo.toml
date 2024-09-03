@@ -1,0 +1,38 @@
+[package]
+name = "wasm_client_anchor"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+description = "A wasm compatible anchor client"
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+anchor-lang = { workspace = true }
+async-trait = { workspace = true }
+derive_more = { workspace = true, features = ["debug"] }
+log = { workspace = true }
+retrier = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+solana-program = { workspace = true }
+solana-sdk = { workspace = true }
+thiserror = { workspace = true }
+typed-builder = { workspace = true }
+wallet_standard = { workspace = true, features = ["solana"] }
+wasm_client_solana = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+
+[features]
+js = ["retrier/wasm-bindgen", "wasm_client_solana/js"]
+ssr = ["wasm_client_solana/ssr"]

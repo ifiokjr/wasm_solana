@@ -1,0 +1,143 @@
+name: devenv
+description: "Setup development environment with devenv"
+inputs:
+  github-token:
+    description: Provide a github token
+    required: true
+  nix-cache:
+    description: The location of the nix cache
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # fnm isn't working on the ci server open an issue later
+    - name: setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: ".node-version"
+
+    - name: setup pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        run_install: false
+
+    - name: cache nix store
+      uses: actions/cache@v4
+      id: nix-cache
+      with:
+        path: ${{ inputs.nix-cache }}
+        key: ${{ runner.os }}-nix-cache-${{ hashFiles('**/devenv.nix', '**/devenv.yaml', '**/devenv.lock') }}
+        restore-keys: ${{ runner.os }}-nix-cache-
+
+    - name: install nix
+      uses: cachix/install-nix-action@v26
+      with:
+        github_access_token: ${{ inputs.github-token }}
+
+    - name: import nix store cache
+      if: steps.nix-cache.outputs.cache-hit == 'true'
+      run: nix-store --import < ${{ inputs.nix-cache }}
+      shell: bash
+
+    - name: enable cachix
+      uses: cachix/cachix-action@v14
+      with:
+        name: devenv
+
+    - name: install devenv.sh
+      run: |
+        cachix use devenv
+        nix profile install --accept-flake-config github:cachix/devenv/v1.0.8
+      shell: bash
+
+    - name: build developer environment
+      run: devenv test
+      shell: bash
+
+    - name: update path with devenv
+      run: devenv shell setup:ci
+      shell: bash
+
+    - name: export nix store cache
+      if: steps.nix-cache.outputs.cache-hit != 'true'
+      run: nix-store --export $(find /nix/store -maxdepth 1 -name '*-*')> ${{ inputs.nix-cache }}
+      shell: bash
+
+    - name: cache rust dependencies
+      uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ runner.os }}
+
+    - name: cache cargo binaries
+      uses: actions/cache@v4
+      with:
+        path: ./.bin
+        key: ${{ runner.os }}-cargo-bin-${{ hashFiles('rust-toolchain.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-bin-
+
+    - name: cache local binaries
+      uses: actions/cache@v4
+      with:
+        path: ./.local-cache
+        key: ${{ runner.os }}-local-cache-${{ hashFiles('setup/cache-versions.json') }}
+        restore-keys: |
+          ${{ runner.os }}-local-cache-
+
+    - name: get pnpm store directory
+      id: pnpm-cache
+      run: echo "store=$(pnpm store path)" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: cache pnpm
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pnpm-cache.outputs.store }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+
+    - name: cache extensions
+      uses: actions/cache@v4
+      with:
+        path: ./apps/kickjump/e2e/extensions
+        key: ${{ runner.os }}-extensions-cache-${{ hashFiles('./setup/scripts/extensions.ts') }}
+        restore-keys: |
+          ${{ runner.os }}-extensions-cache
+
+    - name: install dependencies
+      run: install:all
+      shell: bash
+
+    - name: prisma codegen cache restore
+      id: restore-prisma-cache
+      uses: actions/cache/restore@v4
+      with:
+        key: prisma-1-${{ runner.os }}-${{ hashFiles('./prisma/*', './crates/kickjump_prisma/*', './Cargo.*') }}
+        path: crates/kickjump_prisma/src/**/*.rs
+
+    - name: prisma generate
+      if: ${{ steps.restore-prisma-cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        set -euxo pipefail
+        prisma:generate
+
+        # Check if a new migration should be created due to changes in the schema
+        prisma migrate dev -n test --create-only --skip-generate
+        if git ls-files --others --exclude-standard | grep -q '^prisma/migrations/'; then
+          echo "::error file=prisma/schema.prisma,title=Missing migration::New migration should be generated due to changes in prisma schema"
+          # Fail action if we are on main or a release tag, to avoid releasing a app with broken db
+          if [ "$GITHUB_REF" == "refs/heads/main" ] || [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            exit 1
+          fi
+        fi
+
+    - name: prisma codegen cache update
+      id: save-prisma-cache
+      if: ${{ steps.restore-prisma-cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/main' }}
+      uses: actions/cache/save@v4
+      with:
+        key: ${{ steps.restore-prisma-cache.outputs.primary-key }}
+        path: crates/kickjump_prisma/src/**/*.rs

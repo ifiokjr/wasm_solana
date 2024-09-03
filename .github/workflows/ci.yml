@@ -1,0 +1,32 @@
+name: "ci"
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  lint:
+    timeout-minutes: 15
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          nix-cache: /tmp/nixcache
+
+      - name: lint
+        run: lint:all
+        shell: bash

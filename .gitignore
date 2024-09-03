@@ -1,0 +1,54 @@
+/target
+/programs/target
+/.helix
+/result
+/.direnv
+**/rustc-ice-*.txt
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+**/dist/**
+
+# insta snapshots
+*.pending-snap
+*.snap.new
+
+# setup
+/.helix
+/.vscode
+/programs/.vscode
+
+**/tmp**
+**/temp**.bin/
+node_modules/
+/.bin/
+/.local-cache/
+/.sass-cache/
+/.test-results/
+/test-results/
+/playwright-report/
+
+# misc
+.DS_Store
+*.pem
+
+**/*.tsbuildinfo
+/prisma.db
+
+.env
+**/.env
+
+**/*.rs.bk
+/.wallet.json
+/.anchor
+/test-ledger
+
+**/*.pem
+
+# tests
+/.playwright-state
+/playwright-report
+/test-ledger
+/test-results

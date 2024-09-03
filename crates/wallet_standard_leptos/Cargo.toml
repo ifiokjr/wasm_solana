@@ -1,0 +1,28 @@
+[package]
+name = "wallet_standard_leptos"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+description = "The wallet standard for the leptos framework."
+
+[lints]
+workspace = true
+
+[dependencies]
+leptos = { workspace = true }
+leptos-use = { workspace = true }
+leptos_meta = { workspace = true }
+leptos_query = { workspace = true }
+wallet_standard_browser = { workspace = true, features = ["solana"] }
+
+[dev-dependencies]
+wasm-bindgen-test = { workspace = true }
+
+[features]
+csr = ["leptos_query/csr", "leptos/csr"]
+hydrate = ["leptos_query/hydrate", "leptos_meta/hydrate", "leptos/hydrate"]
+ssr = ["leptos_query/ssr", "leptos_meta/ssr", "leptos-use/ssr", "leptos/ssr"]

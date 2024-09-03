@@ -1,0 +1,60 @@
+{
+	"editor.detectIndentation": false,
+	"editor.insertSpaces": false,
+	"editor.tabSize": 2,
+	"dprint.path": ".devenv/profile/bin/dprint",
+	"tailwindCSS.includeLanguages": {
+		"rust": "html"
+	},
+	"tailwindCSS.experimental.classRegex": [
+		["#[tw\\\\([^\\]]*class\\s*=\\s*\"([^\"]*)\"\\)]", "\"([^\"]*)\""]
+	],
+	"emmet.includeLanguages": {
+		"rust": "html"
+	},
+	"rust-analyzer.cargo.features": "all",
+	"rust-analyzer.check.command": "clippy",
+	"[css]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[dockerfile]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[javascriptreact]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[markdown]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[nix]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[rust]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[sql]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[toml]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"[yaml]": {
+		"editor.defaultFormatter": "dprint.dprint"
+	},
+	"rust-analyzer.showUnlinkedFileNotification": false
+}

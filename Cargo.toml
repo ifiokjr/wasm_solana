@@ -1,0 +1,161 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.0.0"
+authors = ["Ifiok Jr. <ifiokotung@gmail.com>"]
+edition = "2021"
+homepage = "https://github.com/ifiokjr/wasm_solana"
+license = "Unlicense"
+repository = "https://github.com/ifiokjr/wasm_solana"
+rust-version = "1.71.0"
+
+[workspace.lints.rust]
+# Group lints
+rust_2021_compatibility = { level = "warn", priority = -1 }
+rust_2024_compatibility = { level = "warn", priority = -1 }
+
+# Individual lints
+unsafe_code = "deny"
+unstable_features = "deny"
+unused_extern_crates = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+unused_macro_rules = "warn"
+unused_qualifications = "warn"
+variant_size_differences = "warn"
+
+[workspace.lints.clippy]
+# Group lints
+complexity = { level = "warn", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+
+# Individual lints
+blocks_in_conditions = "allow"
+cargo_common_metadata = "allow"
+cast_possible_truncation = "allow"
+cast_possible_wrap = "allow"
+cast_precision_loss = "allow"
+cast_sign_loss = "allow"
+expl_impl_clone_on_copy = "allow"
+items_after_statements = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+no_effect_underscore_binding = "allow"
+tabs-in-doc-comments = "allow"
+too_many_lines = "allow"
+wildcard_dependencies = "deny"
+wildcard_imports = "allow"
+
+[workspace.dependencies]
+anchor-lang = "0.30"
+anchor-spl = "0.30"
+anyhow = "1"
+assert2 = "=0.3.14"
+assert_matches = "1"
+async-trait = "0.1"
+base64 = "0.22"
+bincode = "1"
+bitflags = "2"
+borsh = "1"
+bs58 = "0.5"
+bv = "0.11"
+bytes = "1"
+chrono = "0.4"
+chrono-humanize = "0.2"
+crossbeam-channel = "0.5"
+derive-where = "1"
+derive_more = "1.0.0-beta"
+document-features = "0.2"
+dom_testing_library = "0.1"
+futures = "0.3"
+futures-timer = "3"
+gloo-console = "0.3"
+gloo-events = "0.2"
+gloo-net = "0.6"
+gloo-storage = "0.3"
+gloo-timers = "0.3"
+gloo-utils = "0.2"
+heck = "0.5"
+insta = "1"
+js-sys = "0.3"
+lazy_static = "1"
+leptos = "0.6"
+leptos-use = "0.11"
+leptos_meta = "0.6"
+leptos_query = "0.5"
+leptos_router = "0.6"
+log = "0.4"
+port_check = "0.2"
+rand = "0.8"
+regex = "1"
+reqwest = "0.12"
+reqwest-websocket = "0.4"
+retrier = "0.1"
+rstest = "0.22"
+semver = "1"
+send_wrapper = "0.6"
+serde = "1"
+serde-wasm-bindgen = "0.6"
+serde_bytes = "0.11"
+serde_derive = "1"
+serde_json = "1"
+solana-banks-client = "=1.18"
+solana-banks-interface = "=1.18"
+solana-client = "=1.18"
+solana-config-program = "=1.18"
+solana-faucet = "=1.18"
+solana-program = "=1.18"
+solana-program-runtime = "=1.18"
+solana-program-test = "=1.18"
+solana-rpc = "=1.18"
+solana-sdk = "=1.18"
+solana-test-validator = "=1.18"
+solana-version = "=1.18"
+spl-associated-token-account = "3"
+spl-memo = "4"
+spl-pod = "0.2"
+spl-tlv-account-resolution = "0.6"
+spl-token = "4"
+spl-token-2022 = "3"
+spl-token-group-interface = "0.2"
+spl-token-metadata-interface = "0.3"
+strum = "0.26"
+tarpc = "0.29"
+test-log = "0.2"
+thiserror = "1"
+tokio = "1"
+typed-builder = "0.19"
+wasm-bindgen = "=0.2.92"
+wasm-bindgen-futures = "0.4"
+wasm-bindgen-test = "0.3"
+web-sys = "0.3"
+zstd = { version = "0.13", default-features = false }
+
+# crates
+serde_pubkey = { path = "./crates/serde_pubkey", version = "0.0.0" }
+test_utils = { path = "./crates/test_utils", version = "0.0.0" }
+test_utils_solana = { path = "./crates/test_utils_solana", version = "0.0.0" }
+wallet_standard = { path = "./crates/wallet_standard", version = "0.0.0" }
+wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.0.0" }
+wallet_standard_devtools = { path = "./crates/wallet_standard_devtools", version = "0.0.0" }
+wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.0.0" }
+wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.0.0" }
+
+[workspace.metadata.bin]
+anchor-cli = { version = "0.30.1", bins = ["anchor"] }
+cargo-insta = { version = "1.39.0" }
+cargo-leptos = { version = "0.2.17" }
+cargo-llvm-cov = { version = "0.6.10" }
+cargo-mutants = { version = "24.7.0" }
+cargo-nextest = { version = "0.9.72" }
+leptosfmt = { version = "0.1.18", git = "https://github.com/bram209/leptosfmt", rev = "926b642b68c22cc957fa82a18f09d02343cdf024", bins = [
+	"leptosfmt",
+] }

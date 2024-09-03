@@ -1,0 +1,40 @@
+[package]
+name = "wallet_standard"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+include = ["src/**/*", "Cargo.toml", "readme.md", "js/**/*"]
+license = { workspace = true }
+publish = true
+repository = { workspace = true }
+rust-version = { workspace = true }
+description = "An implementation of the solana wallet standard in rust"
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait = { workspace = true }
+derive_more = { workspace = true, features = ["deref", "deref_mut", "from"] }
+futures = { workspace = true }
+js-sys = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+serde-wasm-bindgen = { workspace = true, optional = true }
+serde_bytes = { workspace = true }
+solana-sdk = { workspace = true, optional = true }
+thiserror = { workspace = true }
+typed-builder = { workspace = true }
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window"], optional = true }
+
+[features]
+browser = [
+	"dep:js-sys",
+	"dep:serde-wasm-bindgen",
+	"dep:wasm-bindgen",
+	"dep:wasm-bindgen-futures",
+	"dep:web-sys",
+]
+solana = ["dep:solana-sdk"]

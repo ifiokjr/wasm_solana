@@ -1,0 +1,75 @@
+{
+	"useTabs": true,
+	"indentWidth": 2,
+	"typescript": {
+		"deno": true,
+		"useTabs": true,
+		"module.sortExportDeclarations": "caseInsensitive",
+		"module.sortImportDeclarations": "caseInsensitive"
+	},
+	"exec": {
+		"commands": [
+			{
+				"command": "cargo bin leptosfmt --stdin --rustfmt",
+				"exts": [
+					"rs"
+				]
+			},
+			{
+				"command": "shfmt --filename {{file_path}} -i 0",
+				"exts": [
+					"sh",
+					"bash"
+				]
+			},
+			{
+				"command": "prettier --plugin prettier-plugin-packagejson --plugin prettier-plugin-sql --tab-width {{indent_width}} --use-tabs {{use_tabs}} --print-width {{line_width}} --language postgresql --keyword-case lower --lines-between-queries 1 --stdin-filepath {{file_path}}",
+				"exts": [
+					"html",
+					"css",
+					"yml",
+					"yaml",
+					"sql"
+				]
+			},
+			{
+				"command": "taplo fmt --stdin-filepath={{file_path}} -",
+				"exts": [
+					"toml"
+				]
+			}
+		]
+	},
+	"incremental": true,
+	"json": {
+		"deno": true,
+		"useTabs": true
+	},
+	"markdown": {
+		"deno": true,
+		"textWrap": "never"
+	},
+	"includes": [
+		"**/*.{ts,tsx,js,jsx,cjs,mjs,json,jsonc,md,toml,dockerfile,rs,yml,yaml,css,sql,sh,bash}"
+	],
+	"excludes": [
+		"pnpm-lock.yaml",
+		"**/dist",
+		".devenv/**",
+		"**/fixtures",
+		"**/snapshots",
+		"**/target",
+		"**/node_modules,",
+		"docs/book/**",
+		".bin/",
+		".local-cache/",
+		"**/dist/**",
+		"**/pkg/"
+	],
+	"plugins": [
+		"https://plugins.dprint.dev/typescript-0.91.3.wasm",
+		"https://plugins.dprint.dev/json-0.19.3.wasm",
+		"https://plugins.dprint.dev/markdown-0.17.1.wasm",
+		"https://plugins.dprint.dev/exec-0.4.4.json@c207bf9b9a4ee1f0ecb75c594f774924baf62e8e53a2ce9d873816a408cecbf7"
+	]
+}

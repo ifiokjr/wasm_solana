@@ -1,0 +1,17 @@
+[package]
+name = "serde_pubkey"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Utility for serializing and deserializing Pubkeys"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }
+solana-program = { workspace = true }

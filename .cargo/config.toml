@@ -1,0 +1,7 @@
+[alias]
+# bins
+llvm-cov = ["bin", "cargo-llvm-cov"]
+nextest = ["bin", "cargo-nextest"]
+insta = ["bin", "cargo-insta"]
+mutants = ["bin", "cargo-mutants"]
+make = ["bin", "cargo-make"]

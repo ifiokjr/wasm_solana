@@ -1,0 +1,12 @@
+/target
+/node_modules
+/.bin
+**/target/**
+**/node_modules/**
+**/.bin/**
+
+/.devenv/**
+/.direnv/**
+/.local-cache/**
+/.state/**
+/.anchor/**

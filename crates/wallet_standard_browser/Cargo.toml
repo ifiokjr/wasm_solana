@@ -1,0 +1,38 @@
+[package]
+name = "wallet_standard_browser"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+include = ["src/**/*", "Cargo.toml", "readme.md", "js/**/*"]
+license = { workspace = true }
+publish = true
+repository = { workspace = true }
+rust-version = { workspace = true }
+description = "Use the wallet standard with WASM from within your browser."
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait = { workspace = true }
+bincode = { workspace = true, optional = true }
+derive-where = { workspace = true }
+futures = { workspace = true }
+js-sys = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde-wasm-bindgen = { workspace = true }
+serde_bytes = { workspace = true }
+solana-sdk = { workspace = true, optional = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt"] }
+typed-builder = { workspace = true }
+wallet_standard = { workspace = true, features = ["browser"] }
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window"] }
+
+[features]
+solana = ["dep:bincode", "dep:solana-sdk", "wallet_standard/solana"]

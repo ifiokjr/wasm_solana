@@ -1,0 +1,17 @@
+[package]
+name = "test_utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+assert2 = { workspace = true }
+insta = { workspace = true, features = ["redactions"] }
+
+[lints]
+workspace = true
