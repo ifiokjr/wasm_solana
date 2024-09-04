@@ -34,7 +34,6 @@ pub trait StandardEventProperties {
 
 pub trait ConnectedWalletStandardEvents {
 	type Callback;
-	type Properties: StandardEventProperties;
 
 	/// Listen for changes to the Wallet's properties.
 	fn on(&self, event: impl AsRef<str>, callback: &Self::Callback) -> WalletResult<Box<dyn Fn()>>;

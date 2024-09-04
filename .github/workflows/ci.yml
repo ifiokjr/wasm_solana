@@ -1,13 +1,18 @@
 name: "ci"
-
+permissions:
+  pull-requests: write
+  contents: write
 on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
+
+env:
+  EDGEDB_INSTANCE: "edgedb_codegen"
+  EDGEDB_BRANCH: "main"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,4 +34,131 @@ jobs:
 
       - name: lint
         run: lint:all
+        shell: bash
+
+  test:
+    timeout-minutes: 15
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        version: ["1.72.0", stable, beta, nightly]
+    env:
+      RUSTUP_TOOLCHAIN: ${{ matrix.version }}
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          nix-cache: /tmp/nixcache
+
+      - name: test
+        run: test:all
+        shell: bash
+
+  coverage:
+    timeout-minutes: 15
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          nix-cache: /tmp/nixcache
+
+      - name: test coverage
+        run: coverage:all
+        shell: bash
+
+      - name: upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: codecov.json
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    timeout-minutes: 15
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        version: ["1.72.0", stable, beta, nightly]
+    env:
+      RUSTUP_TOOLCHAIN: ${{ matrix.version }}
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          nix-cache: /tmp/nixcache
+
+      - name: build
+        run: cargo build
+        shell: bash
+
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: generate token
+        uses: actions/create-github-app-token@v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
+          private-key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
+
+      - name: setup rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - name: release
+        uses: MarcoIeni/release-plz-action@v0.5
+        id: release-plz
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: tag released prs
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          RELEASES: ${{ steps.release-plz.outputs.releases }}
+        run: |
+          set -e
+
+          # Iterate over released packages and add a label to the PRs
+          # shipped with the release.
+          for release in $(echo "$RELEASES" | jq -r -c '.[]'); do
+              package_name=$(echo "$release" | jq -r '.package_name')
+              version=$(echo "$release" | jq -r '.version')
+              prs_length=$(echo "$release" | jq '.prs | length')
+              if [ "$prs_length" -gt 0 ]; then
+                  # Create label.
+                  # Use `--force` to overwrite the label,
+                  # so that the command does not fail if the label already exists.
+                  label="released:$package_name-$version"
+                  echo "Creating label $label"
+                  gh label create $label --color BFD4F2 --force
+                  for pr in $(echo "$release" | jq -r -c '.prs[]'); do
+                      pr_number=$(echo "$pr" | jq -r '.number')
+                      echo "Adding label $label to PR #$pr_number"
+                      gh pr edit $pr_number --add-label $label
+                  done
+              else
+                  echo "No PRs found for package $package_name"
+              fi
+          done
         shell: bash

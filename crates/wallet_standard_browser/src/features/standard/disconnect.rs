@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 
-use std::future::Future;
-
+use async_trait::async_trait;
 use wallet_standard::Wallet;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
@@ -10,8 +9,8 @@ use wallet_standard::STANDARD_DISCONNECT;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -24,9 +23,7 @@ extern "C" {
 	pub async fn _disconnect(this: &StandardDisconnectFeature) -> Result<(), JsValue>;
 }
 
-impl FeatureFromJs for StandardDisconnectFeature {
-	const NAME: &'static str = STANDARD_DISCONNECT;
-}
+impl_feature_from_js!(StandardDisconnectFeature, STANDARD_DISCONNECT);
 
 impl StandardDisconnectFeature {
 	pub async fn disconnect(&self) -> WalletResult<()> {
@@ -35,26 +32,23 @@ impl StandardDisconnectFeature {
 	}
 }
 
+#[async_trait(?Send)]
 impl WalletStandardDisconnect for BrowserWallet {
-	fn disconnect(&self) -> impl Future<Output = WalletResult<()>> {
-		async move {
-			self.wallet
-				.get_feature::<StandardDisconnectFeature>()?
-				.disconnect()
-				.await
-		}
+	async fn disconnect(&self) -> WalletResult<()> {
+		self.wallet
+			.get_feature::<StandardDisconnectFeature>()?
+			.disconnect()
+			.await
 	}
 
-	fn disconnect_mut(&mut self) -> impl Future<Output = WalletResult<()>> {
-		async move {
-			if !self.connected() {
-				return Err(WalletError::WalletDisconnected);
-			}
-
-			self.disconnect().await?;
-			self.wallet_account = None;
-
-			Ok(())
+	async fn disconnect_mut(&mut self) -> WalletResult<()> {
+		if !self.connected() {
+			return Err(WalletError::WalletDisconnected);
 		}
+
+		self.disconnect().await?;
+		self.wallet_account = None;
+
+		Ok(())
 	}
 }

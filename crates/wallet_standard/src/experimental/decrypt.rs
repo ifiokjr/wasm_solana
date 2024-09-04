@@ -1,7 +1,6 @@
-#![allow(unsafe_code)]
-
 use std::future::Future;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
 use typed_builder::TypedBuilder;
@@ -40,15 +39,13 @@ pub struct ExperimentalDecryptProps {
 	padding: Option<u8>,
 }
 
+#[async_trait(?Send)]
 pub trait WalletExperimentalDecrypt {
 	type Output: ExperimentalDecryptOutput;
 
-	fn decrypt_many(
+	async fn decrypt_many(
 		&self,
 		props: Vec<ExperimentalDecryptProps>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>>;
-	fn decrypt(
-		&self,
-		props: ExperimentalDecryptProps,
-	) -> impl Future<Output = WalletResult<Self::Output>>;
+	) -> WalletResult<Vec<Self::Output>>;
+	async fn decrypt(&self, props: ExperimentalDecryptProps) -> WalletResult<Self::Output>;
 }

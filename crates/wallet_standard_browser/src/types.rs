@@ -21,3 +21,13 @@ pub trait FeatureFromJs: JsCast {
 		Self::feature_from_js_object(object)
 	}
 }
+
+macro_rules! impl_feature_from_js {
+	($ident:ident, $name:expr) => {
+		impl $crate::FeatureFromJs for $ident {
+			const NAME: &'static str = $name;
+		}
+	};
+}
+
+pub(crate) use impl_feature_from_js;

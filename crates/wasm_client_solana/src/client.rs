@@ -1,47 +1,78 @@
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
+use typed_builder::TypedBuilder;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, TypedBuilder)]
 pub struct ClientRequest {
-	id: u32,
-	jsonrpc: String,
-	method: String,
-	params: Option<Value>,
+	#[builder(default)]
+	pub id: u32,
+	#[builder(default = "\"2.0\"")]
+	pub jsonrpc: &'static str,
+	#[builder(setter(into))]
+	pub method: String,
+	#[serde(skip_serializing_if = "is_null")]
+	#[builder(setter(transform=|v: impl Serialize| serde_json::to_value(v).unwrap_or_default()))]
+	pub params: Value,
 }
 
 impl ClientRequest {
-	pub fn new(method: &str) -> Self {
+	pub fn new(method: impl ToString) -> Self {
 		Self {
-			id: 1,
-			jsonrpc: "2.0".into(),
-			method: method.into(),
-			params: None,
+			id: 0,
+			jsonrpc: "2.0",
+			method: method.to_string(),
+			params: Value::Null,
 		}
 	}
 
-	pub fn id(&mut self, id: u32) -> &mut ClientRequest {
+	pub fn id(mut self, id: u32) -> Self {
 		self.id = id;
 		self
 	}
 
-	pub fn jsonrpc(&mut self, jsonrpc: &str) -> &mut ClientRequest {
-		self.jsonrpc = jsonrpc.into();
+	pub fn jsonrpc(mut self, jsonrpc: &'static str) -> Self {
+		self.jsonrpc = jsonrpc;
 		self
 	}
 
-	pub fn params(&mut self, params: Value) -> &mut ClientRequest {
-		self.params = Some(params);
+	pub fn params<T: Serialize>(mut self, params: T) -> Self {
+		self.params = serde_json::to_value(params).unwrap_or_default();
 		self
 	}
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientResponse {
+pub type SubscriptionId = u64;
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct SubscriptionResponse<T> {
+	pub jsonrpc: String,
+	pub method: String,
+	pub params: SubscriptionParams<T>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct SubscriptionParams<T> {
+	pub result: T,
+	pub subscription: SubscriptionId,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ClientResponse<T> {
 	pub id: u32,
 	pub jsonrpc: String,
-	pub result: Value,
+	pub result: T,
 }
+
+pub type SubscriptionResult = ClientResponse<SubscriptionId>;
 
 pub const MAX_RETRIES: usize = 40;
 pub const SLEEP_MS: u64 = 250;
+
+fn is_null(v: &Value) -> bool {
+	match v {
+		Value::Null => true,
+		Value::Array(array) => array.iter().all(Value::is_null),
+		_ => false,
+	}
+}

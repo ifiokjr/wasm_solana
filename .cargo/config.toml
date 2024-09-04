@@ -5,3 +5,10 @@ nextest = ["bin", "cargo-nextest"]
 insta = ["bin", "cargo-insta"]
 mutants = ["bin", "cargo-mutants"]
 make = ["bin", "cargo-make"]
+
+# tests
+test_all = ["nextest", "run", "--features", ""]
+test_docs = ["test", "--doc", "--features", ""]
+coverage_all = ["llvm-cov", "--no-report", "--features", ""]
+coverage_docs = ["llvm-cov", "--no-report", "--doc", "--features", ""]
+coverage_report = ["llvm-cov", "report", "--doctests", "--codecov", "--output-path", "codecov.json"]

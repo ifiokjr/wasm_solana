@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 
-use std::future::Future;
-
+use async_trait::async_trait;
 use js_sys::Array;
 use solana_sdk::signature::Signature;
 use wallet_standard::SolanaSignMessageInput;
@@ -15,9 +14,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -79,9 +78,7 @@ impl TryFrom<BrowserSolanaSignMessageOutput> for Signature {
 	}
 }
 
-impl FeatureFromJs for SolanaSignMessageFeature {
-	const NAME: &'static str = SOLANA_SIGN_MESSAGE;
-}
+impl_feature_from_js!(SolanaSignMessageFeature, SOLANA_SIGN_MESSAGE);
 
 impl SolanaSignMessageFeature {
 	/// Sign a  message using the account's secret key.
@@ -113,47 +110,41 @@ impl SolanaSignMessageFeature {
 	}
 }
 
+#[async_trait(?Send)]
 impl WalletSolanaSignMessage for BrowserWallet {
 	type Output = BrowserSolanaSignMessageOutput;
 
-	fn sign_message(
-		&self,
-		message: impl Into<Vec<u8>>,
-	) -> impl Future<Output = WalletResult<Self::Output>> {
-		async move {
-			let Some(ref wallet_account) = self.wallet_account else {
-				return Err(WalletError::WalletAccount);
-			};
+	async fn sign_message(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output> {
+		let Some(ref wallet_account) = self.wallet_account else {
+			return Err(WalletError::WalletAccount);
+		};
 
-			self.wallet
-				.get_feature::<SolanaSignMessageFeature>()?
-				.sign_message(wallet_account.clone(), message)
-				.await
-		}
+		self.wallet
+			.get_feature::<SolanaSignMessageFeature>()?
+			.sign_message(wallet_account.clone(), message)
+			.await
 	}
 
-	fn sign_messages<M: Into<Vec<u8>>>(
+	async fn sign_messages<M: Into<Vec<u8>>>(
 		&self,
 		messages: Vec<M>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>> {
-		async move {
-			let Some(ref wallet_account) = self.wallet_account else {
-				return Err(WalletError::WalletAccount);
-			};
-			let inputs = messages
-				.into_iter()
-				.map(|message| {
-					SolanaSignMessageInput::builder()
-						.account(wallet_account.clone())
-						.message(message)
-						.build()
-				})
-				.collect();
+	) -> WalletResult<Vec<Self::Output>> {
+		let Some(ref wallet_account) = self.wallet_account else {
+			return Err(WalletError::WalletAccount);
+		};
+		let inputs = messages
+			.into_iter()
+			.map(|message| {
+				SolanaSignMessageInput::builder()
+					.account(wallet_account.clone())
+					.message(message)
+					.build()
+			})
+			.collect();
 
-			self.wallet
-				.get_feature::<SolanaSignMessageFeature>()?
-				.sign_messages(inputs)
-				.await
-		}
+		self.wallet
+			.get_feature::<SolanaSignMessageFeature>()?
+			.sign_messages(inputs)
+			.await
 	}
 }

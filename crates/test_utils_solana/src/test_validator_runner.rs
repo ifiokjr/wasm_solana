@@ -35,7 +35,7 @@ use solana_test_validator::TestValidatorGenesis;
 use solana_test_validator::UpgradeableProgramInfo;
 use typed_builder::TypedBuilder;
 use wallet_standard::AsyncKeypair;
-use wasm_client_solana::SolanaRpcClient;
+use wasm_client_solana::SolanaClient;
 
 use crate::FromAnchorData;
 
@@ -89,7 +89,7 @@ pub struct TestValidatorRunner {
 	pub validator: TestValidator,
 	pub mint_keypair: Keypair,
 	pub faucet: AsyncKeypair,
-	pub rpc: SolanaRpcClient,
+	pub rpc: SolanaClient,
 }
 
 impl TestValidatorRunner {
@@ -146,7 +146,7 @@ impl TestValidatorRunner {
 		let wrapped_future = SendWrapper::new(genesis.start_async());
 		let (validator, mint_keypair) = wrapped_future.await;
 
-		let rpc = SolanaRpcClient::new_with_commitment(
+		let rpc = SolanaClient::new_with_commitment(
 			&validator.rpc_url(),
 			CommitmentConfig {
 				commitment: props.commitment,
@@ -196,7 +196,7 @@ impl TestValidatorRunner {
 		self.validator.rpc_url()
 	}
 
-	pub fn rpc(&self) -> &SolanaRpcClient {
+	pub fn rpc(&self) -> &SolanaClient {
 		&self.rpc
 	}
 

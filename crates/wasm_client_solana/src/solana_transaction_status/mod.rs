@@ -6,6 +6,8 @@ use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
 use solana_sdk::clock::Slot;
 use solana_sdk::clock::UnixTimestamp;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -31,7 +33,6 @@ use solana_sdk::transaction_context::TransactionReturnData;
 use thiserror::Error;
 
 pub use self::extract_memos::extract_and_fmt_memos;
-use self::option_serializer::OptionSerializer;
 use self::parse_accounts::parse_legacy_message_accounts;
 use self::parse_accounts::parse_v0_message_accounts;
 use self::parse_accounts::ParsedAccount;
@@ -40,7 +41,6 @@ use self::parse_instruction::ParsedInstruction;
 use crate::solana_account_decoder::parse_token::UiTokenAmount;
 
 pub mod extract_memos;
-pub mod option_serializer;
 pub mod parse_accounts;
 pub mod parse_address_lookup_table;
 pub mod parse_associated_token;
@@ -317,22 +317,16 @@ pub struct TransactionTokenBalance {
 	pub program_id: String,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransactionTokenBalance {
 	pub account_index: u8,
 	pub mint: String,
 	pub ui_token_amount: UiTokenAmount,
-	#[serde(
-		default = "OptionSerializer::skip",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub owner: OptionSerializer<String>,
-	#[serde(
-		default = "OptionSerializer::skip",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub program_id: OptionSerializer<String>,
+	pub owner: Option<String>,
+	pub program_id: Option<String>,
 }
 
 impl From<TransactionTokenBalance> for UiTransactionTokenBalance {
@@ -341,16 +335,14 @@ impl From<TransactionTokenBalance> for UiTransactionTokenBalance {
 			account_index: token_balance.account_index,
 			mint: token_balance.mint,
 			ui_token_amount: token_balance.ui_token_amount,
-			owner: if token_balance.owner.is_empty() {
-				OptionSerializer::Skip
-			} else {
-				OptionSerializer::Some(token_balance.owner)
-			},
-			program_id: if token_balance.program_id.is_empty() {
-				OptionSerializer::Skip
-			} else {
-				OptionSerializer::Some(token_balance.program_id)
-			},
+			owner: token_balance
+				.owner
+				.is_empty()
+				.then_some(token_balance.owner),
+			program_id: token_balance
+				.program_id
+				.is_empty()
+				.then_some(token_balance.program_id),
 		}
 	}
 }
@@ -391,6 +383,8 @@ impl Default for TransactionStatusMeta {
 }
 
 /// A duplicate representation of `TransactionStatusMeta` with `err` field
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransactionStatusMeta {
@@ -399,46 +393,14 @@ pub struct UiTransactionStatusMeta {
 	pub fee: u64,
 	pub pre_balances: Vec<u64>,
 	pub post_balances: Vec<u64>,
-	#[serde(
-		default = "OptionSerializer::none",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub inner_instructions: OptionSerializer<Vec<UiInnerInstructions>>,
-	#[serde(
-		default = "OptionSerializer::none",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub log_messages: OptionSerializer<Vec<String>>,
-	#[serde(
-		default = "OptionSerializer::none",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub pre_token_balances: OptionSerializer<Vec<UiTransactionTokenBalance>>,
-	#[serde(
-		default = "OptionSerializer::none",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub post_token_balances: OptionSerializer<Vec<UiTransactionTokenBalance>>,
-	#[serde(
-		default = "OptionSerializer::none",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub rewards: OptionSerializer<Rewards>,
-	#[serde(
-		default = "OptionSerializer::skip",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub loaded_addresses: OptionSerializer<UiLoadedAddresses>,
-	#[serde(
-		default = "OptionSerializer::skip",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub return_data: OptionSerializer<UiTransactionReturnData>,
-	#[serde(
-		default = "OptionSerializer::skip",
-		skip_serializing_if = "OptionSerializer::should_skip"
-	)]
-	pub compute_units_consumed: OptionSerializer<u64>,
+	pub inner_instructions: Option<Vec<UiInnerInstructions>>,
+	pub log_messages: Option<Vec<String>>,
+	pub pre_token_balances: Option<Vec<UiTransactionTokenBalance>>,
+	pub post_token_balances: Option<Vec<UiTransactionTokenBalance>>,
+	pub rewards: Option<Rewards>,
+	pub loaded_addresses: Option<UiLoadedAddresses>,
+	pub return_data: Option<UiTransactionReturnData>,
+	pub compute_units_consumed: Option<u64>,
 }
 
 /// A duplicate representation of `LoadedAddresses`
@@ -493,9 +455,9 @@ impl UiTransactionStatusMeta {
 				.map(|balance| balance.into_iter().map(Into::into).collect())
 				.into(),
 			rewards: if show_rewards { meta.rewards } else { None }.into(),
-			loaded_addresses: OptionSerializer::Skip,
-			return_data: OptionSerializer::or_skip(meta.return_data.map(Into::into)),
-			compute_units_consumed: OptionSerializer::or_skip(meta.compute_units_consumed),
+			loaded_addresses: None,
+			return_data: meta.return_data.map(Into::into),
+			compute_units_consumed: meta.compute_units_consumed,
 		}
 	}
 
@@ -506,8 +468,8 @@ impl UiTransactionStatusMeta {
 			fee: meta.fee,
 			pre_balances: meta.pre_balances,
 			post_balances: meta.post_balances,
-			inner_instructions: OptionSerializer::Skip,
-			log_messages: OptionSerializer::Skip,
+			inner_instructions: None,
+			log_messages: None,
 			pre_token_balances: meta
 				.pre_token_balances
 				.map(|balance| balance.into_iter().map(Into::into).collect())
@@ -519,11 +481,11 @@ impl UiTransactionStatusMeta {
 			rewards: if show_rewards {
 				meta.rewards.into()
 			} else {
-				OptionSerializer::Skip
+				None
 			},
-			loaded_addresses: OptionSerializer::Skip,
-			return_data: OptionSerializer::Skip,
-			compute_units_consumed: OptionSerializer::Skip,
+			loaded_addresses: None,
+			return_data: None,
+			compute_units_consumed: None,
 		}
 	}
 }
@@ -551,8 +513,8 @@ impl From<TransactionStatusMeta> for UiTransactionStatusMeta {
 				.into(),
 			rewards: meta.rewards.into(),
 			loaded_addresses: Some(UiLoadedAddresses::from(&meta.loaded_addresses)).into(),
-			return_data: OptionSerializer::or_skip(meta.return_data.map(Into::into)),
-			compute_units_consumed: OptionSerializer::or_skip(meta.compute_units_consumed),
+			return_data: meta.return_data.map(Into::into),
+			compute_units_consumed: meta.compute_units_consumed,
 		}
 	}
 }
@@ -989,9 +951,11 @@ impl VersionedTransactionWithStatusMeta {
 				)
 			} else {
 				let mut meta = UiTransactionStatusMeta::from(self.meta);
+
 				if !show_rewards {
-					meta.rewards = OptionSerializer::None;
+					meta.rewards = None;
 				}
+
 				meta
 			}),
 			version,

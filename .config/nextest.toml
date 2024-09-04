@@ -15,7 +15,6 @@ dir = "target/nextest"
 # This section defines the default nextest profile. Custom profiles are layered
 # on top of the default profile.
 [profile.default]
-
 # "retries" defines the number of times a test should be retried. If set to a
 # non-zero value, tests that succeed on a subsequent attempt will be marked as
 # flaky. Can be overridden through the `--retries` option.
@@ -96,6 +95,8 @@ leak-timeout = "100ms"
 # However sometimes extra non-standard files are required.
 # To address this, "archive.include" specifies additional paths that will be included in the archive.
 archive.include = [
+
+
 	# Examples:
 	#
 	# { path = "application-data", relative-to = "target" },

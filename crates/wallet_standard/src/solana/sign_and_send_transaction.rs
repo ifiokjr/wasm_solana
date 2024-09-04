@@ -1,5 +1,6 @@
 use std::future::Future;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
 use solana_sdk::commitment_config::CommitmentLevel;
@@ -72,15 +73,16 @@ pub enum SolanaSignAndSendTransactionMode {
 	Serial,
 }
 
+#[async_trait(?Send)]
 pub trait WalletSolanaSignAndSendTransaction {
 	type Output: SolanaSignAndSendTransactionOutput;
 
-	fn sign_and_send_transaction(
+	async fn sign_and_send_transaction(
 		&self,
 		props: SolanaSignAndSendTransactionProps,
-	) -> impl Future<Output = WalletResult<Self::Output>>;
-	fn sign_and_send_transactions(
+	) -> WalletResult<Self::Output>;
+	async fn sign_and_send_transactions(
 		&self,
 		inputs: Vec<SolanaSignAndSendTransactionProps>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>>;
+	) -> WalletResult<Vec<Self::Output>>;
 }

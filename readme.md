@@ -30,52 +30,6 @@
 
 ## Description
 
-Open source software has taken over the world.
-
-Everything we work on, whether as employees, artistic souls, musically inclined or a side project junkies, we are reliant on open source software at some layer.
-
-The value created by open source developers is astounding.
-
-The problem is that almost none of the value created is passed onto the teams behind these open source projects. This is true even of ecosystem critical projects. Creators find themselves pleading for enough to sustain their work.
-
-**KickJump** solves this fundamental problem by providing a toolkit for open source developers to build financially sustainable projects.
-
-- Stakeholders can financially speculate on via project tokens.
-- Governance is incentivized and monetized via tokens and credentials.
-- Project specific rules based on the needs and requirements.
-- Provide a suite of tools to enhance value creation of project stakeholders via zero-effort revenue share arrangements.
-
-Open source, open protocols and now open funding.
-
-## Getting Started
-
-### Native
-
-To initialize android and iOS, run:
-
-```bash
-cargo tauri android init
-cargo tauri ios init
-```
-
-For Desktop development, run:
-
-```bash
-cargo tauri dev
-```
-
-For Android development, run:
-
-```bash
-cargo tauri android dev
-```
-
-For iOS development, run:
-
-```bash
-cargo tauri ios dev
-```
-
 ## Contributing
 
 [`devenv`](https://devenv.sh/) is used to provide a reproducible development environment for this project. Follow the [getting started instructions](https://devenv.sh/getting-started/).

@@ -12,7 +12,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::system_program;
 
 use crate::rpc_config::RpcAccountInfoConfig;
-use crate::SolanaRpcClient;
+use crate::SolanaClient;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum NonceError {
@@ -40,7 +40,7 @@ pub enum NonceError {
 /// - it returns an error if any of the checks from [`account_identity_ok`]
 ///   fail.
 pub async fn get_account(
-	rpc_client: &SolanaRpcClient,
+	rpc_client: &SolanaClient,
 	nonce_pubkey: &Pubkey,
 ) -> Result<Account, NonceError> {
 	get_account_with_commitment(rpc_client, nonce_pubkey, CommitmentConfig::default()).await
@@ -55,7 +55,7 @@ pub async fn get_account(
 /// - it returns an error if any of the checks from [`account_identity_ok`]
 ///   fail.
 pub async fn get_account_with_commitment(
-	rpc_client: &SolanaRpcClient,
+	rpc_client: &SolanaClient,
 	nonce_pubkey: &Pubkey,
 	commitment_config: CommitmentConfig,
 ) -> Result<Account, NonceError> {

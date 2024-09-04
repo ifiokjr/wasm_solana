@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 
-use std::future::Future;
-
+use async_trait::async_trait;
 use js_sys::Array;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionVersion;
@@ -16,9 +15,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -123,52 +122,50 @@ impl SolanaSignAndSendTransactionFeature {
 	}
 }
 
-impl FeatureFromJs for SolanaSignAndSendTransactionFeature {
-	const NAME: &'static str = SOLANA_SIGN_AND_SEND_TRANSACTION;
-}
+impl_feature_from_js!(
+	SolanaSignAndSendTransactionFeature,
+	SOLANA_SIGN_AND_SEND_TRANSACTION
+);
 
+#[async_trait(?Send)]
 impl WalletSolanaSignAndSendTransaction for BrowserWallet {
 	type Output = BrowserSolanaSignAndSendTransactionOutput;
 
-	fn sign_and_send_transaction(
+	async fn sign_and_send_transaction(
 		&self,
 		props: SolanaSignAndSendTransactionProps,
-	) -> impl Future<Output = WalletResult<Self::Output>> {
-		async move {
-			let Some(ref wallet_account) = self.wallet_account else {
-				return Err(WalletError::WalletAccount);
-			};
+	) -> WalletResult<Self::Output> {
+		let Some(ref wallet_account) = self.wallet_account else {
+			return Err(WalletError::WalletAccount);
+		};
 
-			self.wallet
-				.get_feature::<SolanaSignAndSendTransactionFeature>()?
-				.sign_and_send_transaction(wallet_account.clone(), props)
-				.await
-		}
+		self.wallet
+			.get_feature::<SolanaSignAndSendTransactionFeature>()?
+			.sign_and_send_transaction(wallet_account.clone(), props)
+			.await
 	}
 
-	fn sign_and_send_transactions(
+	async fn sign_and_send_transactions(
 		&self,
 		inputs: Vec<SolanaSignAndSendTransactionProps>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>> {
-		async move {
-			let Some(ref wallet_account) = self.wallet_account else {
-				return Err(WalletError::WalletAccount);
-			};
+	) -> WalletResult<Vec<Self::Output>> {
+		let Some(ref wallet_account) = self.wallet_account else {
+			return Err(WalletError::WalletAccount);
+		};
 
-			let inputs = inputs
-				.into_iter()
-				.map(|props| {
-					SolanaSignAndSendTransactionInput::builder()
-						.account(wallet_account.clone())
-						.props(props)
-						.build()
-				})
-				.collect();
+		let inputs = inputs
+			.into_iter()
+			.map(|props| {
+				SolanaSignAndSendTransactionInput::builder()
+					.account(wallet_account.clone())
+					.props(props)
+					.build()
+			})
+			.collect();
 
-			self.wallet
-				.get_feature::<SolanaSignAndSendTransactionFeature>()?
-				.sign_and_send_transactions(inputs)
-				.await
-		}
+		self.wallet
+			.get_feature::<SolanaSignAndSendTransactionFeature>()?
+			.sign_and_send_transactions(inputs)
+			.await
 	}
 }

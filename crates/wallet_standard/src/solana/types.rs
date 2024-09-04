@@ -9,24 +9,7 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 
-pub trait SolanaWalletPubkey {
-	fn try_pubkey(&self) -> WalletResult<Pubkey>;
-	fn pubkey(&self) -> Pubkey;
-}
-
-impl<T> SolanaWalletPubkey for T
-where
-	T: WalletAccountInfo,
-{
-	fn try_pubkey(&self) -> WalletResult<Pubkey> {
-		Pubkey::try_from(self.public_key()).map_err(|_| WalletError::WalletPublicKey)
-	}
-
-	fn pubkey(&self) -> Pubkey {
-		self.try_pubkey().unwrap_or_default()
-	}
-}
-
+use crate::Wallet;
 use crate::WalletAccountInfo;
 use crate::WalletError;
 use crate::WalletResult;
@@ -35,6 +18,38 @@ use crate::WalletSolanaSignIn;
 use crate::WalletSolanaSignMessage;
 use crate::WalletSolanaSignTransaction;
 use crate::WalletStandard;
+
+pub trait WalletAccountInfoSolanaPubkey {
+	fn pubkey(&self) -> Pubkey;
+}
+
+pub trait WalletSolanaPubkey {
+	fn try_pubkey(&self) -> WalletResult<Pubkey>;
+
+	fn pubkey(&self) -> Pubkey {
+		self.try_pubkey().unwrap_or_default()
+	}
+}
+
+impl<T> WalletAccountInfoSolanaPubkey for T
+where
+	T: WalletAccountInfo,
+{
+	fn pubkey(&self) -> Pubkey {
+		Pubkey::try_from(self.public_key()).unwrap_or_default()
+	}
+}
+
+impl<T> WalletSolanaPubkey for T
+where
+	T: Wallet,
+{
+	fn try_pubkey(&self) -> WalletResult<Pubkey> {
+		self.try_public_key()
+			.ok_or(WalletError::WalletNotConnected)
+			.and_then(|bytes| Pubkey::try_from(bytes).map_err(|_| WalletError::WalletPublicKey))
+	}
+}
 
 pub trait WalletSolana:
 	WalletSolanaSignMessage
@@ -53,7 +68,6 @@ impl<T> WalletSolana for T where
 		+ WalletStandard
 {
 }
-
 /// An async version of the keypair.
 #[derive(Debug, Clone, derive_more::From)]
 pub struct AsyncKeypair(Arc<Keypair>);

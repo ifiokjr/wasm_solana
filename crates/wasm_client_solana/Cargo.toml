@@ -16,11 +16,14 @@ workspace = true
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
+anyhow = { workspace = true }
 base64 = { workspace = true }
 bincode = { workspace = true }
 bs58 = { workspace = true }
 bv = { workspace = true, features = ["serde"] }
-derive_more = { workspace = true, features = ["debug"] }
+cfg-if = { workspace = true }
+derive_more = { workspace = true, features = ["debug", "deref", "deref_mut"] }
+fork_stream = { workspace = true }
 futures = { workspace = true }
 futures-timer = { workspace = true }
 gloo-net = { workspace = true }
@@ -29,6 +32,7 @@ heck = { workspace = true }
 js-sys = { workspace = true }
 lazy_static = { workspace = true }
 log = { workspace = true }
+pin-project = { workspace = true }
 reqwest = { workspace = true, optional = true, features = ["json"] }
 reqwest-websocket = { workspace = true, optional = true, features = ["json"] }
 retrier = { workspace = true }
@@ -37,6 +41,8 @@ serde = { workspace = true, features = ["derive"] }
 serde-wasm-bindgen = { workspace = true }
 serde_bytes = { workspace = true }
 serde_json = { workspace = true }
+serde_tuple = { workspace = true }
+serde_with = { workspace = true }
 solana-program = { workspace = true }
 solana-sdk = { workspace = true }
 solana-version = { workspace = true }
@@ -48,6 +54,7 @@ spl-token-group-interface = { workspace = true }
 spl-token-metadata-interface = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt"], optional = true }
 typed-builder = { workspace = true }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
@@ -55,11 +62,14 @@ web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window"] }
 zstd = { workspace = true, optional = true }
 
 [dev-dependencies]
+assert2 = { workspace = true }
 assert_matches = { workspace = true }
+insta = { workspace = true, features = ["redactions", "json"] }
+rstest = { workspace = true }
 spl-pod = { workspace = true }
 wasm-bindgen-test = { workspace = true }
 
 [features]
 js = ["retrier/wasm-bindgen", "futures-timer/wasm-bindgen"]
-ssr = ["dep:reqwest", "dep:reqwest-websocket", "dep:zstd"]
+ssr = ["dep:reqwest", "dep:reqwest-websocket", "dep:zstd", "dep:tokio"]
 pubsub = []

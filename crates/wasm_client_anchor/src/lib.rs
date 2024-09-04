@@ -1,6 +1,7 @@
 pub use anchor::*;
 
 mod anchor;
+pub mod macros;
 pub mod utils;
 
 pub mod prelude {

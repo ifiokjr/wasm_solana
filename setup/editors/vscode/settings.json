@@ -55,6 +55,5 @@
 	},
 	"[yaml]": {
 		"editor.defaultFormatter": "dprint.dprint"
-	},
-	"rust-analyzer.showUnlinkedFileNotification": false
+	}
 }

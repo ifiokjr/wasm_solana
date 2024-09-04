@@ -38,7 +38,7 @@ use wasm_client_solana::rpc_filter::Memcmp;
 use wasm_client_solana::rpc_filter::RpcFilterType;
 use wasm_client_solana::solana_account_decoder::UiAccountEncoding;
 use wasm_client_solana::SimulateTransactionResponse;
-use wasm_client_solana::SolanaRpcClient;
+use wasm_client_solana::SolanaClient;
 use wasm_client_solana::SolanaRpcClientError;
 
 pub trait AnchorAsyncSigner: AsyncSigner + std::fmt::Debug + Clone {}
@@ -49,11 +49,11 @@ pub struct AnchorProgram<W: AnchorAsyncSigner> {
 	program_id: Pubkey,
 	wallet: W,
 	#[builder(setter(into))]
-	rpc: SolanaRpcClient,
+	rpc: SolanaClient,
 }
 
 impl<W: AnchorAsyncSigner> AnchorProgram<W> {
-	pub fn new(wallet: W, rpc: SolanaRpcClient, program_id: Pubkey) -> Self {
+	pub fn new(wallet: W, rpc: SolanaClient, program_id: Pubkey) -> Self {
 		Self {
 			program_id,
 			wallet,
@@ -91,7 +91,7 @@ impl<W: AnchorAsyncSigner> AnchorProgram<W> {
 		self.program_id.key()
 	}
 
-	pub fn rpc(&self) -> &SolanaRpcClient {
+	pub fn rpc(&self) -> &SolanaClient {
 		&self.rpc
 	}
 
@@ -138,7 +138,7 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 	'a,
 	W,
 	(
-		(&'a SolanaRpcClient,),
+		(&'a SolanaClient,),
 		(Pubkey,),
 		(&'a W,),
 		(),
@@ -153,7 +153,7 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
 pub struct AnchorRequest<'a, W: AnchorAsyncSigner + 'a> {
-	pub rpc: &'a SolanaRpcClient,
+	pub rpc: &'a SolanaClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
 	pub args_data: Vec<u8>,
@@ -174,7 +174,7 @@ impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for AnchorReques
 		self.wallet
 	}
 
-	fn rpc(&self) -> &'a SolanaRpcClient {
+	fn rpc(&self) -> &'a SolanaClient {
 		self.rpc
 	}
 
@@ -205,12 +205,12 @@ impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for AnchorReques
 }
 
 pub type EmptyAnchorRequestBuilderPartial<'a, W> =
-	EmptyAnchorRequestBuilder<'a, W, ((&'a SolanaRpcClient,), (Pubkey,), (&'a W,), (), (), ())>;
+	EmptyAnchorRequestBuilder<'a, W, ((&'a SolanaClient,), (Pubkey,), (&'a W,), (), (), ())>;
 
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
 pub struct EmptyAnchorRequest<'a, W: AnchorAsyncSigner + 'a> {
-	pub rpc: &'a SolanaRpcClient,
+	pub rpc: &'a SolanaClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
 	#[builder(default)]
@@ -227,7 +227,7 @@ impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorR
 		self.wallet
 	}
 
-	fn rpc(&self) -> &'a SolanaRpcClient {
+	fn rpc(&self) -> &'a SolanaClient {
 		self.rpc
 	}
 
@@ -252,7 +252,7 @@ pub trait AnchorRequestMethods<'a, W: AnchorAsyncSigner + 'a> {
 	/// The wallet that will pay for this transaction.
 	fn wallet(&self) -> &'a W;
 	/// The solana client that is used to send rpc methods.
-	fn rpc(&self) -> &'a SolanaRpcClient;
+	fn rpc(&self) -> &'a SolanaClient;
 	/// The sync signers
 	fn sync_signers(&self) -> Vec<&'a dyn Signer>;
 	/// The async signers
@@ -482,7 +482,7 @@ const MAX_LOOKUP_ADDRESSES_PER_TRANSACTION: usize = 30;
 /// This is taken from the brilliant tutorial and converted to rust.
 pub async fn initialize_lookup_table(
 	async_signer: &impl AsyncSigner,
-	rpc: SolanaRpcClient,
+	rpc: SolanaClient,
 	addresses: &[Pubkey],
 ) -> AnchorClientResult<Pubkey> {
 	let slot = rpc.get_slot().await?;
@@ -550,7 +550,7 @@ fn get_lookup_address_start_and_end(
 
 #[derive(Debug, TypedBuilder)]
 pub struct CreateVersionedMessage<'a> {
-	pub rpc: &'a SolanaRpcClient,
+	pub rpc: &'a SolanaClient,
 	pub payer: &'a Pubkey,
 	pub instructions: &'a [Instruction],
 	#[builder(default, setter(into, strip_option))]
@@ -569,7 +569,7 @@ impl<'a> CreateVersionedMessage<'a> {
 }
 
 pub async fn get_anchor_account<T: AccountDeserialize>(
-	client: &SolanaRpcClient,
+	client: &SolanaClient,
 	address: &Pubkey,
 ) -> AnchorClientResult<T> {
 	let account = client

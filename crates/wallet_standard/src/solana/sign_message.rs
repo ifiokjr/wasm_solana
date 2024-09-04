@@ -1,5 +1,6 @@
 use std::future::Future;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
 use solana_sdk::signature::Signature;
@@ -40,18 +41,16 @@ pub struct SolanaSignMessageInput<Account: WalletAccountInfo> {
 	pub message: Vec<u8>,
 }
 
+#[async_trait(?Send)]
 pub trait WalletSolanaSignMessage {
 	type Output: SolanaSignMessageOutput;
 
 	/// Sign a  message using the account's secret key.
-	fn sign_message(
-		&self,
-		message: impl Into<Vec<u8>>,
-	) -> impl Future<Output = WalletResult<Self::Output>>;
+	async fn sign_message(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output>;
 
 	/// Sign a list of messages using the account's secret key.
-	fn sign_messages<M: Into<Vec<u8>>>(
+	async fn sign_messages<M: Into<Vec<u8>>>(
 		&self,
 		messages: Vec<M>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>>;
+	) -> WalletResult<Vec<Self::Output>>;
 }

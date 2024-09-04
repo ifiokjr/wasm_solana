@@ -1,21 +1,26 @@
-pub use client::*;
-pub use errors::*;
-pub use http_provider::*;
-pub use methods::*;
-pub use solana_rpc_client::*;
+pub use crate::client::*;
+pub use crate::errors::*;
+pub use crate::extensions::*;
+pub use crate::methods::*;
+pub use crate::providers::*;
+pub use crate::solana_client::*;
 
 mod client;
 mod errors;
-mod http_provider;
+mod extensions;
 mod methods;
 pub mod nonce_utils;
-mod pubsub;
+mod providers;
 pub mod rpc_config;
 pub mod rpc_filter;
 pub mod rpc_response;
 pub mod runtime;
 pub mod solana_account_decoder;
+mod solana_client;
 pub mod solana_config_program;
-mod solana_rpc_client;
 pub mod solana_rpc_client_api;
 pub mod solana_transaction_status;
+
+pub mod prelude {
+	pub use crate::extensions::*;
+}

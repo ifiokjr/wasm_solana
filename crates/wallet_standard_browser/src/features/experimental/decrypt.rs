@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 
-use std::future::Future;
-
+use async_trait::async_trait;
 use js_sys::Array;
 use serde::Deserialize;
 use serde::Serialize;
@@ -16,9 +15,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -54,9 +53,7 @@ impl ExperimentalDecryptOutput for BrowserExperimentalDecryptOutput {
 	}
 }
 
-impl FeatureFromJs for ExperimentalDecryptFeature {
-	const NAME: &'static str = EXPERIMENTAL_DECRYPT;
-}
+impl_feature_from_js!(ExperimentalDecryptFeature, EXPERIMENTAL_DECRYPT);
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 pub struct ExperimentalDecryptInput {
@@ -68,46 +65,40 @@ pub struct ExperimentalDecryptInput {
 	pub props: ExperimentalDecryptProps,
 }
 
+#[async_trait(?Send)]
 impl WalletExperimentalDecrypt for BrowserWallet {
 	type Output = BrowserExperimentalDecryptOutput;
 
-	fn decrypt_many(
+	async fn decrypt_many(
 		&self,
 		props: Vec<ExperimentalDecryptProps>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>> {
-		async move {
-			let Some(ref wallet_account) = self.wallet_account else {
-				return Err(WalletError::WalletAccount);
-			};
+	) -> WalletResult<Vec<Self::Output>> {
+		let Some(ref wallet_account) = self.wallet_account else {
+			return Err(WalletError::WalletAccount);
+		};
 
-			let input = props
-				.into_iter()
-				.map(|props| {
-					ExperimentalDecryptInput::builder()
-						.account(wallet_account.clone())
-						.props(props)
-						.build()
-				})
-				.collect::<Vec<_>>();
+		let input = props
+			.into_iter()
+			.map(|props| {
+				ExperimentalDecryptInput::builder()
+					.account(wallet_account.clone())
+					.props(props)
+					.build()
+			})
+			.collect::<Vec<_>>();
 
-			let feature = self.wallet.get_feature::<ExperimentalDecryptFeature>()?;
-			let inputs: Array = serde_wasm_bindgen::to_value(&input)?.unchecked_into();
-			let result: Array = feature.decrypt(inputs).await?.unchecked_into();
+		let feature = self.wallet.get_feature::<ExperimentalDecryptFeature>()?;
+		let inputs: Array = serde_wasm_bindgen::to_value(&input)?.unchecked_into();
+		let result: Array = feature.decrypt(inputs).await?.unchecked_into();
 
-			Ok(result.into_iter().map(JsCast::unchecked_into).collect())
-		}
+		Ok(result.into_iter().map(JsCast::unchecked_into).collect())
 	}
 
-	fn decrypt(
-		&self,
-		props: ExperimentalDecryptProps,
-	) -> impl Future<Output = WalletResult<Self::Output>> {
-		async move {
-			self.decrypt_many(vec![props])
-				.await?
-				.first()
-				.cloned()
-				.ok_or(WalletError::WalletDecrypt)
-		}
+	async fn decrypt(&self, props: ExperimentalDecryptProps) -> WalletResult<Self::Output> {
+		self.decrypt_many(vec![props])
+			.await?
+			.first()
+			.cloned()
+			.ok_or(WalletError::WalletDecrypt)
 	}
 }

@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 
-use std::future::Future;
-
+use async_trait::async_trait;
 use js_sys::Array;
 use solana_sdk::signature::Signature;
 use wallet_standard::AsyncSigner;
@@ -16,9 +15,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -80,9 +79,7 @@ impl SolanaSignInOutput for BrowserSolanaSignInOutput {
 	}
 }
 
-impl FeatureFromJs for SolanaSignInFeature {
-	const NAME: &'static str = SOLANA_SIGN_IN;
-}
+impl_feature_from_js!(SolanaSignInFeature, SOLANA_SIGN_IN);
 
 impl SolanaSignInFeature {
 	pub async fn sign_in(
@@ -103,45 +100,39 @@ impl SolanaSignInFeature {
 	}
 }
 
+#[async_trait(?Send)]
 impl WalletSolanaSignIn for BrowserWallet {
 	type Output = BrowserSolanaSignInOutput;
 
-	fn sign_in(
-		&self,
-		input: SolanaSignInInput,
-	) -> impl Future<Output = WalletResult<Self::Output>> {
-		async move {
-			self.sign_in_many(vec![input])
-				.await?
-				.first()
-				.cloned()
-				.ok_or(WalletError::WalletSignIn)
-		}
+	async fn sign_in(&self, input: SolanaSignInInput) -> WalletResult<Self::Output> {
+		self.sign_in_many(vec![input])
+			.await?
+			.first()
+			.cloned()
+			.ok_or(WalletError::WalletSignIn)
 	}
 
-	fn sign_in_many(
+	async fn sign_in_many(
 		&self,
 		inputs: Vec<SolanaSignInInput>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>> {
-		async move {
-			let Ok(address) = self.try_pubkey().map(|pubkey| pubkey.to_string()) else {
-				return Err(WalletError::WalletAccount);
-			};
+	) -> WalletResult<Vec<Self::Output>> {
+		let Ok(address) = self.try_pubkey().map(|pubkey| pubkey.to_string()) else {
+			return Err(WalletError::WalletAccount);
+		};
 
-			let inputs = inputs
-				.into_iter()
-				.map(|input| {
-					SolanaSignInInput {
-						address: Some(address.clone()),
-						..input
-					}
-				})
-				.collect();
+		let inputs = inputs
+			.into_iter()
+			.map(|input| {
+				SolanaSignInInput {
+					address: Some(address.clone()),
+					..input
+				}
+			})
+			.collect();
 
-			self.wallet
-				.get_feature::<SolanaSignInFeature>()?
-				.sign_in(inputs)
-				.await
-		}
+		self.wallet
+			.get_feature::<SolanaSignInFeature>()?
+			.sign_in(inputs)
+			.await
 	}
 }

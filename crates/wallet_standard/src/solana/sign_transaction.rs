@@ -1,7 +1,6 @@
-#![allow(unsafe_code)]
-
 use std::future::Future;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
 use solana_sdk::commitment_config::CommitmentLevel;
@@ -71,15 +70,16 @@ pub struct SolanaSignTransactionOptions {
 	pub min_context_slot: Option<u64>,
 }
 
+#[async_trait(?Send)]
 pub trait WalletSolanaSignTransaction {
 	type Output: SolanaSignTransactionOutput;
 
-	fn sign_transaction(
+	async fn sign_transaction(
 		&self,
 		props: SolanaSignTransactionProps,
-	) -> impl Future<Output = WalletResult<Self::Output>>;
-	fn sign_transactions(
+	) -> WalletResult<Self::Output>;
+	async fn sign_transactions(
 		&self,
 		inputs: Vec<SolanaSignTransactionProps>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>>;
+	) -> WalletResult<Vec<Self::Output>>;
 }

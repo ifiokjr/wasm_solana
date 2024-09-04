@@ -1,13 +1,13 @@
 use std::fmt::Write;
-use std::future::Future;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
 use typed_builder::TypedBuilder;
 
+use super::WalletAccountInfoSolanaPubkey;
 use crate::AsyncSigner;
 use crate::SolanaSignatureOutput;
-use crate::SolanaWalletPubkey;
 use crate::WalletAccountInfo;
 use crate::WalletError;
 use crate::WalletResult;
@@ -84,15 +84,13 @@ pub struct SolanaSignInInput {
 	pub resources: Option<Vec<String>>,
 }
 
+#[async_trait(?Send)]
 pub trait WalletSolanaSignIn: AsyncSigner {
 	type Output: SolanaSignInOutput;
 
-	fn sign_in(&self, input: SolanaSignInInput)
-	-> impl Future<Output = WalletResult<Self::Output>>;
-	fn sign_in_many(
-		&self,
-		inputs: Vec<SolanaSignInInput>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>>;
+	async fn sign_in(&self, input: SolanaSignInInput) -> WalletResult<Self::Output>;
+	async fn sign_in_many(&self, inputs: Vec<SolanaSignInInput>)
+	-> WalletResult<Vec<Self::Output>>;
 }
 
 /// Check tha the input and output of the sign in are valid.
@@ -114,7 +112,7 @@ pub fn verify_sign_in(
 
 	let signature = output.try_signature()?;
 	let signed_message = output.signed_message();
-	let pubkey = account.try_pubkey()?;
+	let pubkey = account.pubkey();
 
 	if pubkey.to_string().as_str() != input_address {
 		return Err(WalletError::WalletSignIn);

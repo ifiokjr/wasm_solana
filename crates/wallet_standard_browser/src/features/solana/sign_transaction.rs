@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 
-use std::future::Future;
-
+use async_trait::async_trait;
 use js_sys::Array;
 use solana_sdk::transaction::Transaction;
 use solana_sdk::transaction::TransactionVersion;
@@ -18,9 +17,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -83,9 +82,7 @@ impl SolanaSignTransactionFeature {
 	}
 }
 
-impl FeatureFromJs for SolanaSignTransactionFeature {
-	const NAME: &'static str = SOLANA_SIGN_TRANSACTION;
-}
+impl_feature_from_js!(SolanaSignTransactionFeature, SOLANA_SIGN_TRANSACTION);
 
 impl SolanaSignTransactionFeature {
 	pub async fn sign_transaction(
@@ -118,7 +115,7 @@ impl SolanaSignTransactionFeature {
 					return Err(WalletError::UnsupportedTransactionVersion);
 				}
 
-				let result = SolanaSignTransactionInput::builder()
+				let input = SolanaSignTransactionInput::builder()
 					.account(account)
 					.props(SolanaSignTransactionPropsWithBytes {
 						transaction: bincode::serialize(&props.transaction)
@@ -128,7 +125,7 @@ impl SolanaSignTransactionFeature {
 					})
 					.build();
 
-				Ok(result)
+				Ok(input)
 			})
 			.collect::<WalletResult<Vec<_>>>();
 
@@ -139,43 +136,40 @@ impl SolanaSignTransactionFeature {
 	}
 }
 
+#[async_trait(?Send)]
 impl WalletSolanaSignTransaction for BrowserWallet {
 	type Output = BrowserSolanaSignTransactionOutput;
 
-	fn sign_transaction(
+	async fn sign_transaction(
 		&self,
 		props: SolanaSignTransactionProps,
-	) -> impl Future<Output = WalletResult<Self::Output>> {
-		async move {
-			let Some(ref wallet_account) = self.wallet_account else {
-				return Err(WalletError::WalletAccount);
-			};
+	) -> WalletResult<Self::Output> {
+		let Some(ref wallet_account) = self.wallet_account else {
+			return Err(WalletError::WalletAccount);
+		};
 
-			self.wallet
-				.get_feature::<SolanaSignTransactionFeature>()?
-				.sign_transaction(wallet_account.clone(), props)
-				.await
-		}
+		self.wallet
+			.get_feature::<SolanaSignTransactionFeature>()?
+			.sign_transaction(wallet_account.clone(), props)
+			.await
 	}
 
-	fn sign_transactions(
+	async fn sign_transactions(
 		&self,
 		inputs: Vec<SolanaSignTransactionProps>,
-	) -> impl Future<Output = WalletResult<Vec<Self::Output>>> {
-		async move {
-			let Some(ref wallet_account) = self.wallet_account else {
-				return Err(WalletError::WalletAccount);
-			};
+	) -> WalletResult<Vec<Self::Output>> {
+		let Some(ref wallet_account) = self.wallet_account else {
+			return Err(WalletError::WalletAccount);
+		};
 
-			let inputs = inputs
-				.into_iter()
-				.map(|props| (wallet_account.clone(), props))
-				.collect();
+		let inputs = inputs
+			.into_iter()
+			.map(|props| (wallet_account.clone(), props))
+			.collect();
 
-			self.wallet
-				.get_feature::<SolanaSignTransactionFeature>()?
-				.sign_transactions(inputs)
-				.await
-		}
+		self.wallet
+			.get_feature::<SolanaSignTransactionFeature>()?
+			.sign_transactions(inputs)
+			.await
 	}
 }

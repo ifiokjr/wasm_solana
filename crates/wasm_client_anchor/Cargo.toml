@@ -20,6 +20,7 @@ anchor-lang = { workspace = true }
 async-trait = { workspace = true }
 derive_more = { workspace = true, features = ["debug"] }
 log = { workspace = true }
+paste = { workspace = true }
 retrier = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

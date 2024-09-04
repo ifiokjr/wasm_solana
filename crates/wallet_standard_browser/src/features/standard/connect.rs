@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
-use std::future::Future;
 
+use async_trait::async_trait;
 use wallet_standard::StandardConnectInput;
 use wallet_standard::StandardConnectOutput;
 use wallet_standard::WalletError;
@@ -11,9 +11,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -43,9 +43,7 @@ impl StandardConnectOutput for BrowserStandardConnectOutput {
 	}
 }
 
-impl FeatureFromJs for StandardConnectFeature {
-	const NAME: &'static str = STANDARD_CONNECT;
-}
+impl_feature_from_js!(StandardConnectFeature, STANDARD_CONNECT);
 
 impl StandardConnectFeature {
 	pub async fn connect(&self) -> WalletResult<Vec<BrowserWalletAccountInfo>> {
@@ -63,43 +61,42 @@ impl StandardConnectFeature {
 	}
 }
 
+#[async_trait(?Send)]
 impl WalletStandardConnect for BrowserWallet {
 	/// Connect the account and automatically update the attached account.
-	fn connect_mut(&mut self) -> impl Future<Output = WalletResult<Vec<Self::Account>>> {
+	async fn connect_mut(&mut self) -> WalletResult<Vec<Self::Account>> {
 		self.connect_with_options_mut(StandardConnectInput::default())
+			.await
 	}
 
 	/// Connect the account and automatically update the attached account.
 	#[allow(clippy::manual_async_fn)]
-	fn connect_with_options_mut(
+	async fn connect_with_options_mut(
 		&mut self,
 		options: StandardConnectInput,
-	) -> impl Future<Output = WalletResult<Vec<Self::Account>>> {
-		async move {
-			let accounts = self.connect_with_options(options).await?;
-			let account = accounts
-				.first()
-				.cloned()
-				.ok_or(WalletError::WalletConnection)?;
-			self.wallet_account = Some(account);
+	) -> WalletResult<Vec<Self::Account>> {
+		let accounts = self.connect_with_options(options).await?;
+		let account = accounts
+			.first()
+			.cloned()
+			.ok_or(WalletError::WalletConnection)?;
+		self.wallet_account = Some(account);
 
-			Ok(accounts)
-		}
+		Ok(accounts)
 	}
 
-	fn connect(&self) -> impl Future<Output = WalletResult<Vec<Self::Account>>> {
+	async fn connect(&self) -> WalletResult<Vec<Self::Account>> {
 		self.connect_with_options(StandardConnectInput::default())
+			.await
 	}
 
-	fn connect_with_options(
+	async fn connect_with_options(
 		&self,
 		options: StandardConnectInput,
-	) -> impl Future<Output = WalletResult<Vec<Self::Account>>> {
-		async move {
-			self.wallet
-				.get_feature::<StandardConnectFeature>()?
-				.connect_with_options(options)
-				.await
-		}
+	) -> WalletResult<Vec<Self::Account>> {
+		self.wallet
+			.get_feature::<StandardConnectFeature>()?
+			.connect_with_options(options)
+			.await
 	}
 }

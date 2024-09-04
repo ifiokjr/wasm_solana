@@ -1,56 +1,113 @@
-pub use account_info::*;
-pub use balance::*;
-pub use block::*;
-pub use block_commitment::*;
-pub use block_height::*;
-pub use block_production::*;
-pub use block_time::*;
-pub use blockhash_valid::*;
-pub use blocks::*;
-pub use blocks_with_limit::*;
-pub use cluster_nodes::*;
-pub use epoch_info::*;
-pub use epoch_schedule::*;
-pub use fee_for_message::*;
-pub use first_available_block::*;
-pub use genesis_hash::*;
-pub use health::*;
-pub use highest_snapshot_slot::*;
-pub use identity::*;
-pub use inflation_governor::*;
-pub use inflation_rate::*;
-pub use inflation_reward::*;
-pub use largest_accounts::*;
-pub use latest_blockhash::*;
-pub use leader_schedule::*;
-pub use max_retransmit_slot::*;
-pub use minimum_balance_for_rent_exemption::*;
-pub use minimum_ledger_slot::*;
-pub use multiple_accounts::*;
-pub use program_accounts::*;
-pub use recent_performance_samples::*;
-pub use request_airdrop::*;
-pub use send_transaction::*;
+use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
-// pub use serde_utils::*;
-pub use signature_statuses::*;
-pub use signatures_for_address::*;
-pub use simulate_transaction::*;
-pub use slot::*;
-pub use slot_leader::*;
-pub use slot_leaders::*;
-pub use stake_activation::*;
-pub use supply::*;
-pub use token_account_balance::*;
-pub use token_accounts_by_delegate::*;
-pub use token_accounts_by_owner::*;
-pub use token_largest_accounts::*;
-pub use token_supply::*;
-pub use transaction::*;
-pub use transaction_count::*;
-pub use version::*;
-pub use vote_accounts::*;
+
+pub use self::get_account_info::*;
+pub use self::get_balance::*;
+pub use self::get_block::*;
+pub use self::get_block_commitment::*;
+pub use self::get_block_height::*;
+pub use self::get_block_production::*;
+pub use self::get_block_time::*;
+pub use self::get_blocks::*;
+pub use self::get_blocks_with_limit::*;
+pub use self::get_cluster_nodes::*;
+pub use self::get_epoch_info::*;
+pub use self::get_epoch_schedule::*;
+pub use self::get_fee_for_message::*;
+pub use self::get_first_available_block::*;
+pub use self::get_genesis_hash::*;
+pub use self::get_health::*;
+pub use self::get_highest_snapshot_slot::*;
+pub use self::get_identity::*;
+pub use self::get_inflation_governor::*;
+pub use self::get_inflation_rate::*;
+pub use self::get_inflation_reward::*;
+pub use self::get_largest_accounts::*;
+pub use self::get_latest_blockhash::*;
+pub use self::get_leader_schedule::*;
+pub use self::get_max_retransmit_slot::*;
+pub use self::get_minimum_balance_for_rent_exemption::*;
+pub use self::get_multiple_accounts::*;
+pub use self::get_program_accounts::*;
+pub use self::get_recent_performance_samples::*;
+pub use self::get_recent_prioritization_fees::*;
+pub use self::get_signature_statuses::*;
+pub use self::get_signatures_for_address::*;
+pub use self::get_slot::*;
+pub use self::get_slot_leader::*;
+pub use self::get_slot_leaders::*;
+pub use self::get_stake_activation::*;
+pub use self::get_stake_minimum_delegation::*;
+pub use self::get_supply::*;
+pub use self::get_token_account_balance::*;
+pub use self::get_token_accounts_by_delegate::*;
+pub use self::get_token_accounts_by_owner::*;
+pub use self::get_token_largest_accounts::*;
+pub use self::get_token_supply::*;
+pub use self::get_transaction::*;
+pub use self::get_transaction_count::*;
+pub use self::get_version::*;
+pub use self::get_vote_accounts::*;
+pub use self::is_blockhash_valid::*;
+pub use self::minimum_ledger_slot::*;
+pub use self::request_airdrop::*;
+pub use self::send_transaction::*;
+pub use self::simulate_transaction::*;
+use crate::SubscriptionId;
+
+mod get_account_info;
+mod get_balance;
+mod get_block;
+mod get_block_commitment;
+mod get_block_height;
+mod get_block_production;
+mod get_block_time;
+mod get_blocks;
+mod get_blocks_with_limit;
+mod get_cluster_nodes;
+mod get_epoch_info;
+mod get_epoch_schedule;
+mod get_fee_for_message;
+mod get_first_available_block;
+mod get_genesis_hash;
+mod get_health;
+mod get_highest_snapshot_slot;
+mod get_identity;
+mod get_inflation_governor;
+mod get_inflation_rate;
+mod get_inflation_reward;
+mod get_largest_accounts;
+mod get_latest_blockhash;
+mod get_leader_schedule;
+mod get_max_retransmit_slot;
+mod get_minimum_balance_for_rent_exemption;
+mod get_multiple_accounts;
+mod get_program_accounts;
+mod get_recent_performance_samples;
+mod get_recent_prioritization_fees;
+mod get_signature_statuses;
+mod get_signatures_for_address;
+mod get_slot;
+mod get_slot_leader;
+mod get_slot_leaders;
+mod get_stake_activation;
+mod get_stake_minimum_delegation;
+mod get_supply;
+mod get_token_account_balance;
+mod get_token_accounts_by_delegate;
+mod get_token_accounts_by_owner;
+mod get_token_largest_accounts;
+mod get_token_supply;
+mod get_transaction;
+mod get_transaction_count;
+mod get_version;
+mod get_vote_accounts;
+mod is_blockhash_valid;
+mod minimum_ledger_slot;
+mod request_airdrop;
+mod send_transaction;
+mod simulate_transaction;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Context {
@@ -65,54 +122,42 @@ pub struct BlockProductionRange {
 	pub last_slot: Option<u64>,
 }
 
-mod account_info;
-mod balance;
-mod block;
-mod block_commitment;
-mod block_height;
-mod block_production;
-mod block_time;
-mod blockhash_valid;
-mod blocks;
-mod blocks_with_limit;
-mod cluster_nodes;
-mod epoch_info;
-mod epoch_schedule;
-mod fee_for_message;
-mod first_available_block;
-mod genesis_hash;
-mod health;
-mod highest_snapshot_slot;
-mod identity;
-mod inflation_governor;
-mod inflation_rate;
-mod inflation_reward;
-mod largest_accounts;
-mod latest_blockhash;
-mod leader_schedule;
-mod max_retransmit_slot;
-mod minimum_balance_for_rent_exemption;
-mod minimum_ledger_slot;
-mod multiple_accounts;
-mod program_accounts;
-mod recent_performance_samples;
-mod request_airdrop;
-mod send_transaction;
-pub mod serde_utils;
-mod signature_statuses;
-mod signatures_for_address;
-mod simulate_transaction;
-mod slot;
-mod slot_leader;
-mod slot_leaders;
-mod stake_activation;
-mod supply;
-mod token_account_balance;
-mod token_accounts_by_delegate;
-mod token_accounts_by_owner;
-mod token_largest_accounts;
-mod token_supply;
-mod transaction;
-mod transaction_count;
-mod version;
-mod vote_accounts;
+pub trait HttpMethod: Serialize {
+	const NAME: &'static str;
+}
+
+macro_rules! impl_http_method {
+	($ident:ident, $name:literal) => {
+		impl $crate::methods::HttpMethod for $ident {
+			const NAME: &'static str = $name;
+		}
+	};
+}
+
+pub trait WebsocketNotification: DeserializeOwned {
+	const NOTIFICATION: &'static str;
+	const UNSUBSCRIBE: &'static str;
+}
+pub trait WebsocketMethod: Serialize {
+	const SUBSCRIBE: &'static str;
+}
+
+macro_rules! impl_websocket_method {
+	($ident:ident, $prefix:literal) => {
+		impl $crate::methods::WebsocketMethod for $ident {
+			const SUBSCRIBE: &'static str = concat!($prefix, "Subscribe");
+		}
+	};
+}
+macro_rules! impl_websocket_notification {
+	($ident:ident, $prefix:literal) => {
+		impl $crate::methods::WebsocketNotification for $ident {
+			const NOTIFICATION: &'static str = concat!($prefix, "Notification");
+			const UNSUBSCRIBE: &'static str = concat!($prefix, "Unsubscribe");
+		}
+	};
+}
+
+pub(crate) use impl_http_method;
+pub(crate) use impl_websocket_method;
+pub(crate) use impl_websocket_notification;

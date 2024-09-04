@@ -9,9 +9,9 @@ use wallet_standard::STANDARD_EVENTS;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::prelude::*;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::FeatureFromJs;
 
 #[wasm_bindgen]
 extern "C" {
@@ -75,13 +75,10 @@ impl StandardEventProperties for BrowserStandardEventsProperties {
 	}
 }
 
-impl FeatureFromJs for StandardEventsFeature {
-	const NAME: &'static str = STANDARD_EVENTS;
-}
+impl_feature_from_js!(StandardEventsFeature, STANDARD_EVENTS);
 
 impl ConnectedWalletStandardEvents for BrowserWallet {
-	type Callback = Closure<dyn Fn(Self::Properties)>;
-	type Properties = BrowserStandardEventsProperties;
+	type Callback = Closure<dyn Fn(BrowserStandardEventsProperties)>;
 
 	fn on(&self, event: impl AsRef<str>, callback: &Self::Callback) -> WalletResult<Box<dyn Fn()>> {
 		let feature = self.wallet.get_feature::<StandardEventsFeature>()?;

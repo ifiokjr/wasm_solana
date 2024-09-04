@@ -1,6 +1,10 @@
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use bincode::serialize;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::DisplayFromStr;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -8,6 +12,7 @@ use solana_sdk::commitment_config::CommitmentLevel;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
+use typed_builder::TypedBuilder;
 
 use super::rpc_filter::RpcFilterType;
 use crate::nonce_utils;
@@ -17,7 +22,7 @@ use crate::solana_account_decoder::UiDataSliceConfig;
 use crate::solana_transaction_status::TransactionDetails;
 use crate::solana_transaction_status::UiTransactionEncoding;
 use crate::ClientResult;
-use crate::SolanaRpcClient;
+use crate::SolanaClient;
 use crate::SolanaRpcClientError;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -36,7 +41,7 @@ pub enum Source {
 impl Source {
 	pub async fn get_blockhash(
 		&self,
-		rpc_client: &SolanaRpcClient,
+		rpc_client: &SolanaClient,
 		commitment_config: CommitmentConfig,
 	) -> Result<Hash, Box<dyn std::error::Error>> {
 		match self {
@@ -58,7 +63,7 @@ impl Source {
 
 	pub async fn is_blockhash_valid(
 		&self,
-		rpc_client: &SolanaRpcClient,
+		rpc_client: &SolanaClient,
 		blockhash: &Hash,
 		commitment_config: CommitmentConfig,
 	) -> Result<bool, Box<dyn std::error::Error>> {
@@ -99,7 +104,7 @@ impl BlockhashQuery {
 
 	pub async fn get_blockhash(
 		&self,
-		rpc_client: &SolanaRpcClient,
+		rpc_client: &SolanaClient,
 		commitment_config: CommitmentConfig,
 	) -> Result<Hash, Box<dyn std::error::Error>> {
 		match self {
@@ -131,12 +136,12 @@ where
 	T: Serialize,
 {
 	let serialized = serialize(input)
-		.map_err(|e| SolanaRpcClientError::new(&format!("Serialization failed: {e}")))?;
+		.map_err(|e| SolanaRpcClientError::new(format!("Serialization failed: {e}")))?;
 	let encoded = match encoding {
 		UiTransactionEncoding::Base58 => bs58::encode(serialized).into_string(),
-		UiTransactionEncoding::Base64 => base64::encode(serialized),
+		UiTransactionEncoding::Base64 => BASE64_STANDARD.encode(serialized),
 		_ => {
-			return Err(SolanaRpcClientError::new(&format!(
+			return Err(SolanaRpcClientError::new(format!(
 				"unsupported encoding: {encoding}. Supported encodings: base58, base64"
 			)));
 		}
@@ -174,7 +179,7 @@ pub struct RpcSimulateTransactionConfig {
 	#[serde(default)]
 	pub sig_verify: bool,
 	#[serde(default)]
-	pub replace_recent_blockhash: bool,
+	pub replace_recent_blockhash: Option<bool>,
 	#[serde(flatten)]
 	pub commitment: Option<CommitmentConfig>,
 	pub encoding: Option<UiTransactionEncoding>,
@@ -192,8 +197,10 @@ pub struct RpcRequestAirdropConfig {
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[serde_as]
 pub struct RpcLeaderScheduleConfig {
-	pub identity: Option<String>, // validator identity, as a base-58 encoded string
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub identity: Option<Pubkey>, // validator identity, as a base-58 encoded string
 	#[serde(flatten)]
 	pub commitment: Option<CommitmentConfig>,
 }
@@ -273,13 +280,17 @@ pub struct RpcEpochConfig {
 	pub min_context_slot: Option<Slot>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcAccountInfoConfig {
+	#[builder(default = Some(UiAccountEncoding::Base64), setter(into, strip_option(fallback = encoding_opt)))]
 	pub encoding: Option<UiAccountEncoding>,
+	#[builder(default, setter(into, strip_option(fallback = data_slice_opt)))]
 	pub data_slice: Option<UiDataSliceConfig>,
 	#[serde(flatten)]
+	#[builder(default, setter(into, strip_option(fallback = commitment_opt)))]
 	pub commitment: Option<CommitmentConfig>,
+	#[builder(default, setter(into, strip_option(fallback = min_context_slot_opt)))]
 	pub min_context_slot: Option<Slot>,
 }
 
@@ -292,11 +303,12 @@ pub struct RpcProgramAccountsConfig {
 	pub with_context: Option<bool>,
 }
 
+#[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RpcTokenAccountsFilter {
-	Mint(String),
-	ProgramId(String),
+	Mint(#[serde_as(as = "DisplayFromStr")] Pubkey),
+	ProgramId(#[serde_as(as = "DisplayFromStr")] Pubkey),
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]

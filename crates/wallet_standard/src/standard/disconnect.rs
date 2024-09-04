@@ -1,11 +1,14 @@
 use std::future::Future;
 
+use async_trait::async_trait;
+
 use crate::Wallet;
 use crate::WalletResult;
 
 pub const STANDARD_DISCONNECT: &str = "standard:disconnect";
 
+#[async_trait(?Send)]
 pub trait WalletStandardDisconnect: Wallet {
-	fn disconnect(&self) -> impl Future<Output = WalletResult<()>>;
-	fn disconnect_mut(&mut self) -> impl Future<Output = WalletResult<()>>;
+	async fn disconnect(&self) -> WalletResult<()>;
+	async fn disconnect_mut(&mut self) -> WalletResult<()>;
 }
