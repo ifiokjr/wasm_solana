@@ -41,10 +41,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetClusterNodesRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetClusterNodesRequest::NAME)
 			.id(1)
-			.params(GetClusterNodesRequest);
+			.params(GetClusterNodesRequest)
+			.build();
 
+		insta::assert_json_snapshot!(request, @"");
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getClusterNodes"}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();

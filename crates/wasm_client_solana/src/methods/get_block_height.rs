@@ -46,9 +46,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetBlockHeightRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetBlockHeightRequest::NAME)
 			.id(1)
-			.params(GetBlockHeightRequest::new());
+			.params(GetBlockHeightRequest::new())
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBlockHeight"}"#;

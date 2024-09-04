@@ -64,12 +64,14 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(RequestAirdropRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(RequestAirdropRequest::NAME)
 			.id(1)
 			.params(RequestAirdropRequest::new(
 				pubkey!("83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri"),
 				1_000_000_000,
-			));
+			))
+			.build();
 
 		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"requestAirdrop","params":["83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",1000000000]}"#;

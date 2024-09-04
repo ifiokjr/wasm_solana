@@ -85,7 +85,8 @@ mod tests {
 	#[test]
 	fn request() {
 		let tx = bincode::deserialize(&BASE64_STANDARD.decode("AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDArczbMia1tLmq7zz4DinMNN0pJ1JtLdqIJPUw3YrGCzYAMHBsgN27lcgB6H2WQvFgyZuJYHa46puOQo9yQ8CVQbd9uHXZaGT2cvhRs7reawctIXtX1s3kTqM9YV+/wCp20C7Wj2aiuk5TReAXo+VTVg8QTHjs0UjNMMKCvpzZ+ABAgEBARU=").unwrap()).unwrap();
-		let request = ClientRequest::new(SimulateTransactionRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(SimulateTransactionRequest::NAME)
 			.id(1)
 			.params(SimulateTransactionRequest::new_with_config(
 				tx,
@@ -93,7 +94,8 @@ mod tests {
 					encoding: Some(UiTransactionEncoding::Base64),
 					..Default::default()
 				},
-			));
+			))
+			.build();
 
 		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"simulateTransaction","params":["AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDArczbMia1tLmq7zz4DinMNN0pJ1JtLdqIJPUw3YrGCzYAMHBsgN27lcgB6H2WQvFgyZuJYHa46puOQo9yQ8CVQbd9uHXZaGT2cvhRs7reawctIXtX1s3kTqM9YV+/wCp20C7Wj2aiuk5TReAXo+VTVg8QTHjs0UjNMMKCvpzZ+ABAgEBARU=",{"encoding":"base64"}]}"#;

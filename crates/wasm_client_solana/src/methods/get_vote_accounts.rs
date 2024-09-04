@@ -49,14 +49,16 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetVoteAccountsRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetVoteAccountsRequest::NAME)
 			.id(1)
 			.params(GetVoteAccountsRequest::new_with_config(
 				RpcGetVoteAccountsConfig {
 					vote_pubkey: Some("3ZT31jkAGhUaw8jsy4bTknwBMP8i4Eueh52By4zXcsVw".to_string()),
 					..Default::default()
 				},
-			));
+			))
+			.build();
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getVoteAccounts","params":[{"votePubkey":"3ZT31jkAGhUaw8jsy4bTknwBMP8i4Eueh52By4zXcsVw"}]}"#;

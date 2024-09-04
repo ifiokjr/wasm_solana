@@ -1,3 +1,5 @@
+use derive_more::derive::From;
+use derive_more::derive::Into;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -8,7 +10,7 @@ pub struct GetMaxRetransmitSlotRequest;
 
 impl_http_method!(GetMaxRetransmitSlotRequest, "getMaxRetransmitSlot");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, From, Into)]
 pub struct GetMaxRetransmitSlotResponse(u64);
 
 #[cfg(test)]
@@ -22,16 +24,19 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetMaxRetransmitSlotRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetMaxRetransmitSlotRequest::NAME)
 			.id(1)
-			.params(GetMaxRetransmitSlotRequest);
+			.params(GetMaxRetransmitSlotRequest)
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getMaxRetransmitSlot"}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
 
 		assert_eq!(ser_value, raw_value);
-		insta::assert_json_snapshot!(ser_value, @"");
 	}
 
 	#[test]

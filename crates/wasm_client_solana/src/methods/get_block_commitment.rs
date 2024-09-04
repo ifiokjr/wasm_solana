@@ -38,15 +38,18 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetBlockCommitmentRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetBlockCommitmentRequest::NAME)
 			.id(1)
-			.params(GetBlockCommitmentRequest::new(5));
+			.params(GetBlockCommitmentRequest::new(5))
+			.build();
 
-		let ser_value = serde_json::to_value(request).unwrap();
+		insta::assert_json_snapshot!(request, @"");
+		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBlockCommitment","params":[5]}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
 
-		check!(ser_value == raw_value);
+		check!(value == raw_value);
 	}
 
 	#[test]

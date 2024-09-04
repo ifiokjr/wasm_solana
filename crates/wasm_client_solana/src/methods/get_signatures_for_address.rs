@@ -58,7 +58,8 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetSignaturesForAddressRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetSignaturesForAddressRequest::NAME)
 			.id(1)
 			.params(GetSignaturesForAddressRequest::new_with_config(
 				pubkey!("Vote111111111111111111111111111111111111111"),
@@ -66,14 +67,15 @@ mod tests {
 					limit: Some(1),
 					..Default::default()
 				},
-			));
+			))
+			.build();
 
+		insta::assert_json_snapshot!(request, @"");
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getSignaturesForAddress","params":["Vote111111111111111111111111111111111111111",{"limit":1}]}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
 
 		check!(ser_value == raw_value);
-		insta::assert_json_snapshot!(ser_value, @"");
 	}
 
 	#[test]

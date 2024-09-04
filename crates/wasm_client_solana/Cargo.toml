@@ -22,7 +22,7 @@ bincode = { workspace = true }
 bs58 = { workspace = true }
 bv = { workspace = true, features = ["serde"] }
 cfg-if = { workspace = true }
-derive_more = { workspace = true, features = ["debug", "deref", "deref_mut"] }
+derive_more = { workspace = true, features = ["debug", "deref", "deref_mut", "into", "into_iterator", "from"] }
 fork_stream = { workspace = true }
 futures = { workspace = true }
 futures-timer = { workspace = true }
@@ -37,6 +37,7 @@ reqwest = { workspace = true, optional = true, features = ["json"] }
 reqwest-websocket = { workspace = true, optional = true, features = ["json"] }
 retrier = { workspace = true }
 semver = { workspace = true }
+send_wrapper = { workspace = true, features = ["futures"] }
 serde = { workspace = true, features = ["derive"] }
 serde-wasm-bindgen = { workspace = true }
 serde_bytes = { workspace = true }

@@ -30,9 +30,11 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(MinimumLedgerSlotRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(MinimumLedgerSlotRequest::NAME)
 			.id(1)
-			.params(MinimumLedgerSlotRequest);
+			.params(MinimumLedgerSlotRequest)
+			.build();
 
 		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"minimumLedgerSlot"}"#;

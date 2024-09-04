@@ -46,9 +46,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetRecentPerformanceSamplesRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetRecentPerformanceSamplesRequest::NAME)
 			.id(1)
-			.params(GetRecentPerformanceSamplesRequest::new_with_limit(4));
+			.params(GetRecentPerformanceSamplesRequest::new_with_limit(4))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json =

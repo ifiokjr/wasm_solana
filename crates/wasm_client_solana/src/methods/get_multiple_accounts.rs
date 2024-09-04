@@ -59,7 +59,8 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetMultipleAccountsRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetMultipleAccountsRequest::NAME)
 			.id(1)
 			.params(GetMultipleAccountsRequest::new_with_config(
 				vec![
@@ -70,14 +71,16 @@ mod tests {
 					encoding: Some(UiAccountEncoding::Base58),
 					..Default::default()
 				},
-			));
+			))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getMultipleAccounts","params":[["vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg","4fYNw3dojWmQ4dXtSGE9epjRGy9pFSx62YypT7avPYvA"],{"encoding":"base58"}]}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
 
 		check!(ser_value == raw_value);
-		insta::assert_json_snapshot!(ser_value, @"");
 	}
 
 	#[test]

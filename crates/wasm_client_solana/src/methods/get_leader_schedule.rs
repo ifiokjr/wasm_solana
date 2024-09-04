@@ -58,14 +58,18 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetLeaderScheduleRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetLeaderScheduleRequest::NAME)
 			.id(1)
 			.params(GetLeaderScheduleRequest::new_with_config(
 				RpcLeaderScheduleConfig {
 					identity: Some(pubkey!("4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F")),
 					..Default::default()
 				},
-			));
+			))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getLeaderSchedule","params":[null,{"identity":"4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F"}]}"#;

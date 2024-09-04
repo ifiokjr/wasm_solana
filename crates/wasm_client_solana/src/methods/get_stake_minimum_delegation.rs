@@ -18,9 +18,9 @@ impl_http_method!(
 );
 
 impl Default for GetStakeMinimumDelegationRequest {
-    fn default() -> Self {
-        Self::new()
-    }
+	fn default() -> Self {
+		Self::new()
+	}
 }
 
 impl GetStakeMinimumDelegationRequest {
@@ -53,9 +53,11 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetStakeMinimumDelegationRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetStakeMinimumDelegationRequest::NAME)
 			.id(1)
-			.params(GetStakeMinimumDelegationRequest::new());
+			.params(GetStakeMinimumDelegationRequest::new())
+			.build();
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getStakeMinimumDelegation"}"#;

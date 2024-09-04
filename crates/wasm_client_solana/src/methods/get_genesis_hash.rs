@@ -29,9 +29,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetGenesisHashRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetGenesisHashRequest::NAME)
 			.id(1)
-			.params(GetGenesisHashRequest);
+			.params(GetGenesisHashRequest)
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getGenesisHash"}"#;

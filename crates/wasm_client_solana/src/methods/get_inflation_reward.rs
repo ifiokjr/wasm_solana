@@ -58,7 +58,8 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetInflationRewardRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetInflationRewardRequest::NAME)
 			.id(1)
 			.params(GetInflationRewardRequest::new_with_config(
 				vec![
@@ -69,7 +70,10 @@ mod tests {
 					epoch: Some(2),
 					..Default::default()
 				},
-			));
+			))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getInflationReward","params":[["6dmNQ5jwLeLk5REvio1JcMshcbvkYMwy26sJ8pbkvStu","BGsqMegLpV6n6Ve146sSX2dTjUMj3M92HnU8BbNRMhF2"],{"epoch":2}]}"#;

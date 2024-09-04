@@ -56,11 +56,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetTokenSupplyRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetTokenSupplyRequest::NAME)
 			.id(1)
 			.params(GetTokenSupplyRequest::new(pubkey!(
 				"3wyAj7Rt1TWVPZVteFJPLa26JmLvdb1CAKEFZm3NY75E"
-			)));
+			)))
+			.build();
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getTokenSupply","params":["3wyAj7Rt1TWVPZVteFJPLa26JmLvdb1CAKEFZm3NY75E"]}"#;

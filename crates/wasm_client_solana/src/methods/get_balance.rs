@@ -44,6 +44,7 @@ pub struct GetBalanceResponse {
 
 #[cfg(test)]
 mod tests {
+	use assert2::check;
 	use serde_json::Value;
 	use solana_sdk::pubkey;
 
@@ -55,15 +56,19 @@ mod tests {
 	#[test]
 	fn request() {
 		let pubkey = pubkey!("83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri");
-		let request = ClientRequest::new(GetBalanceRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetBalanceRequest::NAME)
 			.id(1)
-			.params(GetBalanceRequest::new(pubkey));
+			.params(GetBalanceRequest::new(pubkey))
+			.build();
 
-		let ser_value = serde_json::to_value(request).unwrap();
+		insta::assert_json_snapshot!(request, @"");
+
+		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBalance","params":["83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri"]}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
 
-		assert_eq!(ser_value, raw_value);
+		check!(value == raw_value);
 	}
 
 	#[test]
@@ -72,9 +77,9 @@ mod tests {
 
 		let response: ClientResponse<GetBalanceResponse> = serde_json::from_str(raw_json).unwrap();
 
-		assert_eq!(response.id, 1);
-		assert_eq!(response.jsonrpc, "2.0");
-		assert_eq!(response.result.context.slot, 1);
-		assert_eq!(response.result.value, 0);
+		check!(response.id == 1);
+		check!(response.jsonrpc == "2.0");
+		check!(response.result.context.slot == 1);
+		check!(response.result.value == 0);
 	}
 }

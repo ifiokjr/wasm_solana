@@ -56,11 +56,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetTokenAccountBalanceRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetTokenAccountBalanceRequest::NAME)
 			.id(1)
 			.params(GetTokenAccountBalanceRequest::new(pubkey!(
 				"7fUAJdStEuGbc3sM84cKRL6yYaaSstyLSU4ve5oovLS7"
-			)));
+			)))
+			.build();
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getTokenAccountBalance","params":["7fUAJdStEuGbc3sM84cKRL6yYaaSstyLSU4ve5oovLS7"]}"#;

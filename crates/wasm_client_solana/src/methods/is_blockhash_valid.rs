@@ -57,7 +57,8 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(IsBlockhashValidRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(IsBlockhashValidRequest::NAME)
 			.id(45)
 			.params(IsBlockhashValidRequest::new_with_config(
 				Hash::from_str("J7rBdM6AecPDEZp8aPq5iPSNKVkU5Q76F3oAV4eW5wsW").unwrap(),
@@ -65,7 +66,8 @@ mod tests {
 					commitment: Some(CommitmentConfig::processed()),
 					min_context_slot: None,
 				},
-			));
+			))
+			.build();
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"id":45,"jsonrpc":"2.0","method":"isBlockhashValid","params":["J7rBdM6AecPDEZp8aPq5iPSNKVkU5Q76F3oAV4eW5wsW",{"commitment":"processed"}]}"#;

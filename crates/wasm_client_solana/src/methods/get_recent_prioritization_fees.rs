@@ -20,9 +20,9 @@ impl_http_method!(
 );
 
 impl Default for GetRecentPrioritizationFeesRequest {
-    fn default() -> Self {
-        Self::new()
-    }
+	fn default() -> Self {
+		Self::new()
+	}
 }
 
 impl GetRecentPrioritizationFeesRequest {
@@ -59,18 +59,21 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetRecentPrioritizationFeesRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetRecentPrioritizationFeesRequest::NAME)
 			.id(1)
 			.params(GetRecentPrioritizationFeesRequest::new_with_accounts(vec![
 				pubkey!("CxELquR1gPP8wHe33gZ4QxqGB3sZ9RSwsJ2KshVewkFY"),
-			]));
+			]))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getRecentPrioritizationFees","params":[["CxELquR1gPP8wHe33gZ4QxqGB3sZ9RSwsJ2KshVewkFY"]]}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
 
 		check!(value == raw_value);
-		insta::assert_json_snapshot!(value, @"");
 	}
 
 	#[test]

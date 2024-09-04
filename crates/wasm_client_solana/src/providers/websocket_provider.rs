@@ -35,6 +35,7 @@ use gloo_net::websocket::Message;
 use gloo_net::websocket::WebSocketError;
 use pin_project::pin_project;
 use pin_project::pinned_drop;
+use send_wrapper::SendWrapper;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
@@ -54,7 +55,7 @@ use crate::WebsocketNotification;
 #[pin_project(PinnedDrop)]
 #[derive(Clone, TypedBuilder)]
 pub struct Subscription<T: DeserializeOwned + WebsocketNotification> {
-	pub(crate) sender: Arc<Mutex<SplitSink<WebSocket, Message>>>,
+	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocket, Message>>>>,
 	#[pin]
 	pub(crate) receiver: Forked<UnboundedReceiver<Value>>,
 	#[builder(default)]
@@ -109,7 +110,7 @@ impl<T: DeserializeOwned + WebsocketNotification> Stream for Subscription<T> {
 			return Poll::Pending;
 		};
 
-		if &json.method != T::NOTIFICATION || json.params.subscription != subscription_id {
+		if json.method != T::NOTIFICATION || json.params.subscription != subscription_id {
 			return Poll::Pending;
 		}
 
@@ -121,7 +122,7 @@ impl<T: DeserializeOwned + WebsocketNotification> Stream for Subscription<T> {
 pub struct WebSocketProvider {
 	url: String,
 	#[debug(skip)]
-	pub(crate) sender: Arc<Mutex<SplitSink<WebSocket, Message>>>,
+	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocket, Message>>>>,
 	#[debug(skip)]
 	pub(crate) receiver: Forked<UnboundedReceiver<Value>>,
 	/// The client ID which identifies current client ID.
@@ -154,7 +155,7 @@ impl WebSocketProvider {
 		});
 
 		let receiver = rx.fork();
-		let sender = Arc::new(Mutex::new(sink));
+		let sender = Arc::new(Mutex::new(SendWrapper::new(sink)));
 
 		Ok(Self {
 			url,
@@ -179,7 +180,11 @@ impl WebSocketProvider {
 	) -> ClientResult<SubscriptionId> {
 		let id = self.id;
 		self.id += 1;
-		let request = ClientRequest::new(T::SUBSCRIBE).params(params).id(id);
+		let request = ClientRequest::builder()
+			.method(T::SUBSCRIBE)
+			.params(params)
+			.id(id)
+			.build();
 		let json_string = serde_json::to_string(&request)
 			.map_err(|_| SolanaRpcClientError::new("Could not serialize params"))?;
 

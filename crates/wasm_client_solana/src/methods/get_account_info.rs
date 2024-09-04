@@ -64,10 +64,13 @@ mod tests {
 	#[test]
 	fn request() {
 		let pubkey = pubkey!("vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg");
-		let request = ClientRequest::new(GetAccountInfoRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetAccountInfoRequest::NAME)
 			.id(1)
-			.params(GetAccountInfoRequest::new(pubkey));
+			.params(GetAccountInfoRequest::new(pubkey))
+			.build();
 
+		insta::assert_json_snapshot!(request, @"");
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getAccountInfo","params":["vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg",{"encoding":"base58"}]}"#;
 		let raw_value: Value = serde_json::from_str(raw_json).unwrap();

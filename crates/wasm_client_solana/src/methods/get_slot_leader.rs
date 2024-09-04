@@ -50,9 +50,11 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetSlotLeaderRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetSlotLeaderRequest::NAME)
 			.id(1)
-			.params(GetSlotLeaderRequest::new());
+			.params(GetSlotLeaderRequest::new())
+			.build();
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getSlotLeader"}"#;

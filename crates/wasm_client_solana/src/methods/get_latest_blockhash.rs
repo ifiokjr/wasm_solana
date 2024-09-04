@@ -45,11 +45,15 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetLatestBlockhashRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetLatestBlockhashRequest::NAME)
 			.id(1)
 			.params(GetLatestBlockhashRequest::new_with_config(
 				CommitmentConfig::processed(),
-			));
+			))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"id":1,"jsonrpc":"2.0","method":"getLatestBlockhash","params":[{"commitment":"processed"}]}"#;

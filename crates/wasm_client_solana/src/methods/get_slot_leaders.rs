@@ -1,3 +1,4 @@
+use derive_more::derive::IntoIterator;
 use serde::Deserialize;
 use serde_tuple::Serialize_tuple;
 use serde_with::serde_as;
@@ -30,7 +31,7 @@ impl GetSlotLeadersRequest {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoIterator)]
 pub struct GetSlotLeadersResponse(#[serde_as(as = "Vec<DisplayFromStr>")] Vec<Pubkey>);
 
 #[cfg(test)]
@@ -46,9 +47,11 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetSlotLeadersRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetSlotLeadersRequest::NAME)
 			.id(1)
-			.params(GetSlotLeadersRequest::new_with_config(100, 10));
+			.params(GetSlotLeadersRequest::new_with_config(100, 10))
+			.build();
 
 		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getSlotLeaders","params":[100,10]}"#;

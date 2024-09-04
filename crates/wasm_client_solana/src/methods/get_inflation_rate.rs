@@ -1,3 +1,4 @@
+use derive_more::derive::Into;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -9,14 +10,8 @@ pub struct GetInflationRateRequest;
 
 impl_http_method!(GetInflationRateRequest, "getInflationRate");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Into)]
 pub struct GetInflationRateResponse(RpcInflationRate);
-
-impl From<GetInflationRateResponse> for RpcInflationRate {
-	fn from(value: GetInflationRateResponse) -> Self {
-		value.0
-	}
-}
 
 #[cfg(test)]
 mod tests {
@@ -30,9 +25,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetInflationRateRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetInflationRateRequest::NAME)
 			.id(1)
-			.params(GetInflationRateRequest);
+			.params(GetInflationRateRequest)
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getInflationRate"}"#;

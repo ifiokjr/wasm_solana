@@ -60,9 +60,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetBlocksRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetBlocksRequest::NAME)
 			.id(1)
-			.params(GetBlocksRequest::new(5, Some(10)));
+			.params(GetBlocksRequest::new(5, Some(10)))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBlocks","params":[5,10]}"#;

@@ -47,9 +47,11 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetTransactionCountRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetTransactionCountRequest::NAME)
 			.id(1)
-			.params(GetTransactionCountRequest::new());
+			.params(GetTransactionCountRequest::new())
+			.build();
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getTransactionCount"}"#;

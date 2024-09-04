@@ -47,9 +47,13 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetInflationGovernorRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetInflationGovernorRequest::NAME)
 			.id(1)
-			.params(GetInflationGovernorRequest::new());
+			.params(GetInflationGovernorRequest::new())
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getInflationGovernor"}"#;
@@ -68,10 +72,15 @@ mod tests {
 		check!(response.id == 1);
 		check!(response.jsonrpc == "2.0");
 		let value = response.result.0;
-		check!(value.foundation == 0.05);
-		check!(value.foundation_term == 7.0);
-		check!(value.initial == 0.15);
-		check!(value.taper == 0.15);
-		check!(value.terminal == 0.015);
+		check!(approx_eq(value.foundation, 0.05));
+		check!(approx_eq(value.foundation_term, 7.0));
+		check!(approx_eq(value.initial, 0.15));
+		check!(approx_eq(value.taper, 0.15));
+		check!(approx_eq(value.terminal, 0.015));
+	}
+
+	fn approx_eq(a: f64, b: f64) -> bool {
+		const EPSILON: f64 = 1e-6;
+		(a - b).abs() < EPSILON
 	}
 }

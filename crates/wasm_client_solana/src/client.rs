@@ -12,34 +12,8 @@ pub struct ClientRequest {
 	#[builder(setter(into))]
 	pub method: String,
 	#[serde(skip_serializing_if = "is_null")]
-	#[builder(setter(transform=|v: impl Serialize| serde_json::to_value(v).unwrap_or_default()))]
+	#[builder(default = Value::Null, setter(transform=|v: impl Serialize| serde_json::to_value(v).unwrap_or_default()))]
 	pub params: Value,
-}
-
-impl ClientRequest {
-	pub fn new(method: impl ToString) -> Self {
-		Self {
-			id: 0,
-			jsonrpc: "2.0",
-			method: method.to_string(),
-			params: Value::Null,
-		}
-	}
-
-	pub fn id(mut self, id: u32) -> Self {
-		self.id = id;
-		self
-	}
-
-	pub fn jsonrpc(mut self, jsonrpc: &'static str) -> Self {
-		self.jsonrpc = jsonrpc;
-		self
-	}
-
-	pub fn params<T: Serialize>(mut self, params: T) -> Self {
-		self.params = serde_json::to_value(params).unwrap_or_default();
-		self
-	}
 }
 
 pub type SubscriptionId = u64;

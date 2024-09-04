@@ -73,12 +73,16 @@ mod tests {
 	fn request() {
 		let decoded = BASE64_STANDARD.decode("AQABAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQAA").unwrap();
 		let message = bincode::deserialize(&decoded).unwrap();
-		let request = ClientRequest::new(GetFeeForMessageRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetFeeForMessageRequest::NAME)
 			.id(1)
 			.params(GetFeeForMessageRequest::new_with_config(
 				message,
 				CommitmentConfig::processed(),
-			));
+			))
+			.build();
+
+		insta::assert_json_snapshot!(request, @"");
 
 		let ser_value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"id":1,"jsonrpc":"2.0","method":"getFeeForMessage","params":["AQABAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQAA",{"commitment":"processed"}]}"#;

@@ -59,7 +59,8 @@ mod tests {
 
 	#[test]
 	fn request() {
-		let request = ClientRequest::new(GetStakeActivationRequest::NAME)
+		let request = ClientRequest::builder()
+			.method(GetStakeActivationRequest::NAME)
 			.id(1)
 			.params(GetStakeActivationRequest::new_with_config(
 				pubkey!("CYRJWqiSjLitBAcRxPvWpgX3s5TvmN2SuRY3eEYypFvT"),
@@ -67,7 +68,8 @@ mod tests {
 					epoch: Some(4),
 					..Default::default()
 				},
-			));
+			))
+			.build();
 
 		let value = serde_json::to_value(request).unwrap();
 		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getStakeActivation","params":["CYRJWqiSjLitBAcRxPvWpgX3s5TvmN2SuRY3eEYypFvT",{"epoch":4}]}"#;
