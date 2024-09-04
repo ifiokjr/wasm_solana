@@ -17,6 +17,12 @@ impl_http_method!(
 	"getStakeMinimumDelegation"
 );
 
+impl Default for GetStakeMinimumDelegationRequest {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GetStakeMinimumDelegationRequest {
 	pub fn new() -> Self {
 		Self { config: None }

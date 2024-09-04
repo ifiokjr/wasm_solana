@@ -54,7 +54,6 @@ pub use self::minimum_ledger_slot::*;
 pub use self::request_airdrop::*;
 pub use self::send_transaction::*;
 pub use self::simulate_transaction::*;
-use crate::SubscriptionId;
 
 mod get_account_info;
 mod get_balance;

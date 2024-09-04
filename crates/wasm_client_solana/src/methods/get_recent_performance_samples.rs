@@ -100,6 +100,6 @@ mod tests {
 					num_non_vote_transaction: 0
 				}
 			]
-		)
+		);
 	}
 }

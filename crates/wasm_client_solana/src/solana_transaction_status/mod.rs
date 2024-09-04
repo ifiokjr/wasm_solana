@@ -443,18 +443,15 @@ impl UiTransactionStatusMeta {
 					ixs.into_iter()
 						.map(|ix| UiInnerInstructions::parse(ix, &account_keys))
 						.collect()
-				})
-				.into(),
-			log_messages: meta.log_messages.into(),
+				}),
+			log_messages: meta.log_messages,
 			pre_token_balances: meta
 				.pre_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect())
-				.into(),
+				.map(|balance| balance.into_iter().map(Into::into).collect()),
 			post_token_balances: meta
 				.post_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect())
-				.into(),
-			rewards: if show_rewards { meta.rewards } else { None }.into(),
+				.map(|balance| balance.into_iter().map(Into::into).collect()),
+			rewards: if show_rewards { meta.rewards } else { None },
 			loaded_addresses: None,
 			return_data: meta.return_data.map(Into::into),
 			compute_units_consumed: meta.compute_units_consumed,
@@ -472,14 +469,12 @@ impl UiTransactionStatusMeta {
 			log_messages: None,
 			pre_token_balances: meta
 				.pre_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect())
-				.into(),
+				.map(|balance| balance.into_iter().map(Into::into).collect()),
 			post_token_balances: meta
 				.post_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect())
-				.into(),
+				.map(|balance| balance.into_iter().map(Into::into).collect()),
 			rewards: if show_rewards {
-				meta.rewards.into()
+				meta.rewards
 			} else {
 				None
 			},
@@ -500,19 +495,16 @@ impl From<TransactionStatusMeta> for UiTransactionStatusMeta {
 			post_balances: meta.post_balances,
 			inner_instructions: meta
 				.inner_instructions
-				.map(|ixs| ixs.into_iter().map(Into::into).collect())
-				.into(),
-			log_messages: meta.log_messages.into(),
+				.map(|ixs| ixs.into_iter().map(Into::into).collect()),
+			log_messages: meta.log_messages,
 			pre_token_balances: meta
 				.pre_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect())
-				.into(),
+				.map(|balance| balance.into_iter().map(Into::into).collect()),
 			post_token_balances: meta
 				.post_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect())
-				.into(),
-			rewards: meta.rewards.into(),
-			loaded_addresses: Some(UiLoadedAddresses::from(&meta.loaded_addresses)).into(),
+				.map(|balance| balance.into_iter().map(Into::into).collect()),
+			rewards: meta.rewards,
+			loaded_addresses: Some(UiLoadedAddresses::from(&meta.loaded_addresses)),
 			return_data: meta.return_data.map(Into::into),
 			compute_units_consumed: meta.compute_units_consumed,
 		}

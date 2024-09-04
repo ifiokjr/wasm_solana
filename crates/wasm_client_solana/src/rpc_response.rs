@@ -8,7 +8,6 @@ use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
 use serde_with::serde_as;
-use serde_with::DisplayFromStr;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
 use solana_sdk::clock::UnixTimestamp;

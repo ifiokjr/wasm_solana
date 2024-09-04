@@ -19,6 +19,12 @@ impl_http_method!(
 	"getRecentPrioritizationFees"
 );
 
+impl Default for GetRecentPrioritizationFeesRequest {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GetRecentPrioritizationFeesRequest {
 	pub fn new() -> Self {
 		GetRecentPrioritizationFeesRequest { accounts: None }

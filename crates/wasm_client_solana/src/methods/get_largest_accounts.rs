@@ -144,6 +144,6 @@ mod tests {
 					lamports: 1
 				}
 			]
-		)
+		);
 	}
 }
