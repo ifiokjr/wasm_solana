@@ -1,8 +1,9 @@
 use serde::Deserialize;
-use serde_tuple::Serialize_tuple;
+use serde::Serialize;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 use solana_sdk::pubkey::Pubkey;
+use typed_builder::TypedBuilder;
 
 use super::Context;
 use crate::impl_http_method;
@@ -10,36 +11,60 @@ use crate::impl_websocket_method;
 use crate::impl_websocket_notification;
 use crate::rpc_config::RpcAccountInfoConfig;
 use crate::solana_account_decoder::UiAccount;
-use crate::solana_account_decoder::UiAccountEncoding;
 
-#[serde_as]
-#[derive(Debug, Serialize_tuple)]
+/// Use the builder pattern to create a request for account info.
+///
+/// ```rust
+/// use solana_sdk::pubkey;
+/// use wasm_client_solana::GetAccountInfoRequest;
+///
+/// let request = GetAccountInfoRequest::builder()
+/// 	.pubkey(pubkey!("4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T"))
+/// 	.config(RpcAccountInfoConfig::default())
+/// 	.build();
+/// ```
+
+#[derive(Debug, TypedBuilder)]
 pub struct GetAccountInfoRequest {
-	#[serde_as(as = "DisplayFromStr")]
 	pub pubkey: Pubkey,
+	#[builder(default)]
 	pub config: RpcAccountInfoConfig,
+}
+
+impl From<Pubkey> for GetAccountInfoRequest {
+	fn from(pubkey: Pubkey) -> Self {
+		Self::builder().pubkey(pubkey).build()
+	}
+}
+
+impl From<&Pubkey> for GetAccountInfoRequest {
+	fn from(pubkey: &Pubkey) -> Self {
+		Self::builder().pubkey(*pubkey).build()
+	}
+}
+
+impl Serialize for GetAccountInfoRequest {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		#[derive(Serialize)]
+		#[serde(rename = "GetAccountInfoRequest")]
+		#[derive(::serde_with::__private_consume_serde_as_attributes)]
+		struct Inner<'serde_tuple_inner>(
+			#[serde_as(as = "DisplayFromStr")]
+			#[serde(with = "::serde_with::As::<DisplayFromStr>")]
+			&'serde_tuple_inner Pubkey,
+			&'serde_tuple_inner RpcAccountInfoConfig,
+		);
+
+		let inner = Inner(&self.pubkey, &self.config);
+		Serialize::serialize(&inner, serde_tuple::Serializer(serializer))
+	}
 }
 
 impl_http_method!(GetAccountInfoRequest, "getAccountInfo");
 impl_websocket_method!(GetAccountInfoRequest, "account");
-
-impl GetAccountInfoRequest {
-	pub fn new(pubkey: Pubkey) -> Self {
-		Self {
-			pubkey,
-			config: RpcAccountInfoConfig {
-				encoding: Some(UiAccountEncoding::Base64),
-				data_slice: None,
-				commitment: None,
-				min_context_slot: None,
-			},
-		}
-	}
-
-	pub fn new_with_config(pubkey: Pubkey, config: RpcAccountInfoConfig) -> Self {
-		Self { pubkey, config }
-	}
-}
 
 #[derive(Debug, Deserialize)]
 pub struct GetAccountInfoResponse {
@@ -58,6 +83,7 @@ mod tests {
 	use super::*;
 	use crate::methods::HttpMethod;
 	use crate::solana_account_decoder::UiAccountData;
+	use crate::solana_account_decoder::UiAccountEncoding;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
 
@@ -67,7 +93,7 @@ mod tests {
 		let request = ClientRequest::builder()
 			.method(GetAccountInfoRequest::NAME)
 			.id(1)
-			.params(GetAccountInfoRequest::new(pubkey))
+			.params(GetAccountInfoRequest::from(pubkey))
 			.build();
 
 		insta::assert_json_snapshot!(request, @"");

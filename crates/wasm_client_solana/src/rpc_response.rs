@@ -21,6 +21,7 @@ use solana_sdk::transaction::Result;
 use solana_sdk::transaction::TransactionError;
 use thiserror::Error;
 
+use crate::impl_websocket_notification;
 use crate::solana_account_decoder::parse_token::UiTokenAmount;
 use crate::solana_account_decoder::UiAccount;
 use crate::solana_transaction_status::ConfirmedTransactionStatusWithSignature;
@@ -28,6 +29,7 @@ use crate::solana_transaction_status::TransactionConfirmationStatus;
 use crate::solana_transaction_status::UiConfirmedBlock;
 use crate::solana_transaction_status::UiInnerInstructions;
 use crate::solana_transaction_status::UiTransactionReturnData;
+use crate::Context;
 
 /// Wrapper for rpc return types of methods that provide responses both with and
 /// without context. Main purpose of this is to fix methods that lack context
@@ -301,6 +303,14 @@ pub struct RpcLogsResponse {
 	pub err: Option<TransactionError>,
 	pub logs: Vec<String>,
 }
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct LogsNotificationResponse {
+	pub context: Context,
+	pub value: RpcLogsResponse,
+}
+
+impl_websocket_notification!(LogsNotificationResponse, "logs");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -579,6 +589,14 @@ pub struct RpcBlockUpdate {
 	pub block: Option<UiConfirmedBlock>,
 	pub err: Option<RpcBlockUpdateError>,
 }
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct BlockNotificationResponse {
+	pub context: Context,
+	pub value: RpcBlockUpdate,
+}
+
+impl_websocket_notification!(BlockNotificationResponse, "block");
 
 impl From<ConfirmedTransactionStatusWithSignature> for RpcConfirmedTransactionStatusWithSignature {
 	fn from(value: ConfirmedTransactionStatusWithSignature) -> Self {

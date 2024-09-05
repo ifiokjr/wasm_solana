@@ -5,6 +5,7 @@ use serde_with::skip_serializing_none;
 use serde_with::DisplayFromStr;
 use solana_sdk::pubkey::Pubkey;
 
+use super::impl_websocket_notification;
 use crate::impl_http_method;
 use crate::rpc_config::RpcKeyedAccount;
 use crate::rpc_config::RpcProgramAccountsConfig;
@@ -38,6 +39,8 @@ impl GetProgramAccountsRequest {
 
 #[derive(Debug, Deserialize)]
 pub struct GetProgramAccountsResponse(Option<Vec<RpcKeyedAccount>>);
+
+impl_websocket_notification!(GetProgramAccountsResponse, "program");
 
 impl GetProgramAccountsResponse {
 	pub fn keyed_accounts(&self) -> Option<&Vec<RpcKeyedAccount>> {

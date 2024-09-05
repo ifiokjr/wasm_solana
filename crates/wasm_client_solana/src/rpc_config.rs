@@ -2,7 +2,9 @@ use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use bincode::serialize;
 use serde::Deserialize;
+use serde::Deserializer;
 use serde::Serialize;
+use serde::Serializer;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 use solana_sdk::clock::Epoch;
@@ -15,6 +17,7 @@ use solana_sdk::signature::Signature;
 use typed_builder::TypedBuilder;
 
 use super::rpc_filter::RpcFilterType;
+use crate::impl_websocket_method;
 use crate::nonce_utils;
 use crate::solana_account_decoder::UiAccount;
 use crate::solana_account_decoder::UiAccountEncoding;
@@ -303,6 +306,49 @@ pub struct RpcProgramAccountsConfig {
 	pub with_context: Option<bool>,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq, TypedBuilder)]
+pub struct ProgramSubscribeRequest {
+	pub program_id: Pubkey,
+	#[builder(default, setter(strip_option(fallback = config_opt)))]
+	pub config: Option<RpcProgramAccountsConfig>,
+}
+
+impl_websocket_method!(ProgramSubscribeRequest, "program");
+
+impl Serialize for ProgramSubscribeRequest {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		#[derive(Serialize)]
+		#[serde(rename = "ProgramSubscribeRequest")]
+		struct Inner<'serde_tuple_inner>(
+			&'serde_tuple_inner Pubkey,
+			&'serde_tuple_inner Option<RpcProgramAccountsConfig>,
+		);
+
+		let inner = Inner(&self.program_id, &self.config);
+		Serialize::serialize(&inner, serde_tuple::Serializer(serializer))
+	}
+}
+
+impl<'de> Deserialize<'de> for ProgramSubscribeRequest {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		#[derive(Deserialize)]
+		#[serde(rename = "ProgramSubscribeRequest")]
+		struct Inner(Pubkey, Option<RpcProgramAccountsConfig>);
+
+		let inner: Inner = Deserialize::deserialize(serde_tuple::Deserializer(deserializer))?;
+		Ok(ProgramSubscribeRequest {
+			program_id: inner.0,
+			config: inner.1,
+		})
+	}
+}
+
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -461,40 +507,123 @@ pub enum RpcTransactionLogsFilter {
 	Mentions(Vec<String>), // base58-encoded list of addresses
 }
 
-#[cfg(feature = "pubsub")]
-pub mod pubsub {
-	use super::*;
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
+pub struct RpcAccountSubscribeConfig {
+	#[serde(flatten)]
+	pub commitment: Option<CommitmentConfig>,
+	pub encoding: Option<UiTransactionEncoding>,
+}
 
-	#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-	pub struct RpcAccountSubscribeConfig {
-		#[serde(flatten)]
-		pub commitment: Option<CommitmentConfig>,
-		pub encoding: Option<UiTransactionEncoding>,
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
+#[serde(rename_all = "camelCase")]
+pub struct RpcBlockSubscribeConfig {
+	#[serde(flatten)]
+	pub commitment: Option<CommitmentConfig>,
+	pub encoding: Option<UiTransactionEncoding>,
+	pub transaction_details: Option<TransactionDetails>,
+	pub show_rewards: Option<bool>,
+	pub max_supported_transaction_version: Option<u8>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum RpcBlockSubscribeFilter {
+	All,
+	MentionsAccountOrProgram(String),
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[serde(rename_all = "camelCase")]
+#[builder(field_defaults(default, setter(strip_option)))]
+pub struct RpcSignatureSubscribeConfig {
+	#[serde(flatten)]
+	pub commitment: Option<CommitmentConfig>,
+	pub enable_received_notification: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
+pub struct BlockSubscribeRequest {
+	pub filter: RpcBlockSubscribeFilter,
+	#[builder(default)]
+	pub config: Option<RpcBlockSubscribeConfig>,
+}
+
+impl_websocket_method!(BlockSubscribeRequest, "block");
+
+impl Serialize for BlockSubscribeRequest {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		#[derive(serde::Serialize)]
+		#[serde(rename = "BlockSubscribeRequest")]
+		struct Inner<'serde_tuple_inner>(
+			&'serde_tuple_inner RpcBlockSubscribeFilter,
+			&'serde_tuple_inner Option<RpcBlockSubscribeConfig>,
+		);
+
+		let inner = Inner(&self.filter, &self.config);
+		Serialize::serialize(&inner, serde_tuple::Serializer(serializer))
 	}
+}
 
-	#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-	#[serde(rename_all = "camelCase")]
-	pub struct RpcBlockSubscribeConfig {
-		#[serde(flatten)]
-		pub commitment: Option<CommitmentConfig>,
-		pub encoding: Option<UiTransactionEncoding>,
-		pub transaction_details: Option<TransactionDetails>,
-		pub show_rewards: Option<bool>,
-		pub max_supported_transaction_version: Option<u8>,
+impl<'de> Deserialize<'de> for BlockSubscribeRequest {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		#[derive(serde::Deserialize)]
+		#[serde(rename = "BlockSubscribeRequest")]
+		struct Inner(RpcBlockSubscribeFilter, Option<RpcBlockSubscribeConfig>);
+
+		let inner: Inner = Deserialize::deserialize(serde_tuple::Deserializer(deserializer))?;
+		Ok(BlockSubscribeRequest {
+			filter: inner.0,
+			config: inner.1,
+		})
 	}
+}
 
-	#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-	#[serde(rename_all = "camelCase")]
-	pub enum RpcBlockSubscribeFilter {
-		All,
-		MentionsAccountOrProgram(String),
+#[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
+pub struct LogsSubscribeRequest {
+	pub filter: RpcTransactionLogsFilter,
+	pub config: RpcTransactionLogsConfig,
+}
+
+impl_websocket_method!(LogsSubscribeRequest, "logs");
+
+impl Serialize for LogsSubscribeRequest {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		#[derive(Serialize)]
+		#[serde(rename = "LogsSubscribeRequest")]
+		struct Inner<'serde_tuple_inner>(
+			&'serde_tuple_inner RpcTransactionLogsFilter,
+			&'serde_tuple_inner RpcTransactionLogsConfig,
+		);
+
+		let inner = Inner(&self.filter, &self.config);
+		Serialize::serialize(&inner, serde_tuple::Serializer(serializer))
 	}
+}
 
-	#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-	#[serde(rename_all = "camelCase")]
-	pub struct RpcSignatureSubscribeConfig {
-		#[serde(flatten)]
-		pub commitment: Option<CommitmentConfig>,
-		pub enable_received_notification: Option<bool>,
+impl<'de> Deserialize<'de> for LogsSubscribeRequest {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		#[derive(Deserialize)]
+		#[serde(rename = "LogsSubscribeRequest")]
+		struct Inner(RpcTransactionLogsFilter, RpcTransactionLogsConfig);
+
+		let inner: Inner = Deserialize::deserialize(serde_tuple::Deserializer(deserializer))?;
+		Ok(LogsSubscribeRequest {
+			filter: inner.0,
+			config: inner.1,
+		})
 	}
 }

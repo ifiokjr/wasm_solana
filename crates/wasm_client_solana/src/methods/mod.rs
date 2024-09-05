@@ -1,6 +1,7 @@
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
+use solana_sdk::clock::Slot;
 
 pub use self::get_account_info::*;
 pub use self::get_balance::*;
@@ -108,9 +109,9 @@ mod request_airdrop;
 mod send_transaction;
 mod simulate_transaction;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct Context {
-	slot: u64,
+	slot: Slot,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

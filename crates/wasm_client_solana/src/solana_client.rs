@@ -17,7 +17,10 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
 
 use crate::methods::*;
+use crate::rpc_config::BlockSubscribeRequest;
 use crate::rpc_config::GetConfirmedSignaturesForAddress2Config;
+use crate::rpc_config::LogsSubscribeRequest;
+use crate::rpc_config::ProgramSubscribeRequest;
 use crate::rpc_config::RpcAccountInfoConfig;
 use crate::rpc_config::RpcBlockConfig;
 use crate::rpc_config::RpcBlockProductionConfig;
@@ -35,6 +38,8 @@ use crate::rpc_config::RpcSupplyConfig;
 use crate::rpc_config::RpcTokenAccountsFilter;
 use crate::rpc_config::RpcTransactionConfig;
 use crate::rpc_filter::TokenAccountsFilter;
+use crate::rpc_response::BlockNotificationResponse;
+use crate::rpc_response::LogsNotificationResponse;
 use crate::rpc_response::RpcAccountBalance;
 use crate::rpc_response::RpcBlockProduction;
 use crate::rpc_response::RpcConfirmedTransactionStatusWithSignature;
@@ -206,7 +211,10 @@ impl SolanaClient {
 		pubkey: &Pubkey,
 		config: RpcAccountInfoConfig,
 	) -> ClientResult<Option<Account>> {
-		let request = GetAccountInfoRequest::new_with_config(*pubkey, config);
+		let request = GetAccountInfoRequest::builder()
+			.pubkey(*pubkey)
+			.config(config)
+			.build();
 		let response: GetAccountInfoResponse = self.send(request).await?;
 
 		match response.value {
@@ -1011,7 +1019,10 @@ impl SolanaClient {
 			min_context_slot: None,
 		};
 
-		let request = GetAccountInfoRequest::new_with_config(*pubkey, config);
+		let request = GetAccountInfoRequest::builder()
+			.pubkey(*pubkey)
+			.config(config)
+			.build();
 		let response: GetAccountInfoResponse = self.send(request).await?;
 
 		if let Some(acc) = response.value {
@@ -1321,48 +1332,109 @@ impl SolanaClient {
 		Ok(())
 	}
 
-	/// Subscribe to an account to receive notifications when the lamports or
-	/// data for a given account public key changes.
+	/// Subscribe to account events with config.
+	///
+	/// Receives messages of type [`GetAccountInfoResponse`] when an account's
+	/// lamports or data changes.
+	///
+	/// # RPC Reference
+	///
+	/// This method corresponds directly to the [`accountSubscribe`] RPC method.
+	///
+	/// [`accountSubscribe`]: https://docs.solana.com/api/websocket#accountsubscribe
 	///
 	/// ```rust,no-run
 	/// use wasm_client_solana::SolanaRpcClient;
-	/// use solana_sdk::pubkey::Pubkey;
+	/// use solana_sdk::pubkey;
 	///
+	///
+	/// let pubkey = pubkey!("99P8ZgtJYe1buSK8JXkvpLh8xPsCFuLYhz9hQFNw93WJ");
 	/// let mut client = SolanaRpcClient::new("https://api.devnet.solana.com");
 	/// let subscription = client.account_subscribe(&pubkey).await?;
 	///
 	/// while let Some(notification) = subscription.next().await {
 	/// 		println!("Notification: {notification:?}");
-	/// 	}
+	/// }
 	/// ```
 	pub async fn account_subscribe(
 		&mut self,
-		pubkey: &Pubkey,
+		request: impl Into<GetAccountInfoRequest>,
 	) -> ClientResult<Subscription<GetAccountInfoResponse>> {
-		self.account_subscribe_with_config(pubkey, RpcAccountInfoConfig::default())
-			.await
+		let subscription_id = self.ws.create_subscription(request.into()).await?;
+		let subscription = Subscription::builder()
+			.receiver(self.ws.receiver.clone())
+			.sender(self.ws.sender.clone())
+			.id(subscription_id)
+			.build();
+
+		Ok(subscription)
 	}
 
-	/// Subscribe to an account to receive notifications when the lamports or
-	/// data for a given account public key changes.
+	/// Subscribe to block events.
 	///
-	/// ```rust,no-run
-	/// use wasm_client_solana::SolanaRpcClient;
-	/// use solana_sdk::pubkey::Pubkey;
+	/// Receives messages of type [`RpcBlockUpdate`] when a block is confirmed
+	/// or finalized.
 	///
-	/// let mut client = SolanaRpcClient::new("https://api.devnet.solana.com");
-	/// let subscription = client.account_subscribe(&pubkey).await?;
+	/// This method is disabled by default. It can be enabled by passing
+	/// `--rpc-pubsub-enable-block-subscription` to `solana-validator`.
 	///
-	/// while let Some(notification) = subscription.next().await {
-	/// 		println!("Notification: {notification:?}");
-	/// 	}
-	/// ```
-	pub async fn account_subscribe_with_config(
+	/// # RPC Reference
+	///
+	/// This method corresponds directly to the [`blockSubscribe`] RPC method.
+	///
+	/// [`blockSubscribe`]: https://docs.solana.com/api/websocket#blocksubscribe
+	pub async fn block_subscribe(
 		&mut self,
-		pubkey: &Pubkey,
-		config: RpcAccountInfoConfig,
-	) -> ClientResult<Subscription<GetAccountInfoResponse>> {
-		let request = GetAccountInfoRequest::new_with_config(*pubkey, config);
+		request: BlockSubscribeRequest,
+	) -> ClientResult<Subscription<BlockNotificationResponse>> {
+		let subscription_id = self.ws.create_subscription(request).await?;
+		let subscription = Subscription::builder()
+			.receiver(self.ws.receiver.clone())
+			.sender(self.ws.sender.clone())
+			.id(subscription_id)
+			.build();
+
+		Ok(subscription)
+	}
+
+	/// Subscribe to transaction log events.
+	///
+	/// Receives messages of type [`RpcLogsResponse`] when a transaction is
+	/// committed.
+	///
+	/// # RPC Reference
+	///
+	/// This method corresponds directly to the [`logsSubscribe`] RPC method.
+	///
+	/// [`logsSubscribe`]: https://docs.solana.com/api/websocket#logssubscribe
+	pub async fn logs_subscribe(
+		&mut self,
+		request: LogsSubscribeRequest,
+	) -> ClientResult<Subscription<LogsNotificationResponse>> {
+		let subscription_id = self.ws.create_subscription(request).await?;
+		let subscription = Subscription::builder()
+			.receiver(self.ws.receiver.clone())
+			.sender(self.ws.sender.clone())
+			.id(subscription_id)
+			.build();
+
+		Ok(subscription)
+	}
+
+	/// Subscribe to program account events.
+	///
+	/// Receives messages of type [`GetProgramAccountsResponse`] when an account
+	/// owned by the given program changes.
+	///
+	/// # RPC Reference
+	///
+	/// This method corresponds directly to the [`programSubscribe`] RPC method.
+	///
+	/// [`programSubscribe`]: https://docs.solana.com/api/websocket#programsubscribe
+	pub async fn program_subscribe(
+		&mut self,
+		request: ProgramSubscribeRequest,
+	) -> ClientResult<Subscription<GetProgramAccountsResponse>> {
 		let subscription_id = self.ws.create_subscription(request).await?;
 		let subscription = Subscription::builder()
 			.receiver(self.ws.receiver.clone())

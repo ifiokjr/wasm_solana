@@ -437,13 +437,11 @@ impl UiTransactionStatusMeta {
 			fee: meta.fee,
 			pre_balances: meta.pre_balances,
 			post_balances: meta.post_balances,
-			inner_instructions: meta
-				.inner_instructions
-				.map(|ixs| {
-					ixs.into_iter()
-						.map(|ix| UiInnerInstructions::parse(ix, &account_keys))
-						.collect()
-				}),
+			inner_instructions: meta.inner_instructions.map(|ixs| {
+				ixs.into_iter()
+					.map(|ix| UiInnerInstructions::parse(ix, &account_keys))
+					.collect()
+			}),
 			log_messages: meta.log_messages,
 			pre_token_balances: meta
 				.pre_token_balances
@@ -473,11 +471,7 @@ impl UiTransactionStatusMeta {
 			post_token_balances: meta
 				.post_token_balances
 				.map(|balance| balance.into_iter().map(Into::into).collect()),
-			rewards: if show_rewards {
-				meta.rewards
-			} else {
-				None
-			},
+			rewards: if show_rewards { meta.rewards } else { None },
 			loaded_addresses: None,
 			return_data: None,
 			compute_units_consumed: None,
