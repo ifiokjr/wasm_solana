@@ -3,6 +3,8 @@ use serde::Serialize;
 use serde_json::Value;
 use typed_builder::TypedBuilder;
 
+use crate::ClientWebSocketError;
+
 #[derive(Debug, Clone, Serialize, TypedBuilder)]
 pub struct ClientRequest {
 	#[builder(default)]
@@ -14,6 +16,12 @@ pub struct ClientRequest {
 	#[serde(skip_serializing_if = "is_null")]
 	#[builder(default = Value::Null, setter(transform=|v: impl Serialize| serde_json::to_value(v).unwrap_or_default()))]
 	pub params: Value,
+}
+
+impl ClientRequest {
+	pub fn try_to_value(&self) -> Result<Value, ClientWebSocketError> {
+		serde_json::to_value(self).map_err(|_| ClientWebSocketError::InvalidMessage)
+	}
 }
 
 pub type SubscriptionId = u64;

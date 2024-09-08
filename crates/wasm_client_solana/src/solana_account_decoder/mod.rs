@@ -65,7 +65,7 @@ impl UiAccountData {
 				match encoding {
 					UiAccountEncoding::Base58 => bs58::decode(blob).into_vec().ok(),
 					UiAccountEncoding::Base64 => BASE64_STANDARD.decode(blob).ok(),
-					#[cfg(feature = "ssr")]
+					#[cfg(feature = "zstd")]
 					UiAccountEncoding::Base64Zstd => {
 						BASE64_STANDARD.decode(blob).ok().and_then(|zstd_data| {
 							let mut data = vec![];
@@ -89,7 +89,7 @@ pub enum UiAccountEncoding {
 	Base58,
 	Base64,
 	JsonParsed,
-	#[cfg(feature = "ssr")]
+	#[cfg(feature = "zstd")]
 	#[serde(rename = "base64+zstd")]
 	Base64Zstd,
 }
@@ -130,7 +130,7 @@ impl UiAccount {
 					encoding,
 				)
 			}
-			#[cfg(feature = "ssr")]
+			#[cfg(feature = "zstd")]
 			UiAccountEncoding::Base64Zstd => {
 				let mut encoder = zstd::stream::write::Encoder::new(Vec::new(), 0).unwrap();
 				match encoder
@@ -314,7 +314,7 @@ mod test {
 		);
 	}
 
-	#[cfg(feature = "ssr")]
+	#[cfg(feature = "zstd")]
 	#[test]
 	fn test_base64_zstd() {
 		let encoded_account = UiAccount::encode(

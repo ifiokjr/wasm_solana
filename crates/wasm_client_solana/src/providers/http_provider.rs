@@ -20,6 +20,7 @@ mod ssr_http_provider {
 	use reqwest::Client;
 
 	use super::*;
+	use crate::ClientError;
 
 	#[derive(Clone)]
 	pub struct HttpProvider {
@@ -55,7 +56,7 @@ mod ssr_http_provider {
 				.id(0)
 				.params(request)
 				.build();
-			let request_result: Value = self
+			let result: Value = self
 				.client
 				.post(&self.url)
 				.headers(self.headers.clone())
@@ -65,12 +66,14 @@ mod ssr_http_provider {
 				.json()
 				.await?;
 
-			match serde_json::from_value::<ClientResponse<R>>(request_result.clone()) {
-				Ok(response) => Ok(response),
-				Err(_) => {
-					Err(serde_json::from_value::<SolanaRpcClientError>(request_result).unwrap())
-				}
-			}
+			let Ok(response) = serde_json::from_value::<ClientResponse<R>>(result.clone()) else {
+				let error: SolanaRpcClientError =
+					serde_json::from_value(result).unwrap_or_default();
+
+				return Err(error.into());
+			};
+
+			Ok(response)
 		}
 	}
 
@@ -86,6 +89,12 @@ mod ssr_http_provider {
 			}
 		}
 	}
+
+	impl From<reqwest::Error> for ClientError {
+		fn from(value: reqwest::Error) -> Self {
+			ClientError::Rpc(value.into())
+		}
+	}
 }
 
 #[cfg(not(feature = "ssr"))]
@@ -93,6 +102,7 @@ mod wasm_http_provider {
 	use gloo_net::http::Request;
 
 	use super::*;
+	use crate::ClientError;
 
 	#[derive(Clone)]
 	pub struct HttpProvider(String);
@@ -110,7 +120,11 @@ mod wasm_http_provider {
 			&self,
 			request: &T,
 		) -> ClientResult<ClientResponse<R>> {
-			let client_request = ClientRequest::new(T::NAME).id(0).params(request);
+			let client_request = ClientRequest::builder()
+				.method(T::NAME)
+				.id(0)
+				.params(request)
+				.build();
 			let result: Value = Request::post(&self.0)
 				.json(&client_request)?
 				.send()
@@ -122,7 +136,7 @@ mod wasm_http_provider {
 				let error: SolanaRpcClientError =
 					serde_json::from_value(result).unwrap_or_default();
 
-				return Err(error);
+				return Err(error.into());
 			};
 
 			Ok(response)
@@ -139,6 +153,12 @@ mod wasm_http_provider {
 				error,
 				..Default::default()
 			}
+		}
+	}
+
+	impl From<gloo_net::Error> for ClientError {
+		fn from(value: gloo_net::Error) -> Self {
+			Self::Rpc(value.into())
 		}
 	}
 }

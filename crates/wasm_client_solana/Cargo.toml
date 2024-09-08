@@ -16,7 +16,7 @@ workspace = true
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-anyhow = { workspace = true }
+async-trait = { workspace = true }
 base64 = { workspace = true }
 bincode = { workspace = true }
 bs58 = { workspace = true }
@@ -57,12 +57,14 @@ strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt"], optional = true }
 typed-builder = { workspace = true }
+wallet_standard = { workspace = true, feature = ["solana"] }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
 web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window"] }
 zstd = { workspace = true, optional = true }
 
 [dev-dependencies]
+anyhow = { workspace = true }
 assert2 = { workspace = true }
 assert_matches = { workspace = true }
 insta = { workspace = true, features = ["redactions", "json"] }
@@ -72,5 +74,5 @@ wasm-bindgen-test = { workspace = true }
 
 [features]
 js = ["retrier/wasm-bindgen", "futures-timer/wasm-bindgen"]
-ssr = ["dep:reqwest", "dep:reqwest-websocket", "dep:zstd", "dep:tokio"]
-pubsub = []
+ssr = ["dep:reqwest", "dep:reqwest-websocket", "dep:tokio"]
+zstd = ["dep:zstd"]

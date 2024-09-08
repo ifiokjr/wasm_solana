@@ -1,100 +1,197 @@
-#![allow(unused_imports)]
-
-use std::cell::RefCell;
-use std::future::Future;
+use std::marker::PhantomData;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::ready;
 use std::task::Context;
 use std::task::Poll;
 
-use derive_more::derive::Debug;
-use derive_more::Deref;
-use derive_more::DerefMut;
 use fork_stream::Forked;
 use fork_stream::StreamExt as _;
-use futures::channel::mpsc::unbounded;
-use futures::channel::mpsc::UnboundedReceiver;
-use futures::channel::mpsc::UnboundedSender;
 use futures::future;
-use futures::future::Ready;
 use futures::lock::Mutex;
-use futures::pin_mut;
-use futures::stream::AndThen;
-use futures::stream::MapErr;
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
-use futures::FutureExt;
 use futures::SinkExt;
 use futures::Stream;
 use futures::StreamExt;
-use futures::TryStreamExt;
-use futures_timer::Delay;
-use gloo_net::websocket::futures::WebSocket;
-use gloo_net::websocket::Message;
-use gloo_net::websocket::WebSocketError;
 use pin_project::pin_project;
 use pin_project::pinned_drop;
 use send_wrapper::SendWrapper;
 use serde::de::DeserializeOwned;
-use serde::Deserialize;
-use serde::Serialize;
 use serde_json::Value;
-use solana_sdk::account_info::AccountInfo;
 use typed_builder::TypedBuilder;
+use wasm_bindgen::UnwrapThrowExt;
 
+#[cfg(feature = "ssr")]
+use self::websocket_provider_reqwest::*;
+#[cfg(not(feature = "ssr"))]
+use self::websocket_provider_wasm::*;
+use crate::utils::get_ws_url;
+use crate::utils::spawn_local;
 use crate::ClientRequest;
-use crate::ClientResult;
-use crate::SolanaRpcClientError;
+use crate::ClientWebSocketError;
 use crate::SubscriptionId;
 use crate::SubscriptionResponse;
 use crate::SubscriptionResult;
-use crate::WebsocketMethod;
-use crate::WebsocketNotification;
+use crate::WebSocketMethod;
+use crate::WebSocketNotification;
+
+pub trait ToWebSocketValue {
+	fn to_websocket_value(&self) -> Result<Value, ClientWebSocketError>;
+}
+
+pub trait ToWebSocketResult {
+	fn to_websocket_result(&self) -> Result<Value, ClientWebSocketError>;
+}
+
+impl<T, E> ToWebSocketResult for Result<T, E>
+where
+	T: ToWebSocketValue,
+	E: Into<ClientWebSocketError>,
+	for<'a> &'a E: Into<ClientWebSocketError>,
+{
+	fn to_websocket_result(&self) -> Result<Value, ClientWebSocketError> {
+		match self {
+			Ok(value) => Ok(value.to_websocket_value()?),
+			Err(err) => Err(err.into()),
+		}
+	}
+}
+
+#[derive(Clone, derive_more::Debug)]
+pub struct WebSocketProvider {
+	/// The websocket url.
+	url: String,
+	/// The client ID which identifies current client ID.
+	id: u32,
+	#[debug(skip)]
+	sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
+	#[debug(skip)]
+	receiver: Forked<SendWrapper<SplitStream<WebSocketStream>>>,
+}
+
+impl WebSocketProvider {
+	pub fn new(url: impl Into<String>) -> Self {
+		let url = get_ws_url(url);
+		let stream = WebSocketStream::new(&url);
+		let (sink, stream) = stream.split();
+		let receiver = SendWrapper::new(stream).fork();
+		let sender = Arc::new(Mutex::new(SendWrapper::new(sink)));
+
+		Self {
+			url,
+			id: 0,
+			sender,
+			receiver,
+		}
+	}
+
+	pub fn url(&self) -> &str {
+		&self.url
+	}
+
+	/// Create a subscription and return the subscription id once a response
+	/// is received.
+	pub async fn create_subscription<T: WebSocketMethod>(
+		&mut self,
+		params: T,
+	) -> Result<SubscriptionId, ClientWebSocketError> {
+		let id = self.id;
+		self.id += 1;
+		let request = ClientRequest::builder()
+			.method(T::SUBSCRIBE)
+			.params(params)
+			.id(id)
+			.build()
+			.try_to_value()?;
+
+		self.sender
+			.lock()
+			.await
+			.send(request)
+			.await
+			.map_err(|_| ClientWebSocketError::MessageSendError)?;
+
+		let mut stream = self.receiver.clone().filter_map(|value| {
+			let Ok(value) = value else {
+				return future::ready(None);
+			};
+
+			future::ready(
+				serde_json::from_value::<SubscriptionResult>(value)
+					.ok()
+					.filter(|value| value.id == id),
+			)
+		});
+
+		let Some(response) = stream.next().await else {
+			return Err(ClientWebSocketError::Subscription);
+		};
+
+		Ok(response.result)
+	}
+}
 
 #[pin_project(PinnedDrop)]
 #[derive(Clone, TypedBuilder)]
-pub struct Subscription<T: DeserializeOwned + WebsocketNotification> {
-	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocket, Message>>>>,
+pub struct Subscription<T: DeserializeOwned + WebSocketNotification> {
+	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
 	#[pin]
-	pub(crate) receiver: Forked<UnboundedReceiver<Value>>,
+	pub(crate) receiver: Forked<SendWrapper<SplitStream<WebSocketStream>>>,
 	#[builder(default)]
-	pub(crate) latest: Option<T>,
+	pub(crate) latest: PhantomData<T>,
 	pub(crate) id: SubscriptionId,
 	#[builder(default)]
 	pub(crate) count: u64,
 }
 
-impl<T: DeserializeOwned + WebsocketNotification> Subscription<T> {
-	pub async fn unsubscribe(&self) -> ClientResult<()> {
+impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
+	pub fn new(ws: &WebSocketProvider, subscription_id: SubscriptionId) -> Self {
+		Self::builder()
+			.receiver(ws.receiver.clone())
+			.sender(ws.sender.clone())
+			.id(subscription_id)
+			.build()
+	}
+
+	pub async fn unsubscribe(&self) -> Result<(), ClientWebSocketError> {
 		let request = ClientRequest::builder()
 			.method(T::UNSUBSCRIBE)
 			.params(serde_json::json!([self.id]))
-			.build();
-		let message = Message::Text(
-			serde_json::to_string(&request)
-				.map_err(|_| SolanaRpcClientError::new("Could not serialize request"))?,
-		);
+			.build()
+			.try_to_value()?;
 
 		self.sender
 			.lock()
 			.await
-			.send(message)
+			.send(request)
 			.await
-			.map_err(|e| SolanaRpcClientError::new(format!("Could not unsubscribe: {e:?}")))?;
+			.map_err(|_| ClientWebSocketError::ConnectionError)?;
 
 		Ok(())
 	}
 }
 
 #[pinned_drop]
-impl<T: DeserializeOwned + WebsocketNotification> PinnedDrop for Subscription<T> {
+impl<T: DeserializeOwned + WebSocketNotification> PinnedDrop for Subscription<T> {
 	fn drop(self: Pin<&mut Self>) {
-		let _ = self.unsubscribe().now_or_never();
+		let id = self.id;
+		let sender = self.sender.clone();
+
+		spawn_local(async move {
+			let request = ClientRequest::builder()
+				.method(T::UNSUBSCRIBE)
+				.params(serde_json::json!([id]))
+				.build()
+				.try_to_value()
+				.unwrap_throw();
+
+			sender.lock().await.send(request).await.unwrap_throw();
+		});
 	}
 }
 
-impl<T: DeserializeOwned + WebsocketNotification> Stream for Subscription<T> {
+impl<T: DeserializeOwned + WebSocketNotification> Stream for Subscription<T> {
 	type Item = SubscriptionResponse<T>;
 
 	fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -102,8 +199,12 @@ impl<T: DeserializeOwned + WebsocketNotification> Stream for Subscription<T> {
 		self.count += 1;
 		let mut this = self.project();
 
-		let Some(value) = ready!(this.receiver.as_mut().poll_next(cx)) else {
+		let Some(result) = ready!(this.receiver.as_mut().poll_next(cx)) else {
 			return Poll::Ready(None);
+		};
+
+		let Ok(value) = result else {
+			return Poll::Pending;
 		};
 
 		let Some(json) = serde_json::from_value::<SubscriptionResponse<T>>(value).ok() else {
@@ -118,139 +219,261 @@ impl<T: DeserializeOwned + WebsocketNotification> Stream for Subscription<T> {
 	}
 }
 
-#[derive(Clone, Debug)]
-pub struct WebSocketProvider {
-	url: String,
-	#[debug(skip)]
-	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocket, Message>>>>,
-	#[debug(skip)]
-	pub(crate) receiver: Forked<UnboundedReceiver<Value>>,
-	/// The client ID which identifies current client ID.
-	id: u32,
-}
+#[cfg(feature = "ssr")]
+mod websocket_provider_reqwest {
+	use std::future::Future;
+	use std::pin::Pin;
+	use std::task::ready;
+	use std::task::Context;
+	use std::task::Poll;
 
-impl WebSocketProvider {
-	pub fn try_new(url: impl Into<String>) -> ClientResult<Self> {
-		let url = get_ws_url(url);
-		let ws = WebSocket::open(&url)
-			.map_err(|_| SolanaRpcClientError::new("Websocket connection failed"))?;
-		let (sink, mut stream) = ws.split();
-		let (tx, rx) = unbounded::<Value>();
+	use futures::future::BoxFuture;
+	use futures::Sink;
+	use futures::SinkExt;
+	use futures::Stream;
+	use pin_project::pin_project;
+	use reqwest_websocket::websocket;
+	pub use reqwest_websocket::Error as WebSocketError;
+	pub use reqwest_websocket::Message;
+	use reqwest_websocket::WebSocket;
+	use send_wrapper::SendWrapper;
+	use serde_json::Value;
+	use typed_builder::TypedBuilder;
 
-		// TODO check that this is the correct way to do this
-		spawn_local(async move {
-			while let Some(result) = stream.next().await {
-				match result {
-					Ok(Message::Bytes(bytes)) => {
-						tx.unbounded_send(serde_json::from_slice(&bytes).unwrap())
-							.unwrap();
-					}
-					Ok(Message::Text(text)) => {
-						tx.unbounded_send(serde_json::from_str(&text).unwrap())
-							.unwrap();
-					}
-					Err(_) => {}
-				}
-			}
-		});
+	use super::ToWebSocketResult;
+	use super::ToWebSocketValue;
+	use crate::ClientWebSocketError;
 
-		let receiver = rx.fork();
-		let sender = Arc::new(Mutex::new(SendWrapper::new(sink)));
+	impl ToWebSocketValue for Message {
+		fn to_websocket_value(&self) -> Result<Value, ClientWebSocketError> {
+			let result = match self {
+				Message::Text(string) => serde_json::from_str(string),
+				Message::Binary(bytes) => serde_json::from_slice(bytes),
+				_ => return Err(ClientWebSocketError::InvalidMessage),
+			};
 
-		Ok(Self {
-			url,
-			sender,
-			receiver,
-			id: 0,
-		})
+			result.map_err(|_| ClientWebSocketError::InvalidMessage)
+		}
 	}
 
-	pub fn url(&self) -> &str {
-		&self.url
+	impl From<WebSocketError> for ClientWebSocketError {
+		fn from(value: WebSocketError) -> Self {
+			ClientWebSocketError::from(&value)
+		}
 	}
 
-	/// Create a subscription and return the subscription id once a response
-	/// is received.
-	///
-	/// ```rust
-	/// ```
-	pub async fn create_subscription<T: WebsocketMethod>(
-		&mut self,
-		params: T,
-	) -> ClientResult<SubscriptionId> {
-		let id = self.id;
-		self.id += 1;
-		let request = ClientRequest::builder()
-			.method(T::SUBSCRIBE)
-			.params(params)
-			.id(id)
-			.build();
-		let json_string = serde_json::to_string(&request)
-			.map_err(|_| SolanaRpcClientError::new("Could not serialize params"))?;
+	impl From<&WebSocketError> for ClientWebSocketError {
+		fn from(value: &WebSocketError) -> Self {
+			use WebSocketError::Handshake;
+			use WebSocketError::Reqwest;
 
-		self.sender
-			.lock()
-			.await
-			.send(Message::Text(json_string))
-			.await
-			.map_err(|e| SolanaRpcClientError::new(format!("Could not subscribe: {e:?}")))?;
-
-		let mut stream = self.receiver.clone().filter_map(|value| {
-			future::ready(
-				serde_json::from_value::<SubscriptionResult>(value)
-					.ok()
-					.filter(|value| value.id == id),
-			)
-		});
-
-		let Some(response) = stream.next().await else {
-			return Err(SolanaRpcClientError::new("Could not get subscription_id"));
-		};
-
-		Ok(response.result)
-	}
-}
-
-fn get_ws_url(url: impl Into<String>) -> String {
-	let url: String = url.into();
-
-	if url.starts_with("http") {
-		// Replace to wss
-		let first_index = url.find(':').expect("Invalid URL");
-		let mut url = url.to_string();
-		url.replace_range(
-			..first_index,
-			if url.starts_with("https") {
-				"wss"
-			} else {
-				"ws"
-			},
-		);
-
-		// Increase the port number by 1 if the port is specified
-		let last_index = url.rfind(':').unwrap();
-		if last_index != first_index {
-			if let Some(Ok(mut port)) = url.get(last_index + 1..).map(str::parse::<u16>) {
-				port += 1;
-				url.replace_range(last_index + 1.., &port.to_string());
+			match value {
+				Handshake(_) | Reqwest(_) => Self::ConnectionError,
+				_ => Self::InvalidMessage,
 			}
 		}
 	}
 
-	url
+	type ReqwestResult = Result<WebSocket, WebSocketError>;
+
+	#[derive(TypedBuilder)]
+	#[pin_project]
+	pub struct WebSocketStream {
+		#[builder(setter(into))]
+		url: String,
+		#[pin]
+		#[builder(default)]
+		websocket: Option<WebSocket>,
+		#[pin]
+		initiator: SendWrapper<BoxFuture<'static, ReqwestResult>>,
+		#[builder(default)]
+		ended: bool,
+	}
+
+	impl WebSocketStream {
+		pub fn new(url: impl Into<String>) -> Self {
+			let url = url.into();
+			let fut = websocket(url.clone());
+			let boxed_future: BoxFuture<'static, ReqwestResult> = Box::pin(fut);
+
+			WebSocketStream::builder()
+				.initiator(SendWrapper::new(boxed_future))
+				.url(url)
+				.build()
+		}
+	}
+
+	impl Stream for WebSocketStream {
+		type Item = Result<Value, ClientWebSocketError>;
+
+		fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+			let mut this = self.project();
+
+			if let Some(websocket) = this.websocket.as_mut().as_pin_mut() {
+				let Some(next) = ready!(websocket.poll_next(cx)) else {
+					this.ended = &mut true;
+					return Poll::Ready(None);
+				};
+
+				return Poll::Ready(Some(next.to_websocket_result()));
+			}
+
+			let initiator = this.initiator.as_mut();
+			let result = ready!(initiator.poll(cx));
+
+			let Ok(websocket) = result else {
+				this.ended = &mut true;
+				return Poll::Ready(None);
+			};
+
+			this.websocket.set(Some(websocket));
+
+			Poll::Ready(Some(Ok(serde_json::json!({ "connected": true }))))
+		}
+	}
+
+	impl Sink<Value> for WebSocketStream {
+		type Error = ClientWebSocketError;
+
+		fn poll_ready(
+			mut self: Pin<&mut Self>,
+			cx: &mut Context<'_>,
+		) -> Poll<Result<(), Self::Error>> {
+			let Some(websocket) = self.websocket.as_mut() else {
+				return Poll::Pending;
+			};
+
+			websocket.poll_ready_unpin(cx).map_err(Into::into)
+		}
+
+		fn start_send(mut self: Pin<&mut Self>, item: Value) -> Result<(), Self::Error> {
+			let Some(websocket) = self.websocket.as_mut() else {
+				return Err(ClientWebSocketError::ConnectionError);
+			};
+
+			let text =
+				Message::text_from_json(&item).map_err(|_| ClientWebSocketError::InvalidMessage)?;
+			websocket.start_send_unpin(text).map_err(Into::into)
+		}
+
+		fn poll_flush(
+			mut self: Pin<&mut Self>,
+			cx: &mut Context<'_>,
+		) -> Poll<Result<(), Self::Error>> {
+			let Some(websocket) = self.websocket.as_mut() else {
+				return Poll::Pending;
+			};
+
+			websocket.poll_flush_unpin(cx).map_err(Into::into)
+		}
+
+		fn poll_close(
+			mut self: Pin<&mut Self>,
+			cx: &mut Context<'_>,
+		) -> Poll<Result<(), Self::Error>> {
+			let Some(websocket) = self.websocket.as_mut() else {
+				return Poll::Pending;
+			};
+
+			websocket.poll_close_unpin(cx).map_err(Into::into)
+		}
+	}
 }
 
-pub fn spawn_local<F>(fut: F)
-where
-	F: Future<Output = ()> + 'static,
-{
-	cfg_if::cfg_if! {
-		if #[cfg(feature = "js")] {
-			wasm_bindgen_futures::spawn_local(fut);
-		} else if #[cfg(feature = "ssr")] {
-			tokio::task::spawn_local(fut);
-		}  else {
-			futures::executor::block_on(fut);
+#[cfg(not(feature = "ssr"))]
+mod websocket_provider_wasm {
+	use std::pin::Pin;
+	use std::task::ready;
+	use std::task::Context;
+	use std::task::Poll;
+
+	use futures::Sink;
+	use futures::SinkExt;
+	use futures::Stream;
+	use gloo_net::websocket::futures::WebSocket;
+	use gloo_net::websocket::Message;
+	use pin_project::pin_project;
+	use serde_json::Value;
+	use typed_builder::TypedBuilder;
+	use wasm_bindgen::UnwrapThrowExt;
+
+	use super::ToWebSocketResult;
+	use super::ToWebSocketValue;
+	use crate::ClientWebSocketError;
+
+	#[derive(TypedBuilder)]
+	#[pin_project]
+	pub struct WebSocketStream {
+		#[builder(setter(into))]
+		url: String,
+		#[pin]
+		websocket: WebSocket,
+	}
+
+	impl WebSocketStream {
+		pub fn new(url: &str) -> Self {
+			Self::builder()
+				.url(url)
+				.websocket(WebSocket::open(url).unwrap_throw())
+				.build()
+		}
+	}
+
+	impl Stream for WebSocketStream {
+		type Item = Result<Value, ClientWebSocketError>;
+
+		fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+			let mut this = self.project();
+
+			let Some(result) = ready!(this.websocket.as_mut().poll_next(cx)) else {
+				return Poll::Ready(None);
+			};
+
+			Poll::Ready(Some(result.to_websocket_result()))
+		}
+	}
+
+	impl Sink<Value> for WebSocketStream {
+		type Error = ClientWebSocketError;
+
+		fn poll_ready(
+			mut self: Pin<&mut Self>,
+			cx: &mut Context<'_>,
+		) -> Poll<Result<(), Self::Error>> {
+			self.websocket.poll_ready_unpin(cx).map_err(Into::into)
+		}
+
+		fn start_send(mut self: Pin<&mut Self>, item: Value) -> Result<(), Self::Error> {
+			let string =
+				serde_json::to_string(&item).map_err(|_| ClientWebSocketError::InvalidMessage)?;
+			let text = Message::Text(string);
+
+			self.websocket.start_send_unpin(text).map_err(Into::into)
+		}
+
+		fn poll_flush(
+			mut self: Pin<&mut Self>,
+			cx: &mut Context<'_>,
+		) -> Poll<Result<(), Self::Error>> {
+			self.websocket.poll_flush_unpin(cx).map_err(Into::into)
+		}
+
+		fn poll_close(
+			mut self: Pin<&mut Self>,
+			cx: &mut Context<'_>,
+		) -> Poll<Result<(), Self::Error>> {
+			self.websocket.poll_close_unpin(cx).map_err(Into::into)
+		}
+	}
+
+	impl ToWebSocketValue for Message {
+		fn to_websocket_value(&self) -> Result<Value, ClientWebSocketError> {
+			let result = match self {
+				Message::Text(string) => serde_json::from_str(string),
+				Message::Bytes(bytes) => serde_json::from_slice(bytes),
+			};
+
+			result.map_err(|_| ClientWebSocketError::InvalidMessage)
 		}
 	}
 }

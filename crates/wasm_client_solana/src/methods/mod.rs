@@ -134,24 +134,25 @@ macro_rules! impl_http_method {
 	};
 }
 
-pub trait WebsocketNotification: DeserializeOwned {
+pub trait WebSocketNotification: DeserializeOwned {
 	const NOTIFICATION: &'static str;
 	const UNSUBSCRIBE: &'static str;
 }
-pub trait WebsocketMethod: Serialize {
+
+pub trait WebSocketMethod: Serialize {
 	const SUBSCRIBE: &'static str;
 }
 
 macro_rules! impl_websocket_method {
 	($ident:ident, $prefix:literal) => {
-		impl $crate::methods::WebsocketMethod for $ident {
+		impl $crate::methods::WebSocketMethod for $ident {
 			const SUBSCRIBE: &'static str = concat!($prefix, "Subscribe");
 		}
 	};
 }
 macro_rules! impl_websocket_notification {
 	($ident:ident, $prefix:literal) => {
-		impl $crate::methods::WebsocketNotification for $ident {
+		impl $crate::methods::WebSocketNotification for $ident {
 			const NOTIFICATION: &'static str = concat!($prefix, "Notification");
 			const UNSUBSCRIBE: &'static str = concat!($prefix, "Unsubscribe");
 		}

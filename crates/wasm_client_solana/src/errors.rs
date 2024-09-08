@@ -2,10 +2,13 @@ use std::fmt;
 
 use serde::Deserialize;
 use serde::Serialize;
+use solana_sdk::message::CompileError;
+use solana_sdk::signer::SignerError;
+use wallet_standard::WalletError;
 
 pub const DEFAULT_ERROR_CODE: u16 = 500u16;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) struct ErrorDetails {
 	pub(crate) code: i32,
 	pub(crate) message: String,
@@ -20,7 +23,7 @@ impl Default for ErrorDetails {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SolanaRpcClientError {
 	pub(crate) id: u16,
 	pub(crate) jsonrpc: String,
@@ -58,4 +61,68 @@ impl fmt::Display for SolanaRpcClientError {
 	}
 }
 
-pub type ClientResult<T> = Result<T, SolanaRpcClientError>;
+pub type ClientResult<T> = Result<T, ClientError>;
+
+#[derive(Clone, Debug, Serialize, Deserialize, thiserror::Error)]
+pub enum ClientError {
+	/// An rpc client error.
+	#[error("{0}")]
+	Rpc(#[from] SolanaRpcClientError),
+	/// The string of any unsupported errors.
+	#[error("Other: {0}")]
+	Other(String),
+	#[error("Websocket Error: {0}")]
+	WebSocket(#[from] ClientWebSocketError),
+	#[error("{0}")]
+	Wallet(#[from] WalletError),
+}
+
+/// Error returned by WebSocket
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, thiserror::Error)]
+#[non_exhaustive]
+pub enum ClientWebSocketError {
+	/// The `error` event
+	#[error("connection error")]
+	ConnectionError,
+	/// The `close` event
+	#[error("the connection closed")]
+	ConnectionClose,
+	/// Message failed to send.
+	#[error("there was an error sending the message")]
+	MessageSendError,
+	/// The message could not be deserialized
+	#[error("the message could not be deserialized")]
+	InvalidMessage,
+	/// The message could not be subscribed
+	#[error("could not subscribe to message")]
+	Subscription,
+}
+
+impl From<gloo_net::websocket::WebSocketError> for ClientWebSocketError {
+	fn from(value: gloo_net::websocket::WebSocketError) -> Self {
+		ClientWebSocketError::from(&value)
+	}
+}
+
+impl From<SignerError> for ClientError {
+	fn from(value: SignerError) -> Self {
+		Self::Other(format!("Signer: {value}"))
+	}
+}
+
+impl From<CompileError> for ClientError {
+	fn from(value: CompileError) -> Self {
+		Self::Other(format!("Compile: {value}"))
+	}
+}
+
+impl From<&gloo_net::websocket::WebSocketError> for ClientWebSocketError {
+	fn from(value: &gloo_net::websocket::WebSocketError) -> Self {
+		match value {
+			gloo_net::websocket::WebSocketError::ConnectionError => Self::ConnectionError,
+			gloo_net::websocket::WebSocketError::ConnectionClose(_) => Self::ConnectionClose,
+			gloo_net::websocket::WebSocketError::MessageSendError(_) => Self::MessageSendError,
+			_ => Self::InvalidMessage,
+		}
+	}
+}

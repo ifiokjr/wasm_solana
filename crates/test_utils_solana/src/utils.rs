@@ -36,11 +36,9 @@ use solana_sdk::signature::Signer;
 use solana_sdk::sysvar::rent::Rent;
 use solana_sdk::transaction::VersionedTransaction;
 use spl_associated_token_account::get_associated_token_address;
-use wasm_client_anchor::AnchorAsyncSigner;
+use wasm_client_anchor::prelude::*;
 use wasm_client_anchor::AnchorClientError;
 use wasm_client_anchor::AnchorClientResult;
-use wasm_client_anchor::AnchorRequestMethods;
-use wasm_client_anchor::AsyncVersionedMessage;
 
 pub const MAX_COMPUTE_UNITS: u64 = DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT as u64;
 

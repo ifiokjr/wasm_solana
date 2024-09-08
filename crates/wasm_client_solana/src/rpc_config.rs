@@ -146,7 +146,8 @@ where
 		_ => {
 			return Err(SolanaRpcClientError::new(format!(
 				"unsupported encoding: {encoding}. Supported encodings: base58, base64"
-			)));
+			))
+			.into());
 		}
 	};
 	Ok(encoded)

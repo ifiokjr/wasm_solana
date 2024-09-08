@@ -158,7 +158,7 @@ impl SolanaClient {
 		Self {
 			http: HttpProvider::new(endpoint),
 			commitment_config: CommitmentConfig::confirmed(),
-			ws: WebSocketProvider::try_new(endpoint).expect("Could not create websocket"),
+			ws: WebSocketProvider::new(endpoint),
 		}
 	}
 
@@ -185,7 +185,7 @@ impl SolanaClient {
 		Self {
 			http: HttpProvider::new(endpoint),
 			commitment_config,
-			ws: WebSocketProvider::try_new(endpoint).expect("Could not create websocket"),
+			ws: WebSocketProvider::new(endpoint),
 		}
 	}
 
@@ -240,9 +240,12 @@ impl SolanaClient {
 	}
 
 	pub async fn get_account(&self, pubkey: &Pubkey) -> ClientResult<Account> {
-		self.get_account_with_commitment(pubkey, self.commitment_config())
+		let result = self
+			.get_account_with_commitment(pubkey, self.commitment_config())
 			.await?
-			.ok_or_else(|| SolanaRpcClientError::new(format!("Account {pubkey} not found.")))
+			.ok_or_else(|| SolanaRpcClientError::new(format!("Account {pubkey} not found.")))?;
+
+		Ok(result)
 	}
 
 	pub async fn get_account_data(&self, pubkey: &Pubkey) -> ClientResult<Vec<u8>> {
@@ -294,9 +297,7 @@ impl SolanaClient {
 		match response.into() {
 			Some(result) => Ok(result),
 			None => {
-				Err(SolanaRpcClientError::new(format!(
-					"Signature {signature} not found."
-				)))
+				Err(SolanaRpcClientError::new(format!("Signature {signature} not found.")).into())
 			}
 		}
 	}
@@ -385,7 +386,8 @@ impl SolanaClient {
 			Err(SolanaRpcClientError::new(format!(
 				"RPC node returned mismatched signature {signature:?}, expected \
 				 {transaction_signature:?}"
-			)))
+			))
+			.into())
 		}
 	}
 
@@ -590,14 +592,10 @@ impl SolanaClient {
 		let request = GetBlockTimeRequest::new(slot);
 		let response: GetBlockTimeResponse = self.send(request).await?;
 
-		let maybe_ts: Option<UnixTimestamp> = response.into();
-		match maybe_ts {
-			Some(ts) => Ok(ts),
-			None => {
-				Err(SolanaRpcClientError::new(format!(
-					"Block Not Found: slot={slot}"
-				)))
-			}
+		let maybe_timestamp: Option<UnixTimestamp> = response.into();
+		match maybe_timestamp {
+			Some(timestamp) => Ok(timestamp),
+			None => Err(SolanaRpcClientError::new(format!("Block Not Found: slot={slot}")).into()),
 		}
 	}
 
@@ -1030,7 +1028,7 @@ impl SolanaClient {
 				let token_account_type: TokenAccountType =
 					match serde_json::from_value(account_data.parsed) {
 						Ok(t) => t,
-						Err(e) => return Err(SolanaRpcClientError::new(e.to_string())),
+						Err(e) => return Err(SolanaRpcClientError::new(e.to_string()).into()),
 					};
 
 				if let TokenAccountType::Account(token_account) = token_account_type {
@@ -1039,9 +1037,7 @@ impl SolanaClient {
 			}
 		}
 
-		Err(SolanaRpcClientError::new(format!(
-			"AccountNotFound: pubkey={pubkey}"
-		)))
+		Err(SolanaRpcClientError::new(format!("AccountNotFound: pubkey={pubkey}")).into())
 	}
 
 	pub async fn get_token_account(&self, pubkey: &Pubkey) -> ClientResult<Option<UiTokenAccount>> {
@@ -1361,11 +1357,7 @@ impl SolanaClient {
 		request: impl Into<GetAccountInfoRequest>,
 	) -> ClientResult<Subscription<GetAccountInfoResponse>> {
 		let subscription_id = self.ws.create_subscription(request.into()).await?;
-		let subscription = Subscription::builder()
-			.receiver(self.ws.receiver.clone())
-			.sender(self.ws.sender.clone())
-			.id(subscription_id)
-			.build();
+		let subscription = Subscription::new(&self.ws, subscription_id);
 
 		Ok(subscription)
 	}
@@ -1388,11 +1380,7 @@ impl SolanaClient {
 		request: BlockSubscribeRequest,
 	) -> ClientResult<Subscription<BlockNotificationResponse>> {
 		let subscription_id = self.ws.create_subscription(request).await?;
-		let subscription = Subscription::builder()
-			.receiver(self.ws.receiver.clone())
-			.sender(self.ws.sender.clone())
-			.id(subscription_id)
-			.build();
+		let subscription = Subscription::new(&self.ws, subscription_id);
 
 		Ok(subscription)
 	}
@@ -1412,11 +1400,7 @@ impl SolanaClient {
 		request: LogsSubscribeRequest,
 	) -> ClientResult<Subscription<LogsNotificationResponse>> {
 		let subscription_id = self.ws.create_subscription(request).await?;
-		let subscription = Subscription::builder()
-			.receiver(self.ws.receiver.clone())
-			.sender(self.ws.sender.clone())
-			.id(subscription_id)
-			.build();
+		let subscription = Subscription::new(&self.ws, subscription_id);
 
 		Ok(subscription)
 	}
@@ -1436,11 +1420,7 @@ impl SolanaClient {
 		request: ProgramSubscribeRequest,
 	) -> ClientResult<Subscription<GetProgramAccountsResponse>> {
 		let subscription_id = self.ws.create_subscription(request).await?;
-		let subscription = Subscription::builder()
-			.receiver(self.ws.receiver.clone())
-			.sender(self.ws.sender.clone())
-			.id(subscription_id)
-			.build();
+		let subscription = Subscription::new(&self.ws, subscription_id);
 
 		Ok(subscription)
 	}
