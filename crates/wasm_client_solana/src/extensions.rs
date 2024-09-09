@@ -7,6 +7,7 @@ use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::message::v0;
+use solana_sdk::message::CompileError;
 use solana_sdk::message::VersionedMessage;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
@@ -24,14 +25,24 @@ use crate::SolanaClient;
 /// Add extensions which make it possible to partially sign a versioned
 /// transaction.
 pub trait VersionedTransactionExtension {
+	/// Create a new unsigned transaction from from the provided
+	/// [`VersionedMessage`].
 	fn new<T: Signers + ?Sized>(message: VersionedMessage, keypairs: &T) -> Self;
-	fn new_unsigned(message: VersionedMessage) -> Self;
+	/// Create a new unsigned transction from the payer and instructions with a
+	/// recent blockhash. Under the hood this creates the message which needs to
+	/// be signed.
+	fn new_unsigned_v0(
+		payer: &Pubkey,
+		instructions: &[Instruction],
+		recent_blockhash: Hash,
+	) -> Result<VersionedTransaction, CompileError>;
+	fn new_unsigned(message: VersionedMessage) -> VersionedTransaction;
+	/// Attempt to sign this transaction with provided signers.
 	fn try_sign<T: Signers + ?Sized>(
 		&mut self,
-		keypairs: &T,
-		recent_blockhash: Hash,
+		signers: &T,
+		recent_blockhash: Option<Hash>,
 	) -> Result<(), SignerError>;
-
 	/// Sign the transaction with a subset of required keys, returning any
 	/// errors.
 	///
@@ -47,22 +58,35 @@ pub trait VersionedTransactionExtension {
 	/// Returns an error if signing fails.
 	fn try_sign_unchecked<T: Signers + ?Sized>(
 		&mut self,
-		keypairs: &T,
+		signers: &T,
 		positions: Vec<usize>,
-		recent_blockhash: Hash,
+		recent_blockhash: Option<Hash>,
 	) -> Result<(), SignerError>;
 	fn get_signing_keypair_positions(
 		&self,
 		pubkeys: &[Pubkey],
 	) -> Result<Vec<Option<usize>>, SignerError>;
-	fn sign<T: Signers + ?Sized>(&mut self, keypairs: &T, recent_blockhash: Hash) {
-		self.try_sign(keypairs, recent_blockhash).unwrap();
+	fn sign<T: Signers + ?Sized>(&mut self, signers: &T, recent_blockhash: Option<Hash>) {
+		self.try_sign(signers, recent_blockhash).unwrap();
 	}
+	/// Check whether the transaction is fully signed with valid signatures.
+	fn is_signed(&self) -> bool;
 }
 
 impl VersionedTransactionExtension for VersionedTransaction {
 	fn new<T: Signers + ?Sized>(message: VersionedMessage, keypairs: &T) -> Self {
 		Self::try_new(message, keypairs).unwrap()
+	}
+
+	fn new_unsigned_v0(
+		payer: &Pubkey,
+		instructions: &[Instruction],
+		recent_blockhash: Hash,
+	) -> Result<Self, CompileError> {
+		let message = v0::Message::try_compile(payer, instructions, &[], recent_blockhash)?;
+		let versioned_message = VersionedMessage::V0(message);
+
+		Ok(Self::new_unsigned(versioned_message))
 	}
 
 	/// Create an unsigned transction from a [`VersionedMessage`].
@@ -93,7 +117,7 @@ impl VersionedTransactionExtension for VersionedTransaction {
 	fn try_sign<T: Signers + ?Sized>(
 		&mut self,
 		keypairs: &T,
-		recent_blockhash: Hash,
+		recent_blockhash: Option<Hash>,
 	) -> Result<(), SignerError> {
 		let positions = self
 			.get_signing_keypair_positions(&keypairs.pubkeys())?
@@ -108,10 +132,15 @@ impl VersionedTransactionExtension for VersionedTransaction {
 		&mut self,
 		keypairs: &T,
 		positions: Vec<usize>,
-		recent_blockhash: Hash,
+		recent_blockhash: Option<Hash>,
 	) -> Result<(), SignerError> {
-		if &recent_blockhash != self.message.recent_blockhash() {
+		let message_blockhash = *self.message.recent_blockhash();
+		let recent_blockhash = recent_blockhash.unwrap_or(message_blockhash);
+
+		if recent_blockhash != message_blockhash {
 			self.message.set_recent_blockhash(recent_blockhash);
+
+			// reset signatures if blockhash has changed
 			self.signatures
 				.iter_mut()
 				.for_each(|signature| *signature = Signature::default());
@@ -146,6 +175,14 @@ impl VersionedTransactionExtension for VersionedTransaction {
 			.iter()
 			.map(|pubkey| signed_keys.iter().position(|x| x == pubkey))
 			.collect())
+	}
+
+	fn is_signed(&self) -> bool {
+		self.signatures.len() == self.message.header().num_required_signatures as usize
+			&& self
+				.signatures
+				.iter()
+				.all(|signature| *signature != Signature::default())
 	}
 }
 

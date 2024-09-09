@@ -8385,6 +8385,8 @@ dependencies = [
 name = "wallet_standard_wallets"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "assert2",
  "async-trait",
  "derive_more 1.0.0",
  "futures 0.3.30",
@@ -8394,6 +8396,9 @@ dependencies = [
  "serde",
  "solana-program",
  "solana-sdk",
+ "test_utils",
+ "test_utils_solana",
+ "tokio",
  "typed-builder",
  "wallet_standard",
  "wasm_client_solana",

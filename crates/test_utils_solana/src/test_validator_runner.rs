@@ -39,14 +39,14 @@ use wasm_client_solana::SolanaClient;
 
 use crate::FromAnchorData;
 
-#[derive(Clone, TypedBuilder)]
+#[derive(Default, Clone, TypedBuilder)]
 pub struct TestValidatorRunnerProps {
 	#[builder(default)]
 	pub programs: Vec<TestProgramInfo>,
 	/// The pubkeys to fund with an amount of sol each.
 	#[builder(default)]
 	pub pubkeys: Vec<Pubkey>,
-	#[builder(default = CommitmentLevel::Finalized, setter(into))]
+	#[builder(default, setter(into))]
 	pub commitment: CommitmentLevel,
 	/// The accounts to add during genesis.
 	#[builder(default)]

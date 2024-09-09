@@ -23,5 +23,12 @@ typed-builder = { workspace = true }
 wallet_standard = { workspace = true, features = ["solana"] }
 wasm_client_solana = { workspace = true }
 
+[dev-dependencies]
+anyhow = { workspace = true }
+assert2 = { workspace = true }
+test_utils = { workspace = true }
+test_utils_solana = { workspace = true, feautures = ["test_validator", "ssr"] }
+tokio = { workspace = true, features = ["test-util"] }
+
 [lints]
 workspace = true
