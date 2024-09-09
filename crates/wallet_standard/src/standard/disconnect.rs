@@ -9,6 +9,5 @@ pub const STANDARD_DISCONNECT: &str = "standard:disconnect";
 
 #[async_trait(?Send)]
 pub trait WalletStandardDisconnect: Wallet {
-	async fn disconnect(&self) -> WalletResult<()>;
-	async fn disconnect_mut(&mut self) -> WalletResult<()>;
+	async fn disconnect(&mut self) -> WalletResult<()>;
 }

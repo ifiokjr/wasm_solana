@@ -8,23 +8,12 @@ use solana_sdk::transaction::VersionedTransaction;
 use typed_builder::TypedBuilder;
 
 use crate::SolanaSignatureOutput;
-use crate::WalletAccountInfo;
 use crate::WalletResult;
 
 pub const SOLANA_SIGN_AND_SEND_TRANSACTION: &str = "solana:signAndSendTransaction";
 
 pub trait SolanaSignAndSendTransactionOutput: SolanaSignatureOutput {}
 impl<T> SolanaSignAndSendTransactionOutput for T where T: SolanaSignatureOutput {}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
-#[serde(rename_all = "camelCase")]
-pub struct SolanaSignAndSendTransactionInput<Account: WalletAccountInfo> {
-	/// Account to use.
-	#[cfg_attr(feature = "browser", serde(with = "serde_wasm_bindgen::preserve"))]
-	pub account: Account,
-	#[serde(flatten)]
-	pub props: SolanaSignAndSendTransactionProps,
-}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]

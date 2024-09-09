@@ -4,6 +4,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use solana_sdk::message::CompileError;
 use solana_sdk::signer::SignerError;
+use wallet_standard::IntoWalletError;
 use wallet_standard::WalletError;
 
 pub const DEFAULT_ERROR_CODE: u16 = 500u16;
@@ -76,6 +77,10 @@ pub enum ClientError {
 	#[error("{0}")]
 	Wallet(#[from] WalletError),
 }
+
+impl IntoWalletError for ClientError {}
+impl IntoWalletError for ClientWebSocketError {}
+impl IntoWalletError for SolanaRpcClientError {}
 
 /// Error returned by WebSocket
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, thiserror::Error)]

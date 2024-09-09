@@ -94,7 +94,7 @@ pub trait WalletInfo {
 /// Wallets may use or extend {@link
 /// "@wallet-standard/wallet".ReadonlyWalletAccount} which implements this
 /// interface.
-pub trait WalletAccountInfo: MaybeJsCast {
+pub trait WalletAccountInfo {
 	/// Address of the account, corresponding with a public key.
 	fn address(&self) -> String;
 	/// Public key of the account, corresponding with a secret key to use.
@@ -116,14 +116,6 @@ pub trait WalletAccountInfo: MaybeJsCast {
 	/// the app.
 	fn icon(&self) -> Option<String>;
 }
-
-#[cfg(feature = "browser")]
-pub trait MaybeJsCast: wasm_bindgen::JsCast {}
-#[cfg(feature = "browser")]
-impl<T> MaybeJsCast for T where T: wasm_bindgen::JsCast {}
-
-#[cfg(not(feature = "browser"))]
-pub trait MaybeJsCast {}
 
 pub trait Wallet {
 	type Wallet: WalletInfo;

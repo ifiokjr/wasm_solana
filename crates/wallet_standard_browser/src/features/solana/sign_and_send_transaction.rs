@@ -2,9 +2,11 @@
 
 use async_trait::async_trait;
 use js_sys::Array;
+use serde::Deserialize;
+use serde::Serialize;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionVersion;
-use wallet_standard::SolanaSignAndSendTransactionInput;
+use typed_builder::TypedBuilder;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletError;
@@ -61,6 +63,15 @@ impl SolanaSignatureOutput for BrowserSolanaSignAndSendTransactionOutput {
 	}
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[serde(rename_all = "camelCase")]
+pub struct SolanaSignAndSendTransactionInput {
+	#[serde(with = "serde_wasm_bindgen::preserve")]
+	pub account: BrowserWalletAccountInfo,
+	#[serde(flatten)]
+	pub props: SolanaSignAndSendTransactionProps,
+}
+
 impl SolanaSignAndSendTransactionFeature {
 	pub fn supported_transaction_versions(&self) -> WalletResult<Vec<TransactionVersion>> {
 		let array = self.supported_transaction_versions_getter();
@@ -94,7 +105,7 @@ impl SolanaSignAndSendTransactionFeature {
 
 	pub async fn sign_and_send_transactions(
 		&self,
-		inputs: Vec<SolanaSignAndSendTransactionInput<BrowserWalletAccountInfo>>,
+		inputs: Vec<SolanaSignAndSendTransactionInput>,
 	) -> WalletResult<Vec<BrowserSolanaSignAndSendTransactionOutput>> {
 		if inputs.is_empty() {
 			return Err(WalletError::InvalidArguments);

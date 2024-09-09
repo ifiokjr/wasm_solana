@@ -6,6 +6,7 @@ use solana_sdk::signature::Signature;
 use wallet_standard::AsyncSigner;
 use wallet_standard::SolanaSignInInput;
 use wallet_standard::SolanaSignInOutput;
+use wallet_standard::SolanaSignMessageOutput;
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
@@ -63,19 +64,21 @@ impl SolanaSignatureOutput for BrowserSolanaSignInOutput {
 	}
 }
 
-impl SolanaSignInOutput for BrowserSolanaSignInOutput {
-	type Account = BrowserWalletAccountInfo;
-
-	fn account(&self) -> Self::Account {
-		self._account()
-	}
-
+impl SolanaSignMessageOutput for BrowserSolanaSignInOutput {
 	fn signed_message(&self) -> Vec<u8> {
 		self._signed_message()
 	}
 
 	fn signature_type(&self) -> Option<String> {
 		self._signature_type()
+	}
+}
+
+impl SolanaSignInOutput for BrowserSolanaSignInOutput {
+	type Account = BrowserWalletAccountInfo;
+
+	fn account(&self) -> Self::Account {
+		self._account()
 	}
 }
 

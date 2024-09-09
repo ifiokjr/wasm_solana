@@ -2,10 +2,12 @@
 
 use async_trait::async_trait;
 use js_sys::Array;
+use serde::Deserialize;
+use serde::Serialize;
 use solana_sdk::transaction::Transaction;
 use solana_sdk::transaction::TransactionVersion;
 use solana_sdk::transaction::VersionedTransaction;
-use wallet_standard::SolanaSignTransactionInput;
+use typed_builder::TypedBuilder;
 use wallet_standard::SolanaSignTransactionOutput;
 use wallet_standard::SolanaSignTransactionProps;
 use wallet_standard::SolanaSignTransactionPropsWithBytes;
@@ -83,6 +85,16 @@ impl SolanaSignTransactionFeature {
 }
 
 impl_feature_from_js!(SolanaSignTransactionFeature, SOLANA_SIGN_TRANSACTION);
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[serde(rename_all = "camelCase")]
+pub struct SolanaSignTransactionInput {
+	/// Account to use.
+	#[serde(with = "serde_wasm_bindgen::preserve")]
+	pub account: BrowserWalletAccountInfo,
+	#[serde(flatten)]
+	pub props: SolanaSignTransactionPropsWithBytes,
+}
 
 impl SolanaSignTransactionFeature {
 	pub async fn sign_transaction(

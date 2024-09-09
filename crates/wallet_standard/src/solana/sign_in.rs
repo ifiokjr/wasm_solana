@@ -5,8 +5,8 @@ use serde::Deserialize;
 use serde::Serialize;
 use typed_builder::TypedBuilder;
 
+use super::SolanaSignMessageOutput;
 use super::WalletAccountInfoSolanaPubkey;
-use crate::AsyncSigner;
 use crate::SolanaSignatureOutput;
 use crate::WalletAccountInfo;
 use crate::WalletError;
@@ -14,18 +14,12 @@ use crate::WalletResult;
 
 pub const SOLANA_SIGN_IN: &str = "solana:signIn";
 
-pub trait SolanaSignInOutput: SolanaSignatureOutput {
+pub trait SolanaSignInOutput: SolanaSignatureOutput + SolanaSignMessageOutput {
 	type Account: WalletAccountInfo;
 	/// Account that was signed in.
 	/// The address of the account may be different from the provided input
 	/// Address.
 	fn account(&self) -> Self::Account;
-	/// Message bytes that were signed.
-	/// The wallet may prefix or otherwise modify the message before signing it.
-	fn signed_message(&self) -> Vec<u8>;
-	/// Optional type of the message signature produced.
-	/// If not provided, the signature must be Ed25519.
-	fn signature_type(&self) -> Option<String>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
@@ -85,7 +79,7 @@ pub struct SolanaSignInInput {
 }
 
 #[async_trait(?Send)]
-pub trait WalletSolanaSignIn: AsyncSigner {
+pub trait WalletSolanaSignIn {
 	type Output: SolanaSignInOutput;
 
 	async fn sign_in(&self, input: SolanaSignInInput) -> WalletResult<Self::Output>;

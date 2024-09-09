@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
@@ -36,13 +34,8 @@ pub struct StandardConnectInput {
 
 #[async_trait(?Send)]
 pub trait WalletStandardConnect: Wallet {
-	async fn connect(&self) -> WalletResult<Vec<Self::Account>>;
+	async fn connect(&mut self) -> WalletResult<Vec<Self::Account>>;
 	async fn connect_with_options(
-		&self,
-		options: StandardConnectInput,
-	) -> WalletResult<Vec<Self::Account>>;
-	async fn connect_mut(&mut self) -> WalletResult<Vec<Self::Account>>;
-	async fn connect_with_options_mut(
 		&mut self,
 		options: StandardConnectInput,
 	) -> WalletResult<Vec<Self::Account>>;

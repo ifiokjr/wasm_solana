@@ -2,7 +2,7 @@
 
 <br />
 
-> These are solana specific test utils that are used throughout this code base to make sharing code easier.
+> Utilities and extensions for testing solana in wasm compatible environments.
 
 <br />
 
@@ -25,10 +25,10 @@ test_utils_solana = "0.1" # replace with the latest version
 
 ## Usage
 
-[crate-image]: https://img.shields.io/crates/v/serde_solana.svg
-[crate-link]: https://crates.io/crates/serde_solana
-[docs-image]: https://docs.rs/serde_solana/badge.svg
-[docs-link]: https://docs.rs/serde_solana/
+[crate-image]: https://img.shields.io/crates/v/test_utils_solana.svg
+[crate-link]: https://crates.io/crates/test_utils_solana
+[docs-image]: https://docs.rs/test_utils_solana/badge.svg
+[docs-link]: https://docs.rs/test_utils_solana/
 [ci-status-image]: https://github.com/ifiokjr/wasm_solana/workflows/ci/badge.svg
 [ci-status-link]: https://github.com/ifiokjr/wasm_solana/actions?query=workflow:ci
 [unlicense-image]: https://img.shields.io/badge/license-Unlicence-blue.svg

@@ -64,14 +64,14 @@ impl StandardConnectFeature {
 #[async_trait(?Send)]
 impl WalletStandardConnect for BrowserWallet {
 	/// Connect the account and automatically update the attached account.
-	async fn connect_mut(&mut self) -> WalletResult<Vec<Self::Account>> {
-		self.connect_with_options_mut(StandardConnectInput::default())
+	async fn connect(&mut self) -> WalletResult<Vec<Self::Account>> {
+		self.connect_with_options(StandardConnectInput::default())
 			.await
 	}
 
 	/// Connect the account and automatically update the attached account.
 	#[allow(clippy::manual_async_fn)]
-	async fn connect_with_options_mut(
+	async fn connect_with_options(
 		&mut self,
 		options: StandardConnectInput,
 	) -> WalletResult<Vec<Self::Account>> {
@@ -83,20 +83,5 @@ impl WalletStandardConnect for BrowserWallet {
 		self.wallet_account = Some(account);
 
 		Ok(accounts)
-	}
-
-	async fn connect(&self) -> WalletResult<Vec<Self::Account>> {
-		self.connect_with_options(StandardConnectInput::default())
-			.await
-	}
-
-	async fn connect_with_options(
-		&self,
-		options: StandardConnectInput,
-	) -> WalletResult<Vec<Self::Account>> {
-		self.wallet
-			.get_feature::<StandardConnectFeature>()?
-			.connect_with_options(options)
-			.await
 	}
 }

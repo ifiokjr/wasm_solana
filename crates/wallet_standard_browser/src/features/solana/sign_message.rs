@@ -2,8 +2,10 @@
 
 use async_trait::async_trait;
 use js_sys::Array;
+use serde::Deserialize;
+use serde::Serialize;
 use solana_sdk::signature::Signature;
-use wallet_standard::SolanaSignMessageInput;
+use typed_builder::TypedBuilder;
 use wallet_standard::SolanaSignMessageOutput;
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletError;
@@ -80,6 +82,18 @@ impl TryFrom<BrowserSolanaSignMessageOutput> for Signature {
 
 impl_feature_from_js!(SolanaSignMessageFeature, SOLANA_SIGN_MESSAGE);
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[serde(rename_all = "camelCase")]
+pub struct SolanaSignMessageInput {
+	/// Account to use.
+	#[serde(with = "serde_wasm_bindgen::preserve")]
+	pub account: BrowserWalletAccountInfo,
+	/// Message to sign, as raw bytes.
+	#[serde(with = "serde_bytes")]
+	#[builder(setter(into))]
+	pub message: Vec<u8>,
+}
+
 impl SolanaSignMessageFeature {
 	/// Sign a  message using the account's secret key.
 	pub async fn sign_message(
@@ -101,7 +115,7 @@ impl SolanaSignMessageFeature {
 	/// Sign a list of messages using the account's secret key.
 	pub async fn sign_messages(
 		&self,
-		inputs: Vec<SolanaSignMessageInput<BrowserWalletAccountInfo>>,
+		inputs: Vec<SolanaSignMessageInput>,
 	) -> WalletResult<Vec<BrowserSolanaSignMessageOutput>> {
 		let array: Array = serde_wasm_bindgen::to_value(&inputs)?.unchecked_into();
 		let results: Array = self._sign_message(array).await?.dyn_into()?;

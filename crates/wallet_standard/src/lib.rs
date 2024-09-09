@@ -17,7 +17,7 @@ pub mod prelude {
 	pub use super::solana::prelude::*;
 	pub use super::ExperimentalDecryptOutput;
 	pub use super::ExperimentalEncryptOutput;
-	pub use super::MaybeJsCast;
+	pub use super::IntoWalletError;
 	pub use super::StandardConnectOutput;
 	pub use super::Wallet;
 	pub use super::WalletAccountInfo;

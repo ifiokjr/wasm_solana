@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -71,6 +73,8 @@ pub enum WalletError {
 	WalletWindowBlocked,
 	#[error("Wallet window closed")]
 	WalletWindowClosed,
+	#[error("Other: {0}")]
+	Other(String),
 }
 
 impl From<core::fmt::Error> for WalletError {
@@ -106,3 +110,11 @@ impl From<serde_wasm_bindgen::Error> for WalletError {
 }
 
 pub type WalletResult<T> = Result<T, WalletError>;
+
+pub trait IntoWalletError: Display {}
+
+impl<E: IntoWalletError> From<E> for WalletError {
+	fn from(value: E) -> Self {
+		WalletError::Other(value.to_string())
+	}
+}

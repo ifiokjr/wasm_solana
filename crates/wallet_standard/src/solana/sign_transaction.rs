@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
@@ -8,7 +6,7 @@ use solana_sdk::transaction::Transaction;
 use solana_sdk::transaction::VersionedTransaction;
 use typed_builder::TypedBuilder;
 
-use crate::WalletAccountInfo;
+use crate::WalletError;
 use crate::WalletResult;
 
 pub const SOLANA_SIGN_TRANSACTION: &str = "solana:signTransaction";
@@ -23,14 +21,18 @@ pub trait SolanaSignTransactionOutput {
 	fn signed_legacy_transaction(&self) -> WalletResult<Transaction>;
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
-#[serde(rename_all = "camelCase")]
-pub struct SolanaSignTransactionInput<Account: WalletAccountInfo> {
-	/// Account to use.
-	#[cfg_attr(feature = "browser", serde(with = "serde_wasm_bindgen::preserve"))]
-	pub account: Account,
-	#[serde(flatten)]
-	pub props: SolanaSignTransactionPropsWithBytes,
+impl SolanaSignTransactionOutput for VersionedTransaction {
+	fn signed_transaction(&self) -> Vec<u8> {
+		bincode::serialize(self).unwrap()
+	}
+
+	fn signed_versioned_transaction(&self) -> WalletResult<VersionedTransaction> {
+		Ok(self.clone())
+	}
+
+	fn signed_legacy_transaction(&self) -> WalletResult<Transaction> {
+		Err(WalletError::UnsupportedTransactionVersion)
+	}
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]

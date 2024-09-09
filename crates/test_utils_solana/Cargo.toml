@@ -8,6 +8,7 @@ license = { workspace = true }
 readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
+description = "Utilities and extensions for testing solana in wasm compatible environments"
 
 [lints]
 workspace = true
