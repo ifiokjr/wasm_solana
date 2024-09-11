@@ -34,7 +34,6 @@ use solana_test_validator::TestValidator;
 use solana_test_validator::TestValidatorGenesis;
 use solana_test_validator::UpgradeableProgramInfo;
 use typed_builder::TypedBuilder;
-use wallet_standard::AsyncKeypair;
 use wasm_client_solana::SolanaClient;
 
 use crate::FromAnchorData;

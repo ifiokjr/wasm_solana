@@ -9,7 +9,6 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::system_instruction::transfer;
-use solana_sdk::system_program;
 use solana_sdk::transaction::VersionedTransaction;
 use test_utils::SECRET_KEY_WALLET;
 use test_utils_solana::TestValidatorRunner;
