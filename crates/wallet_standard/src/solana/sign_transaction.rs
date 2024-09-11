@@ -59,16 +59,19 @@ pub struct SolanaSignTransactionProps {
 	/// Chain to use.
 	#[builder(default, setter(into))]
 	pub chain: Option<String>,
+	/// Additional options for the transaction.
 	#[builder(default, setter(into, strip_option))]
 	pub options: Option<SolanaSignTransactionOptions>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct SolanaSignTransactionOptions {
 	/// Preflight commitment level.
+	#[builder(default, setter(strip_option(fallback = preflight_commitment_opt)))]
 	pub preflight_commitment: Option<CommitmentLevel>,
 	/// The minimum slot that the request can be evaluated at.
+	#[builder(default, setter(strip_option(fallback = min_context_slot_opt)))]
 	pub min_context_slot: Option<u64>,
 }
 

@@ -172,6 +172,35 @@ pub struct MemoryWallet {
 	client: SolanaClient,
 }
 
+impl Signer for MemoryWallet {
+	fn try_pubkey(&self) -> Result<Pubkey, solana_sdk::signer::SignerError> {
+		let Some(ref account) = self.account else {
+			return Err(solana_sdk::signer::SignerError::Connection(
+				"No connected account".into(),
+			));
+		};
+
+		account.try_pubkey()
+	}
+
+	fn try_sign_message(
+		&self,
+		message: &[u8],
+	) -> Result<Signature, solana_sdk::signer::SignerError> {
+		let Some(ref account) = self.account else {
+			return Err(solana_sdk::signer::SignerError::Connection(
+				"No connected account".into(),
+			));
+		};
+
+		account.try_sign_message(message)
+	}
+
+	fn is_interactive(&self) -> bool {
+		true
+	}
+}
+
 impl MemoryWallet {
 	pub fn new(client: SolanaClient, accounts: &[Keypair]) -> Self {
 		let accounts = accounts
@@ -450,7 +479,7 @@ impl WalletSolanaSignMessage for MemoryWallet {
 	) -> WalletResult<Vec<Self::Output>> {
 		let futures = messages
 			.into_iter()
-			.map(|message| self.sign_message(message));
+			.map(|message| WalletSolanaSignMessage::sign_message(self, message));
 
 		try_join_all(futures).await
 	}

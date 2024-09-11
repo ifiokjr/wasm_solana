@@ -40,14 +40,20 @@ use crate::FromAnchorData;
 
 #[derive(Default, Clone, TypedBuilder)]
 pub struct TestValidatorRunnerProps {
+	/// The programs to add to the validator.
 	#[builder(default)]
 	pub programs: Vec<TestProgramInfo>,
 	/// The pubkeys to fund with an amount of sol each.
 	#[builder(default)]
 	pub pubkeys: Vec<Pubkey>,
+	/// The initial lamports to add to each pubkey account.
+	#[builder(default = sol_to_lamports(50.0))]
+	pub initial_lamports: u64,
+	/// The default commitment level to use for the validator client rpc.
 	#[builder(default, setter(into))]
 	pub commitment: CommitmentLevel,
-	/// The accounts to add during genesis.
+	/// Custom accounts to add during genesis. These accounts can include custom
+	/// data and state.
 	#[builder(default)]
 	pub accounts: HashMap<Pubkey, AccountSharedData>,
 }
@@ -83,15 +89,21 @@ impl From<TestProgramInfo> for UpgradeableProgramInfo {
 
 /// A local test validator runner which can be used for the test validator.
 pub struct TestValidatorRunner {
-	pub genesis: TestValidatorGenesis,
-	pub ports: (u16, u16, u16),
-	pub validator: TestValidator,
-	pub mint_keypair: Keypair,
-	pub rpc: SolanaClient,
+	genesis: TestValidatorGenesis,
+	/// The ports used for the validator.
+	/// The first port is the `rpc_port`, the second is the `pubsub_port`, and
+	/// the third is the `faucet_port` to allow for airdrops.
+	ports: (u16, u16, u16),
+	/// The original wrapped test validator
+	validator: TestValidator,
+	/// This is the keypair for the mint account and is funded with 500 SOL.
+	mint_keypair: Keypair,
+	/// The rpc client for the validator.
+	rpc: SolanaClient,
 }
 
 impl TestValidatorRunner {
-	pub async fn run(props: TestValidatorRunnerProps) -> Result<Arc<Self>> {
+	async fn run_internal(props: TestValidatorRunnerProps) -> Result<Arc<Self>> {
 		let mut genesis = TestValidatorGenesis::default();
 		let faucet_keypair = Keypair::new();
 		let faucet_pubkey = faucet_keypair.pubkey();
@@ -171,17 +183,26 @@ impl TestValidatorRunner {
 		Ok(Arc::new(runner))
 	}
 
-	/// Run the local test validator in a way that is `Send` safe and provide a
-	/// name that is used to prevent duplication of shared runners.
-	pub async fn run_shared(
-		name: Option<&'static str>,
-		props: TestValidatorRunnerProps,
-	) -> Arc<Self> {
+	/// Create a new test validator runner.
+	///
+	/// This method is `Send` safe and can be called with a name that is used to
+	/// prevent duplication of shared runners.
+	///
+	/// ```rust
+	/// use std::sync::Arc;
+	///
+	/// use test_utils_solana::TestValidatorRunner;
+	///
+	/// async fn run() -> Arc<TestValidatorRunner> {
+	/// 	TestValidatorRunner::run(Some("tests"), TestValidatorRunnerProps::default()).await
+	/// }
+	/// ```
+	pub async fn run(name: Option<&'static str>, props: TestValidatorRunnerProps) -> Arc<Self> {
 		if let Some(wrapped_future) = name.and_then(get_runner_future) {
 			return wrapped_future.await;
 		}
 
-		let future = async { Self::run(props).await.unwrap() };
+		let future = async { Self::run_internal(props).await.unwrap() };
 		let wrapped_future = SendWrapper::new(future.boxed().shared());
 
 		if let Some(name) = name {
@@ -193,6 +214,10 @@ impl TestValidatorRunner {
 
 	pub fn rpc_url(&self) -> String {
 		self.validator.rpc_url()
+	}
+
+	pub fn pubsub_url(&self) -> String {
+		self.validator.rpc_pubsub_url()
 	}
 
 	pub fn rpc(&self) -> &SolanaClient {

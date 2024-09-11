@@ -22,11 +22,11 @@ macro_rules! base_create_request_builder {
 			#[derive(::derive_more::Debug, ::typed_builder::TypedBuilder)]
 			pub struct [<$name_prefix Request>]<
 				'a,
-				W: $crate::AnchorAsyncSigner + 'a,
+				W: $crate::AnchorWallet + 'a,
 			> {
 				/// This is the launchpad program.
 				pub launchpad: &'a $program_struct<W>,
-				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::AnchorAsyncSigner`] to allow for async signing via wallets.
+				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::AnchorWallet`] to allow for async signing via wallets.
 				pub wallet: &'a W,
 				/// Provide the args to the anchor program endpoint. This will be transformed into the instruction data when processing the transaction.
 				#[debug("args")]
@@ -40,24 +40,28 @@ macro_rules! base_create_request_builder {
 				pub remaining_accounts: Vec<::solana_sdk::instruction::AccountMeta>,
 				/// Signers that can sign the data synchronously
 				#[builder(default)]
-				pub sync_signers: Vec<&'a dyn ::solana_sdk::signer::Signer>,
-				/// Signers that sign the instruction asynchronously.
-				#[builder(default)]
-				pub async_signers: Vec<&'a dyn ::wallet_standard::AsyncSigner>,
+				pub signers: Vec<&'a dyn ::solana_sdk::signer::Signer>,
 				#[builder(default)]
 				/// Instructions that are run before the anchor instruction.
 				pub instructions: Vec<::solana_sdk::instruction::Instruction>,
 				#[builder(default)]
 				/// Instructions that are run after the anchor instruction is completed.
 				pub extra_instructions: Vec<::solana_sdk::instruction::Instruction>,
+				/// Options to be passed into the transaction being signed or sent.
+				#[builder(default)]
+				pub options: SolanaSignAndSendTransactionOptions,
 			}
 
-			impl<'a, W: $crate::AnchorAsyncSigner + 'a> [<$name_prefix Request>]<'a, W> {}
+			impl<'a, W: $crate::AnchorWallet + 'a> [<$name_prefix Request>]<'a, W> {}
 
 			#[::async_trait::async_trait(?Send)]
-			impl<'a, W: $crate::AnchorAsyncSigner + 'a> $crate::AnchorRequestMethods<'a, W>
+			impl<'a, W: $crate::AnchorWallet + 'a> $crate::AnchorRequestMethods<'a, W>
 				for [<$name_prefix Request>]<'a, W>
 			{
+				fn options(&self) -> SolanaSignAndSendTransactionOptions {
+					self.options.clone()
+				}
+
 				fn wallet(&self) -> &'a W {
 					self.wallet
 				}
@@ -66,17 +70,9 @@ macro_rules! base_create_request_builder {
 					self.launchpad.rpc()
 				}
 
-				fn sync_signers(&self) -> Vec<&'a dyn ::solana_sdk::signer::Signer> {
-					self.sync_signers.clone()
+				fn signers(&self) -> Vec<&'a dyn ::solana_sdk::signer::Signer> {
+					self.signers.clone()
 				}
-
-				fn async_signers(&self) -> Vec<&'a dyn ::wallet_standard::AsyncSigner> {
-					let mut signers = self.async_signers.clone();
-					signers.append(&mut vec![self.wallet()]);
-
-					signers
-				}
-
 
 				fn instructions(&self) -> Vec<::solana_sdk::instruction::Instruction> {
 					use anchor_lang::InstructionData;
@@ -124,7 +120,7 @@ macro_rules! create_request_builder {
 						(),
 					),
 				>;
-			impl<W: $crate::AnchorAsyncSigner> $program_struct<W> {
+			impl<W: $crate::AnchorWallet> $program_struct<W> {
 				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderArgsPartial>]<'_, W> {
 					[<$name_prefix Request>]::builder()
 						.launchpad(self)
@@ -137,7 +133,7 @@ macro_rules! create_request_builder {
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident, "required:args") => {
 		$crate::base_create_request_builder!($program, $program_struct, $name_prefix, $accounts);
 		::paste::paste! {
-			impl<W: $crate::AnchorAsyncSigner> $program_struct<W> {
+			impl<W: $crate::AnchorWallet> $program_struct<W> {
 				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderPartial>]<'_, W> {
 					[<$name_prefix Request>]::builder()
 						.launchpad(self)

@@ -30,15 +30,11 @@ var registered = /* @__PURE__ */ new Set();
 var listeners = {};
 
 function getWallets() {
-	if (wallets) {
-		return wallets;
-	}
+	if (wallets) return wallets;
 
 	wallets = Object.freeze({ register, get, on });
 
-	if (typeof window === "undefined") {
-		return wallets;
-	}
+	if (typeof window === "undefined") return wallets;
 
 	const api = Object.freeze({ register });
 	try {
@@ -71,9 +67,7 @@ function register(...wallets2) {
 		};
 	}
 
-	for (const wallet of wallets2) {
-		registered.add(wallet);
-	}
+	for (const wallet of wallets2) registered.add(wallet);
 
 	if (listeners["register"]) {
 		for (const listener of listeners["register"]) {
@@ -82,9 +76,7 @@ function register(...wallets2) {
 	}
 
 	return function unregister() {
-		for (const wallet of wallets2) {
-			registered.delete(wallet);
-		}
+		for (const wallet of wallets2) registered.delete(wallet);
 
 		if (listeners["unregister"]) {
 			for (const listener of listeners["unregister"]) {
@@ -148,15 +140,11 @@ var AppReadyEvent = class extends Event {
 _detail = new WeakMap();
 
 function DEPRECATED_getWallets() {
-	if (wallets) {
-		return wallets;
-	}
+	if (wallets) return wallets;
 
 	wallets = getWallets();
 
-	if (typeof window === "undefined") {
-		return wallets;
-	}
+	if (typeof window === "undefined") return wallets;
 
 	const callbacks = window.navigator.wallets || [];
 

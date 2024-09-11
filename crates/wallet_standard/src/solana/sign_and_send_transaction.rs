@@ -7,6 +7,7 @@ use solana_sdk::commitment_config::CommitmentLevel;
 use solana_sdk::transaction::VersionedTransaction;
 use typed_builder::TypedBuilder;
 
+use super::SolanaSignTransactionOptions;
 use crate::SolanaSignatureOutput;
 use crate::WalletResult;
 
@@ -32,25 +33,40 @@ pub struct SolanaSignAndSendTransactionProps {
 #[serde(rename_all = "camelCase")]
 pub struct SolanaSignAndSendTransactionOptions {
 	/// Preflight commitment level.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = preflight_commitment_opt)))]
 	pub preflight_commitment: Option<CommitmentLevel>,
 	/// The minimum slot that the request can be evaluated at.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = min_context_slot_opt)))]
 	pub min_context_slot: Option<u64>,
 	/// Mode for signing and sending transactions.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = mode_opt)))]
 	pub mode: Option<SolanaSignAndSendTransactionMode>,
 	/// Desired commitment level. If provided, confirm the transaction after
 	/// sending.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = commitment_opt)))]
 	pub commitment: Option<CommitmentLevel>,
 	/// Disable transaction verification at the RPC.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = skip_preflight_opt)))]
 	pub skip_preflight: Option<bool>,
 	/// Maximum number of times for the RPC node to retry sending the
 	/// transaction to the leader.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = max_retries_opt)))]
 	pub max_retries: Option<u8>,
+}
+
+impl From<SolanaSignAndSendTransactionOptions> for SolanaSignTransactionOptions {
+	fn from(
+		SolanaSignAndSendTransactionOptions {
+			preflight_commitment,
+			min_context_slot,
+			..
+		}: SolanaSignAndSendTransactionOptions,
+	) -> Self {
+		Self {
+			preflight_commitment,
+			min_context_slot,
+		}
+	}
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

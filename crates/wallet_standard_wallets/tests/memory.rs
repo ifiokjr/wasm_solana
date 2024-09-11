@@ -25,9 +25,10 @@ async fn sign_transaction() -> Result<()> {
 	let pubkey = keypair.pubkey();
 	let target_pubkey = Pubkey::new_unique();
 	let instruction = transfer(&pubkey, &target_pubkey, sol_to_lamports(0.5));
-	let blockhash = runner.rpc.get_latest_blockhash().await?;
+	let blockhash = runner.rpc().get_latest_blockhash().await?;
+	let rpc = runner.rpc().clone();
 	let transaction = VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], blockhash)?;
-	let mut memory_wallet = MemoryWallet::new(runner.rpc.clone(), &[keypair]);
+	let mut memory_wallet = MemoryWallet::new(rpc, &[keypair]);
 
 	memory_wallet.connect().await?;
 
@@ -69,7 +70,7 @@ async fn sign_and_send_transaction() -> Result<()> {
 
 async fn run() -> Arc<TestValidatorRunner> {
 	let pubkey = get_wallet_keypair().pubkey();
-	TestValidatorRunner::run_shared(
+	TestValidatorRunner::run(
 		Some("tests"),
 		TestValidatorRunnerProps::builder()
 			.pubkeys(vec![pubkey])

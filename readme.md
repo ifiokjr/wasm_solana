@@ -57,14 +57,13 @@ This installs all the node dependencies, cargo binaries and solana tooling local
 If you have an outdated version of `devenv` you can update it by running the following commands. If you have an easier way, please create a PR and I'll update these docs.
 
 ```bash
-nix profile list # find the index of the nxi package
-nix profile remove <index>
-nix profile install --accept-flake-config github:cachix/devenv/<version>
+nix profile list # find the <index> of the devenv package
+nix profile upgrade <index>
 ```
 
 ### Editor Setup
 
-To setup recommended configuration for your favourite editor run the following commands.
+To setup recommended configuration for your favorite editor run the following commands.
 
 ```bash
 setup:vscode # Setup vscode
@@ -72,7 +71,7 @@ setup:vscode # Setup vscode
 
 ## License
 
-BSD 3-Clause, see the [LICENSE](./LICENSE) file.
+Unlicense, see the [LICENSE](./license) file.
 
 ## Thoughts
 

@@ -100,19 +100,50 @@
   scripts."test:all" = {
     exec = ''
       set -e
-      cargo test_all
-      cargo test_docs
+      test:wallet_standard_wallets
+      test:wasm_client_solana
     '';
     description = "Run all tests across the crates";
+  };
+  scripts."test:wallet_standard_wallets" = {
+    exec = ''
+      set -e
+      cargo nextest run --package wallet_standard_wallets --features="ssr"
+      cargo test --package wallet_standard_wallets --doc --features="ssr"
+    '';
+    description = "Run tests for the `wallet_standard_wallets` crate.";
+  };
+  scripts."test:wasm_client_solana" = {
+    exec = ''
+      set -e
+      cargo nextest run --package wasm_client_solana --features="ssr"
+      cargo test --package wasm_client_solana --doc --features="ssr"
+    '';
+    description = "Run tests for the `wasm_client_solana` crate.";
   };
   scripts."coverage:all" = {
     exec = ''
       set -e
-      cargo coverage_all
-      cargo coverage_docs
-      cargo coverage_report
+      coverage:wallet_standard_wallets
+      cargo llvm-cov report --doctests --codecov --output-path codecov.json
     '';
-    description = "Run all tests across the crates";
+    description = "Run coverage across the crates";
+  };
+  scripts."coverage:wallet_standard_wallets" = {
+    exec = ''
+      set -e
+      cargo llvm-cov --no-report --package wallet_standard_wallets --features="ssr"
+      cargo llvm-cov --no-report --package wallet_standard_wallets --doc --features="ssr"
+    '';
+    description = "Run coverage for the `wallet_standard_wallets` crate.";
+  };
+  scripts."coverage:wasm_client_solana" = {
+    exec = ''
+      set -e
+      cargo llvm-cov --no-report --package wasm_client_solana --features="ssr"
+      cargo llvm-cov --no-report --package wasm_client_solana --doc --features="ssr"
+    '';
+    description = "Run coverage for the `wasm_client_solana` crate.";
   };
   scripts."fix:all" = {
     exec = ''

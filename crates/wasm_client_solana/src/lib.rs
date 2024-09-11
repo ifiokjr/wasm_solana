@@ -23,7 +23,7 @@ pub mod solana_transaction_status;
 mod utils;
 
 pub mod prelude {
-	pub use crate::extensions::AsyncVersionedMessageExtension;
 	pub use crate::extensions::AsyncVersionedTransactionExtension;
+	pub use crate::extensions::VersionedMessageExtension;
 	pub use crate::extensions::VersionedTransactionExtension;
 }

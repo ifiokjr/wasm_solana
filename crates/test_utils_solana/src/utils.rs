@@ -38,11 +38,12 @@ use spl_associated_token_account::get_associated_token_address;
 use wasm_client_anchor::prelude::*;
 use wasm_client_anchor::AnchorClientError;
 use wasm_client_anchor::AnchorClientResult;
+use wasm_client_anchor::AnchorWallet;
 
 pub const MAX_COMPUTE_UNITS: u64 = DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT as u64;
 
 #[async_trait(?Send)]
-pub trait BankClientAnchorRequestMethods<'a, W: AnchorAsyncSigner + 'a>:
+pub trait BankClientAnchorRequestMethods<'a, W: AnchorWallet + Signer + 'a>:
 	AnchorRequestMethods<'a, W>
 {
 	async fn sign_banks_client_transaction(
@@ -53,12 +54,11 @@ pub trait BankClientAnchorRequestMethods<'a, W: AnchorAsyncSigner + 'a>:
 			.get_latest_blockhash()
 			.await
 			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
-		let sync_signers = self.sync_signers();
-		let async_signers = self.async_signers();
-		let transaction = self
-			.message(hash)?
-			.to_versioned_transaction(&sync_signers, &async_signers)
-			.await?;
+		let signers = self.signers();
+		let mut transaction = self.message(hash)?.into_versioned_transaction();
+		transaction
+			.try_sign(&signers, Some(hash))?
+			.try_sign(&[self.wallet()], None)?;
 
 		Ok(transaction)
 	}
@@ -108,7 +108,7 @@ pub trait BankClientAnchorRequestMethods<'a, W: AnchorAsyncSigner + 'a>:
 	}
 }
 
-impl<'a, W: AnchorAsyncSigner + 'a, T> BankClientAnchorRequestMethods<'a, W> for T where
+impl<'a, W: AnchorWallet + Signer + 'a, T> BankClientAnchorRequestMethods<'a, W> for T where
 	T: AnchorRequestMethods<'a, W>
 {
 }

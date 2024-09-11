@@ -16,7 +16,9 @@ use solana_sdk::signer::Signer;
 use solana_sdk::signer::SignerError;
 use solana_sdk::transaction::VersionedTransaction;
 use typed_builder::TypedBuilder;
-use wallet_standard::AsyncSigner;
+use wallet_standard::prelude::*;
+use wallet_standard::SolanaSignAndSendTransactionOptions;
+use wallet_standard::SolanaSignTransactionProps;
 use wallet_standard::WalletError;
 use wasm_client_solana::prelude::*;
 use wasm_client_solana::rpc_config::RpcSimulateTransactionConfig;
@@ -25,18 +27,18 @@ use wasm_client_solana::SimulateTransactionResponse;
 use wasm_client_solana::SolanaClient;
 use wasm_client_solana::SolanaRpcClientError;
 
-pub trait AnchorAsyncSigner: AsyncSigner + std::fmt::Debug + Clone {}
-impl<T> AnchorAsyncSigner for T where T: AsyncSigner + std::fmt::Debug + Clone {}
+pub trait AnchorWallet: WalletSolana + std::fmt::Debug + Clone {}
+impl<T> AnchorWallet for T where T: WalletSolana + std::fmt::Debug + Clone {}
 
 #[derive(Clone, Debug, TypedBuilder)]
-pub struct AnchorProgram<W: AnchorAsyncSigner> {
+pub struct AnchorProgram<W: AnchorWallet> {
 	program_id: Pubkey,
 	wallet: W,
 	#[builder(setter(into))]
 	rpc: SolanaClient,
 }
 
-impl<W: AnchorAsyncSigner> AnchorProgram<W> {
+impl<W: AnchorWallet> AnchorProgram<W> {
 	pub fn new(wallet: W, rpc: SolanaClient, program_id: Pubkey) -> Self {
 		Self {
 			program_id,
@@ -103,24 +105,28 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
-pub struct AnchorRequest<'a, W: AnchorAsyncSigner + 'a> {
+pub struct AnchorRequest<'a, W: AnchorWallet + 'a> {
 	pub rpc: &'a SolanaClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
 	pub args_data: Vec<u8>,
 	pub accounts: Vec<AccountMeta>,
 	#[builder(default)]
-	pub sync_signers: Vec<&'a dyn Signer>,
-	#[builder(default)]
-	pub async_signers: Vec<&'a dyn AsyncSigner>,
+	pub signers: Vec<&'a dyn Signer>,
 	#[builder(default)]
 	pub instructions: Vec<Instruction>,
 	#[builder(default)]
 	pub extra_instructions: Vec<Instruction>,
+	#[builder(default)]
+	pub options: SolanaSignAndSendTransactionOptions,
 }
 
 #[async_trait(?Send)]
-impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a, W> {
+impl<'a, W: AnchorWallet + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a, W> {
+	fn options(&self) -> SolanaSignAndSendTransactionOptions {
+		self.options.clone()
+	}
+
 	fn wallet(&self) -> &'a W {
 		self.wallet
 	}
@@ -129,15 +135,8 @@ impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for AnchorReques
 		self.rpc
 	}
 
-	fn sync_signers(&self) -> Vec<&'a dyn Signer> {
-		self.sync_signers.clone()
-	}
-
-	fn async_signers(&self) -> Vec<&'a dyn AsyncSigner> {
-		let mut signers = self.async_signers.clone();
-		signers.append(&mut vec![self.wallet()]);
-
-		signers
+	fn signers(&self) -> Vec<&'a dyn Signer> {
+		self.signers.clone()
 	}
 
 	fn instructions(&self) -> Vec<Instruction> {
@@ -160,20 +159,24 @@ pub type EmptyAnchorRequestBuilderPartial<'a, W> =
 
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
-pub struct EmptyAnchorRequest<'a, W: AnchorAsyncSigner + 'a> {
+pub struct EmptyAnchorRequest<'a, W: AnchorWallet + 'a> {
 	pub rpc: &'a SolanaClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
 	#[builder(default)]
 	pub sync_signers: Vec<&'a dyn Signer>,
 	#[builder(default)]
-	pub async_signers: Vec<&'a dyn AsyncSigner>,
-	#[builder(default)]
 	pub instructions: Vec<Instruction>,
+	#[builder(default)]
+	pub options: SolanaSignAndSendTransactionOptions,
 }
 
 #[async_trait(?Send)]
-impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorRequest<'a, W> {
+impl<'a, W: AnchorWallet + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorRequest<'a, W> {
+	fn options(&self) -> SolanaSignAndSendTransactionOptions {
+		self.options.clone()
+	}
+
 	fn wallet(&self) -> &'a W {
 		self.wallet
 	}
@@ -182,15 +185,8 @@ impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorR
 		self.rpc
 	}
 
-	fn sync_signers(&self) -> Vec<&'a dyn Signer> {
+	fn signers(&self) -> Vec<&'a dyn Signer> {
 		self.sync_signers.clone()
-	}
-
-	fn async_signers(&self) -> Vec<&'a dyn AsyncSigner> {
-		let mut signers = self.async_signers.clone();
-		signers.append(&mut vec![self.wallet()]);
-
-		signers
 	}
 
 	fn instructions(&self) -> Vec<Instruction> {
@@ -199,17 +195,15 @@ impl<'a, W: AnchorAsyncSigner + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorR
 }
 
 #[async_trait(?Send)]
-pub trait AnchorRequestMethods<'a, W: AnchorAsyncSigner + 'a> {
+pub trait AnchorRequestMethods<'a, W: AnchorWallet + 'a> {
+	/// The additional options for signing and sending transactions.
+	fn options(&self) -> SolanaSignAndSendTransactionOptions;
 	/// The wallet that will pay for this transaction.
 	fn wallet(&self) -> &'a W;
 	/// The solana client that is used to send rpc methods.
 	fn rpc(&self) -> &'a SolanaClient;
 	/// The sync signers
-	fn sync_signers(&self) -> Vec<&'a dyn Signer>;
-	/// The async signers
-	/// TODO verifiy whether there is ever a need for a custom async signer
-	/// Perhaps the wallet is all that is needed.
-	fn async_signers(&self) -> Vec<&'a dyn AsyncSigner>;
+	fn signers(&self) -> Vec<&'a dyn Signer>;
 	/// Get the custom instructions with the program instruction appended to the
 	/// end.
 	fn instructions(&self) -> Vec<Instruction>;
@@ -225,14 +219,25 @@ pub trait AnchorRequestMethods<'a, W: AnchorAsyncSigner + 'a> {
 	/// Sign the transaction with the provided signers.
 	async fn sign_transaction(&self) -> AnchorClientResult<VersionedTransaction> {
 		let hash = self.rpc().get_latest_blockhash().await?;
-		let sync_signers = self.sync_signers();
-		let async_signers = self.async_signers();
-		let transaction = self
-			.message(hash)?
-			.to_versioned_transaction(&sync_signers, &async_signers)
-			.await?;
+		let signers = self.signers();
+		let mut transaction = self.message(hash)?.into_versioned_transaction();
 
-		Ok(transaction)
+		// sign the transaction with local signers.
+		transaction.try_sign(&signers, Some(hash))?;
+
+		// sign the transaction in the wallet.
+		let props = SolanaSignTransactionProps::builder()
+			.transaction(transaction)
+			.options(self.options())
+			.build();
+
+		let signed_transaction = self
+			.wallet()
+			.sign_transaction(props)
+			.await?
+			.signed_versioned_transaction()?;
+
+		Ok(signed_transaction)
 	}
 
 	/// Sign the transaction and send it direcly to the provided rpc.
@@ -245,6 +250,7 @@ pub trait AnchorRequestMethods<'a, W: AnchorAsyncSigner + 'a> {
 
 		Ok(signature)
 	}
+
 	/// Sign the transaction and send it direcly to the provided rpc.
 	async fn sign_and_send_transaction_with_confirmation(&self) -> AnchorClientResult<Signature> {
 		let signature = self.sign_and_send_transaction().await?;

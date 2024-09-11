@@ -38,7 +38,7 @@ runs:
     - name: install devenv.sh
       run: |
         cachix use devenv
-        nix profile install --accept-flake-config github:cachix/devenv/v1.0.8
+        nix profile install --accept-flake-config nixpkgs#devenv
       shell: bash
 
     - name: build developer environment

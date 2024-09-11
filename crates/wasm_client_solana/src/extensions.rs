@@ -42,7 +42,7 @@ pub trait VersionedTransactionExtension {
 		&mut self,
 		signers: &T,
 		recent_blockhash: Option<Hash>,
-	) -> Result<(), SignerError>;
+	) -> Result<&mut Self, SignerError>;
 	/// Sign the transaction with a subset of required keys, returning any
 	/// errors.
 	///
@@ -66,8 +66,14 @@ pub trait VersionedTransactionExtension {
 		&self,
 		pubkeys: &[Pubkey],
 	) -> Result<Vec<Option<usize>>, SignerError>;
-	fn sign<T: Signers + ?Sized>(&mut self, signers: &T, recent_blockhash: Option<Hash>) {
-		self.try_sign(signers, recent_blockhash).unwrap();
+	/// Sign the transaction with a subset of required keys, panicking when an
+	/// error is met.
+	fn sign<T: Signers + ?Sized>(
+		&mut self,
+		signers: &T,
+		recent_blockhash: Option<Hash>,
+	) -> &mut Self {
+		self.try_sign(signers, recent_blockhash).unwrap()
 	}
 	/// Check whether the transaction is fully signed with valid signatures.
 	fn is_signed(&self) -> bool;
@@ -118,14 +124,15 @@ impl VersionedTransactionExtension for VersionedTransaction {
 		&mut self,
 		keypairs: &T,
 		recent_blockhash: Option<Hash>,
-	) -> Result<(), SignerError> {
+	) -> Result<&mut Self, SignerError> {
 		let positions = self
 			.get_signing_keypair_positions(&keypairs.pubkeys())?
 			.iter()
 			.map(|pos| pos.ok_or(SignerError::KeypairPubkeyMismatch))
 			.collect::<Result<Vec<_>, _>>()?;
+		self.try_sign_unchecked(keypairs, positions, recent_blockhash);
 
-		self.try_sign_unchecked(keypairs, positions, recent_blockhash)
+		Ok(self)
 	}
 
 	fn try_sign_unchecked<T: Signers + ?Sized>(
@@ -186,23 +193,13 @@ impl VersionedTransactionExtension for VersionedTransaction {
 	}
 }
 
-#[async_trait(?Send)]
-pub trait AsyncVersionedMessageExtension {
-	async fn to_versioned_transaction<S: Signers + ?Sized, A: AsyncSigners + ?Sized>(
-		self,
-		sync_signers: &S,
-		async_signers: &A,
-	) -> Result<VersionedTransaction, SignerError>;
+pub trait VersionedMessageExtension {
+	fn into_versioned_transaction(self) -> VersionedTransaction;
 }
 
-#[async_trait(?Send)]
-impl AsyncVersionedMessageExtension for VersionedMessage {
-	async fn to_versioned_transaction<S: Signers + ?Sized, A: AsyncSigners + ?Sized>(
-		self,
-		sync_signers: &S,
-		async_signers: &A,
-	) -> Result<VersionedTransaction, SignerError> {
-		VersionedTransaction::try_new_async(self, sync_signers, async_signers).await
+impl VersionedMessageExtension for VersionedMessage {
+	fn into_versioned_transaction(self) -> VersionedTransaction {
+		VersionedTransaction::new_unsigned(self)
 	}
 }
 
