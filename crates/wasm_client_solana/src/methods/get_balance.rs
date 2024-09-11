@@ -36,7 +36,7 @@ impl GetBalanceRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetBalanceResponse {
 	pub context: Context,
 	pub value: u64,
@@ -45,7 +45,6 @@ pub struct GetBalanceResponse {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -62,13 +61,7 @@ mod tests {
 			.params(GetBalanceRequest::new(pubkey))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBalance","params":["83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri"]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getBalance", "params": ["83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri"]}"###);
 	}
 
 	#[test]

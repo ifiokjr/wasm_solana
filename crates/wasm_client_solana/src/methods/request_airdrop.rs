@@ -40,7 +40,7 @@ impl RequestAirdropRequest {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct RequestAirdropResponse(#[serde_as(as = "DisplayFromStr")] Signature);
 
 impl From<RequestAirdropResponse> for Signature {
@@ -54,7 +54,6 @@ mod tests {
 	use std::str::FromStr;
 
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -72,13 +71,17 @@ mod tests {
 				1_000_000_000,
 			))
 			.build();
-
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"requestAirdrop","params":["83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",1000000000]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
-		insta::assert_json_snapshot!(value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "requestAirdrop",
+    "params": [
+      "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
+      1000000000
+    ]
+  }
+  "###);
 	}
 
 	#[test]

@@ -9,7 +9,7 @@ pub struct GetFirstAvailableBlockRequest;
 
 impl_http_method!(GetFirstAvailableBlockRequest, "getFirstAvailableBlock");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetFirstAvailableBlockResponse(Slot);
 
 impl From<GetFirstAvailableBlockResponse> for Slot {
@@ -21,7 +21,6 @@ impl From<GetFirstAvailableBlockResponse> for Slot {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -36,13 +35,7 @@ mod tests {
 			.params(GetFirstAvailableBlockRequest)
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getFirstAvailableBlock"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getFirstAvailableBlock"}"###);
 	}
 
 	#[test]

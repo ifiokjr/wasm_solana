@@ -7,14 +7,14 @@ use crate::ClientWebSocketError;
 
 #[derive(Debug, Clone, Serialize, TypedBuilder)]
 pub struct ClientRequest {
+	#[builder(default = "2.0")]
+	pub jsonrpc: &'static str,
 	#[builder(default)]
 	pub id: u32,
-	#[builder(default = "\"2.0\"")]
-	pub jsonrpc: &'static str,
 	#[builder(setter(into))]
 	pub method: String,
 	#[serde(skip_serializing_if = "is_null")]
-	#[builder(default = Value::Null, setter(transform=|v: impl Serialize| serde_json::to_value(v).unwrap_or_default()))]
+	#[builder(default = Value::Null, setter(transform = |value: impl Serialize| serde_json::to_value(value).unwrap_or_default()))]
 	pub params: Value,
 }
 
@@ -39,11 +39,11 @@ pub struct SubscriptionParams<T> {
 	pub subscription: SubscriptionId,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct ClientResponse<T> {
-	pub id: u32,
 	pub jsonrpc: String,
 	pub result: T,
+	pub id: u32,
 }
 
 pub type SubscriptionResult = ClientResponse<SubscriptionId>;

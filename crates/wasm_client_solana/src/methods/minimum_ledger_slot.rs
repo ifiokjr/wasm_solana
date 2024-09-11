@@ -9,7 +9,7 @@ pub struct MinimumLedgerSlotRequest;
 
 impl_http_method!(MinimumLedgerSlotRequest, "minimumLedgerSlot");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct MinimumLedgerSlotResponse(Slot);
 
 impl From<MinimumLedgerSlotResponse> for Slot {
@@ -21,7 +21,6 @@ impl From<MinimumLedgerSlotResponse> for Slot {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -35,13 +34,7 @@ mod tests {
 			.id(1)
 			.params(MinimumLedgerSlotRequest)
 			.build();
-
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"minimumLedgerSlot"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
-		insta::assert_json_snapshot!(value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "minimumLedgerSlot"}"###);
 	}
 
 	#[test]

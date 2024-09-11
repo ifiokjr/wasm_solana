@@ -36,7 +36,7 @@ impl GetInflationRewardRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetInflationRewardResponse(Vec<Option<RpcInflationReward>>);
 
 impl From<GetInflationRewardResponse> for Vec<Option<RpcInflationReward>> {
@@ -48,7 +48,6 @@ impl From<GetInflationRewardResponse> for Vec<Option<RpcInflationReward>> {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -73,13 +72,22 @@ mod tests {
 			))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getInflationReward","params":[["6dmNQ5jwLeLk5REvio1JcMshcbvkYMwy26sJ8pbkvStu","BGsqMegLpV6n6Ve146sSX2dTjUMj3M92HnU8BbNRMhF2"],{"epoch":2}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getInflationReward",
+    "params": [
+      [
+        "6dmNQ5jwLeLk5REvio1JcMshcbvkYMwy26sJ8pbkvStu",
+        "BGsqMegLpV6n6Ve146sSX2dTjUMj3M92HnU8BbNRMhF2"
+      ],
+      {
+        "epoch": 2
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

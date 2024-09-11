@@ -29,7 +29,7 @@ impl GetBlockRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetBlockResponse(UiConfirmedBlock);
 
 impl From<GetBlockResponse> for UiConfirmedBlock {
@@ -41,7 +41,6 @@ impl From<GetBlockResponse> for UiConfirmedBlock {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::message::MessageHeader;
 
 	use super::*;
@@ -75,13 +74,22 @@ mod tests {
 			))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBlock","params":[430,{"encoding":"json","maxSupportedTransactionVersion":0,"transactionDetails":"full","rewards":false}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getBlock",
+    "params": [
+      430,
+      {
+        "encoding": "json",
+        "maxSupportedTransactionVersion": 0,
+        "rewards": false,
+        "transactionDetails": "full"
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]
@@ -119,19 +127,19 @@ mod tests {
 
 			}),
 			transaction: EncodedTransaction::Json(UiTransaction {
-					signatures: vec!["2nBhEBYYvfaAe16UMNqRHre4YNSskvuYgx3M6E4JP1oDYvZEJHvoPzyUidNgNX5r9sTyN1J9UxtbCXy2rqYcuyuv".to_string()],
+					signatures: vec!["2nBhEBYYvfaAe16UMNqRHre4YNSskvuYgx3M6E4JP1oDYvZEJHvoPzyUidNgNX5r9sTyN1J9UxtbCXy2rqYcuyuv".parse().unwrap()],
 					message: UiMessage::Raw(UiRawMessage {
 							header: MessageHeader {
 									num_required_signatures: 1,
 									num_readonly_signed_accounts: 0,
 									num_readonly_unsigned_accounts: 3
 							},
-							account_keys: vec!["3UVYmECPPMZSCqWKfENfuoTv51fTDTWicX9xmBD2euKe".to_string(),
-							"AjozzgE83A3x1sHNUR64hfH7zaEBWeMaFuAN9kQgujrc".to_string(),
-							"SysvarS1otHashes111111111111111111111111111".to_string(),
-							"SysvarC1ock11111111111111111111111111111111".to_string(),
-							"Vote111111111111111111111111111111111111111".to_string()],
-							recent_blockhash: "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B".to_string(),
+							account_keys: vec!["3UVYmECPPMZSCqWKfENfuoTv51fTDTWicX9xmBD2euKe".parse().unwrap(),
+							"AjozzgE83A3x1sHNUR64hfH7zaEBWeMaFuAN9kQgujrc".parse().unwrap(),
+							"SysvarS1otHashes111111111111111111111111111".parse().unwrap(),
+							"SysvarC1ock11111111111111111111111111111111".parse().unwrap(),
+							"Vote111111111111111111111111111111111111111".parse().unwrap()],
+							recent_blockhash: "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B".parse().unwrap(),
 							instructions:vec![UiCompiledInstruction {
 									data: "37u9WtQpcm6ULa3WRQHmj49EPs4if7o9f1jSRVZpm2dvihR9C8jY4NqEwXUbLwx15HBSNcP1".to_string(),
 									accounts: vec![1, 2, 3, 0],

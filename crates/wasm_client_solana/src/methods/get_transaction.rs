@@ -36,7 +36,7 @@ impl GetTransactionRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetTransactionResponse(Option<EncodedConfirmedTransactionWithStatusMeta>);
 
 impl From<GetTransactionResponse> for Option<EncodedConfirmedTransactionWithStatusMeta> {
@@ -50,7 +50,6 @@ mod tests {
 	use std::str::FromStr;
 
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::message::MessageHeader;
 
 	use super::*;
@@ -77,12 +76,19 @@ mod tests {
 			}))
 			.build();
 
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getTransaction","params":["2nBhEBYYvfaAe16UMNqRHre4YNSskvuYgx3M6E4JP1oDYvZEJHvoPzyUidNgNX5r9sTyN1J9UxtbCXy2rqYcuyuv",{"encoding": "json"}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
-		insta::assert_json_snapshot!(ser_value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getTransaction",
+    "params": [
+      "2nBhEBYYvfaAe16UMNqRHre4YNSskvuYgx3M6E4JP1oDYvZEJHvoPzyUidNgNX5r9sTyN1J9UxtbCXy2rqYcuyuv",
+      {
+        "encoding": "json"
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]
@@ -109,7 +115,7 @@ mod tests {
                                     num_required_signatures: 1
                                 },
                                 address_table_lookups: None,
-                                recent_blockhash: "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B".to_string(),
+                                recent_blockhash: "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B".parse().unwrap(),
                                 instructions: vec![UiCompiledInstruction {
                                     program_id_index: 4,
                                     accounts: vec![1, 2, 3, 0],
@@ -117,14 +123,14 @@ mod tests {
 																		stack_height: None,
                                 }],
                                 account_keys: vec![
-                                    "3UVYmECPPMZSCqWKfENfuoTv51fTDTWicX9xmBD2euKe".to_string(),
-                                    "AjozzgE83A3x1sHNUR64hfH7zaEBWeMaFuAN9kQgujrc".to_string(),
-                                    "SysvarS1otHashes111111111111111111111111111".to_string(),
-                                    "SysvarC1ock11111111111111111111111111111111".to_string(),
-                                    "Vote111111111111111111111111111111111111111".to_string(),
+                                    "3UVYmECPPMZSCqWKfENfuoTv51fTDTWicX9xmBD2euKe".parse().unwrap(),
+                                    "AjozzgE83A3x1sHNUR64hfH7zaEBWeMaFuAN9kQgujrc".parse().unwrap(),
+                                    "SysvarS1otHashes111111111111111111111111111".parse().unwrap(),
+                                    "SysvarC1ock11111111111111111111111111111111".parse().unwrap(),
+                                    "Vote111111111111111111111111111111111111111".parse().unwrap(),
                                 ]
                             }),
-                            signatures: vec!["2nBhEBYYvfaAe16UMNqRHre4YNSskvuYgx3M6E4JP1oDYvZEJHvoPzyUidNgNX5r9sTyN1J9UxtbCXy2rqYcuyuv".to_string()]
+                            signatures: vec!["2nBhEBYYvfaAe16UMNqRHre4YNSskvuYgx3M6E4JP1oDYvZEJHvoPzyUidNgNX5r9sTyN1J9UxtbCXy2rqYcuyuv".parse().unwrap()]
                         }),
                         version: None,
                         meta: Some(UiTransactionStatusMeta {

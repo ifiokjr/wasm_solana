@@ -57,7 +57,7 @@ strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt"], optional = true }
 typed-builder = { workspace = true }
-wallet_standard = { workspace = true, feature = ["solana"] }
+wallet_standard = { workspace = true, features = ["solana"] }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
 web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window"] }

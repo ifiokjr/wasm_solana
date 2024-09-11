@@ -36,7 +36,7 @@ impl IsBlockhashValidRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct IsBlockhashValidResponse {
 	pub context: Context,
 	pub value: bool,
@@ -47,7 +47,6 @@ mod tests {
 	use std::str::FromStr;
 
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::commitment_config::CommitmentConfig;
 
 	use super::*;
@@ -68,12 +67,19 @@ mod tests {
 				},
 			))
 			.build();
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"id":45,"jsonrpc":"2.0","method":"isBlockhashValid","params":["J7rBdM6AecPDEZp8aPq5iPSNKVkU5Q76F3oAV4eW5wsW",{"commitment":"processed"}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 45,
+    "method": "isBlockhashValid",
+    "params": [
+      "J7rBdM6AecPDEZp8aPq5iPSNKVkU5Q76F3oAV4eW5wsW",
+      {
+        "commitment": "processed"
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

@@ -35,7 +35,7 @@ impl GetStakeMinimumDelegationRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetStakeMinimumDelegationResponse {
 	pub context: Context,
 	pub value: u64,
@@ -44,7 +44,6 @@ pub struct GetStakeMinimumDelegationResponse {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -58,12 +57,7 @@ mod tests {
 			.id(1)
 			.params(GetStakeMinimumDelegationRequest::new())
 			.build();
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getStakeMinimumDelegation"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getStakeMinimumDelegation"}"###);
 	}
 
 	#[test]

@@ -43,7 +43,7 @@ impl GetTokenAccountsByOwnerRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetTokenAccountsByOwnerResponse {
 	pub context: Context,
 	pub value: Vec<RpcKeyedAccount>,
@@ -52,7 +52,6 @@ pub struct GetTokenAccountsByOwnerResponse {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -81,12 +80,22 @@ mod tests {
 			))
 			.build();
 
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getTokenAccountsByOwner","params":["4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F",{"mint":"3wyAj7Rt1TWVPZVteFJPLa26JmLvdb1CAKEFZm3NY75E"},{"encoding":"jsonParsed"}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
-		insta::assert_json_snapshot!(ser_value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getTokenAccountsByOwner",
+    "params": [
+      "4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F",
+      {
+        "mint": "3wyAj7Rt1TWVPZVteFJPLa26JmLvdb1CAKEFZm3NY75E"
+      },
+      {
+        "encoding": "jsonParsed"
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

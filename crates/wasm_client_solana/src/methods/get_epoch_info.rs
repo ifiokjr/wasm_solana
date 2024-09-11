@@ -26,7 +26,7 @@ impl GetEpochInfoRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetEpochInfoResponse(EpochInfo);
 
 impl From<GetEpochInfoResponse> for EpochInfo {
@@ -38,7 +38,6 @@ impl From<GetEpochInfoResponse> for EpochInfo {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -53,19 +52,12 @@ mod tests {
 			.params(GetEpochInfoRequest::new())
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getEpochInfo"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getEpochInfo"}"###);
 	}
 
 	#[test]
 	fn response() {
 		let raw_json = r#"{"jsonrpc":"2.0","result":{"absoluteSlot":166598,"blockHeight":166500,"epoch":27,"slotIndex":2790,"slotsInEpoch":8192,"transactionCount":22661093},"id":1}"#;
-
 		let response: ClientResponse<GetEpochInfoResponse> =
 			serde_json::from_str(raw_json).unwrap();
 

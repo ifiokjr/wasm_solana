@@ -25,7 +25,7 @@ impl GetBlockHeightRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetBlockHeightResponse(u64);
 
 impl From<GetBlockHeightResponse> for u64 {
@@ -37,7 +37,6 @@ impl From<GetBlockHeightResponse> for u64 {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -52,13 +51,7 @@ mod tests {
 			.params(GetBlockHeightRequest::new())
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBlockHeight"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getBlockHeight"}"###);
 	}
 
 	#[test]

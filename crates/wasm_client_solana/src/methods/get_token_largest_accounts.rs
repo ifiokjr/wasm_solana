@@ -48,7 +48,9 @@ pub struct TokenLargestAccountsValue {
 	pub ui_amount_string: String,
 }
 
-#[derive(Debug, Deserialize)]
+impl Eq for TokenLargestAccountsValue {}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetTokenLargestAccountsResponse {
 	pub context: Context,
 	pub value: Vec<TokenLargestAccountsValue>,
@@ -57,7 +59,6 @@ pub struct GetTokenLargestAccountsResponse {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -74,13 +75,16 @@ mod tests {
 				"3wyAj7Rt1TWVPZVteFJPLa26JmLvdb1CAKEFZm3NY75E"
 			)))
 			.build();
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getTokenLargestAccounts","params":["3wyAj7Rt1TWVPZVteFJPLa26JmLvdb1CAKEFZm3NY75E"]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
-		insta::assert_json_snapshot!(ser_value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getTokenLargestAccounts",
+    "params": [
+      "3wyAj7Rt1TWVPZVteFJPLa26JmLvdb1CAKEFZm3NY75E"
+    ]
+  }
+  "###);
 	}
 
 	#[test]

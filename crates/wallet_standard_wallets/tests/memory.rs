@@ -1,3 +1,5 @@
+#![cfg(feature = "ssr")]
+
 use std::sync::Arc;
 
 use anyhow::Result;

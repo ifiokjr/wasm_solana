@@ -8,7 +8,7 @@ pub struct GetGenesisHashRequest;
 
 impl_http_method!(GetGenesisHashRequest, "getGenesisHash");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetGenesisHashResponse(String);
 
 impl From<GetGenesisHashResponse> for String {
@@ -20,7 +20,6 @@ impl From<GetGenesisHashResponse> for String {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -35,13 +34,7 @@ mod tests {
 			.params(GetGenesisHashRequest)
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getGenesisHash"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getGenesisHash"}"###);
 	}
 
 	#[test]

@@ -1,19 +1,50 @@
+use serde::ser::SerializeTuple;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_tuple::Serialize_tuple;
 use solana_sdk::transaction::TransactionError;
 use solana_sdk::transaction::VersionedTransaction;
+use typed_builder::TypedBuilder;
 
 use super::Context;
 use crate::impl_http_method;
+use crate::rpc_config::serialize_and_encode;
 use crate::rpc_config::RpcSimulateTransactionConfig;
 use crate::solana_account_decoder::UiAccount;
 use crate::solana_transaction_status::UiTransactionEncoding;
 
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, PartialEq, Eq, TypedBuilder)]
 pub struct SimulateTransactionRequest {
 	pub transaction: VersionedTransaction,
+	#[builder(default, setter(strip_option))]
 	pub config: Option<RpcSimulateTransactionConfig>,
+}
+
+impl Serialize for SimulateTransactionRequest {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		let encoding = match self.config {
+			Some(ref c) => c.encoding.unwrap_or(UiTransactionEncoding::Base64),
+			None => UiTransactionEncoding::Base64,
+		};
+
+		let serialized_encoded =
+			serialize_and_encode::<VersionedTransaction>(&self.transaction, encoding).unwrap();
+
+		let tuple = if let Some(config) = &self.config {
+			let mut tuple = serializer.serialize_tuple(2)?;
+			tuple.serialize_element(&serialized_encoded)?;
+			tuple.serialize_element(&config)?;
+			tuple
+		} else {
+			let mut tuple = serializer.serialize_tuple(1)?;
+			tuple.serialize_element(&serialized_encoded)?;
+			tuple
+		};
+
+		tuple.end()
+	}
 }
 
 impl_http_method!(SimulateTransactionRequest, "simulateTransaction");
@@ -41,7 +72,7 @@ impl SimulateTransactionRequest {
 	}
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SimulateTransactionResponseValue {
 	pub err: Option<TransactionError>,
@@ -64,7 +95,7 @@ pub enum UiReturnDataEncoding {
 	Base64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct SimulateTransactionResponse {
 	pub context: Context,
 	pub value: SimulateTransactionResponseValue,
@@ -75,7 +106,6 @@ mod tests {
 	use assert2::check;
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -97,12 +127,20 @@ mod tests {
 			))
 			.build();
 
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"simulateTransaction","params":["AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDArczbMia1tLmq7zz4DinMNN0pJ1JtLdqIJPUw3YrGCzYAMHBsgN27lcgB6H2WQvFgyZuJYHa46puOQo9yQ8CVQbd9uHXZaGT2cvhRs7reawctIXtX1s3kTqM9YV+/wCp20C7Wj2aiuk5TReAXo+VTVg8QTHjs0UjNMMKCvpzZ+ABAgEBARU=",{"encoding":"base64"}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
-		insta::assert_json_snapshot!(value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "simulateTransaction",
+    "params": [
+      "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDArczbMia1tLmq7zz4DinMNN0pJ1JtLdqIJPUw3YrGCzYAMHBsgN27lcgB6H2WQvFgyZuJYHa46puOQo9yQ8CVQbd9uHXZaGT2cvhRs7reawctIXtX1s3kTqM9YV+/wCp20C7Wj2aiuk5TReAXo+VTVg8QTHjs0UjNMMKCvpzZ+ABAgEBARU=",
+      {
+        "encoding": "base64",
+        "sigVerify": false
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

@@ -36,7 +36,7 @@ impl GetSignaturesForAddressRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetSignaturesForAddressResponse(Vec<RpcConfirmedTransactionStatusWithSignature>);
 
 impl From<GetSignaturesForAddressResponse> for Vec<RpcConfirmedTransactionStatusWithSignature> {
@@ -48,7 +48,6 @@ impl From<GetSignaturesForAddressResponse> for Vec<RpcConfirmedTransactionStatus
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -70,12 +69,19 @@ mod tests {
 			))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getSignaturesForAddress","params":["Vote111111111111111111111111111111111111111",{"limit":1}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getSignaturesForAddress",
+    "params": [
+      "Vote111111111111111111111111111111111111111",
+      {
+        "limit": 1
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

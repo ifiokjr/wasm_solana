@@ -36,7 +36,7 @@ impl GetStakeActivationRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetStakeActivationResponse(RpcStakeActivation);
 
 impl From<GetStakeActivationResponse> for RpcStakeActivation {
@@ -48,7 +48,6 @@ impl From<GetStakeActivationResponse> for RpcStakeActivation {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -70,13 +69,19 @@ mod tests {
 				},
 			))
 			.build();
-
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getStakeActivation","params":["CYRJWqiSjLitBAcRxPvWpgX3s5TvmN2SuRY3eEYypFvT",{"epoch":4}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
-		insta::assert_json_snapshot!(value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getStakeActivation",
+    "params": [
+      "CYRJWqiSjLitBAcRxPvWpgX3s5TvmN2SuRY3eEYypFvT",
+      {
+        "epoch": 4
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

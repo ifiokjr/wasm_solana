@@ -1,19 +1,48 @@
+use serde::ser::SerializeTuple;
 use serde::Deserialize;
-use serde_tuple::Serialize_tuple;
+use serde::Serialize;
 use serde_with::serde_as;
-use serde_with::skip_serializing_none;
 use serde_with::DisplayFromStr;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
 
 use crate::impl_http_method;
+use crate::rpc_config::serialize_and_encode;
 use crate::rpc_config::RpcSendTransactionConfig;
+use crate::solana_transaction_status::UiTransactionEncoding;
 
-#[skip_serializing_none]
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct SendTransactionRequest {
 	transaction: VersionedTransaction,
 	config: Option<RpcSendTransactionConfig>,
+}
+
+impl Serialize for SendTransactionRequest {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		let encoding = match self.config {
+			Some(ref c) => c.encoding.unwrap_or(UiTransactionEncoding::Base64),
+			None => UiTransactionEncoding::Base64,
+		};
+
+		let serialized_encoded =
+			serialize_and_encode::<VersionedTransaction>(&self.transaction, encoding).unwrap();
+
+		let tuple = if let Some(config) = self.config {
+			let mut tuple = serializer.serialize_tuple(2)?;
+			tuple.serialize_element(&serialized_encoded)?;
+			tuple.serialize_element(&config)?;
+			tuple
+		} else {
+			let mut tuple = serializer.serialize_tuple(1)?;
+			tuple.serialize_element(&serialized_encoded)?;
+			tuple
+		};
+
+		tuple.end()
+	}
 }
 
 impl_http_method!(SendTransactionRequest, "sendTransaction");
@@ -38,7 +67,7 @@ impl SendTransactionRequest {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct SendTransactionResponse(#[serde_as(as = "DisplayFromStr")] Signature);
 
 impl From<SendTransactionResponse> for Signature {
@@ -50,7 +79,6 @@ impl From<SendTransactionResponse> for Signature {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::transaction::Transaction;
 
 	use super::*;
@@ -67,12 +95,16 @@ mod tests {
 			.params(SendTransactionRequest::new(tx.into()))
 			.build();
 
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"sendTransaction","params":["4hXTCkRzt9WyecNzV1XPgCDfGAZzQKNxLXgynz5QDuWWPSAZBZSHptvWRL3BjCvzUXRdKvHL2b7yGrRQcWyaqsaBCncVG7BFggS8w9snUts67BSh3EqKpXLUm5UMHfD7ZBe9GhARjbNQMLJ1QD3Spr6oMTBU6EhdB4RD8CP2xUxr2u3d6fos36PD98XS6oX8TQjLpsMwncs5DAMiD4nNnR8NBfyghGCWvCVifVwvA8B8TJxE1aiyiv2L429BCWfyzAme5sZW8rDb14NeCQHhZbtNqfXhcp2tAnaAT"]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
-		insta::assert_json_snapshot!(value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "sendTransaction",
+    "params": [
+      "AVXo5X7UNzpuOmYzkZ+fqHDGiRLTSMlWlUCcZKzEV5CIKlrdvZa3/2GrJJfPrXgZqJbYDaGiOnP99tI/sRJfiwwBAAEDRQ/n5E5CLbMbHanUG3+iVvBAWZu0WFM6NoB5xfybQ7kNwwgfIhv6odn2qTUu/gOisDtaeCW1qlwW/gx3ccr/4wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAvsInicc+E3IZzLqeA+iM5cn9kSaeFzOuClz1Z2kZQy0BAgIAAQwCAAAAAPIFKgEAAAA="
+    ]
+  }
+  "###);
 	}
 
 	#[test]

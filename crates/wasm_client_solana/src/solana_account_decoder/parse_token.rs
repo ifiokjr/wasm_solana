@@ -229,6 +229,8 @@ pub struct UiTokenAmount {
 	pub ui_amount_string: StringDecimals,
 }
 
+impl Eq for UiTokenAmount {}
+
 impl UiTokenAmount {
 	pub fn real_number_string(&self) -> String {
 		real_number_string(

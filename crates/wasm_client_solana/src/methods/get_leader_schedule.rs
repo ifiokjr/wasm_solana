@@ -37,7 +37,7 @@ impl GetLeaderScheduleRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetLeaderScheduleResponse(Option<RpcLeaderSchedule>);
 
 impl From<GetLeaderScheduleResponse> for Option<RpcLeaderSchedule> {
@@ -48,8 +48,11 @@ impl From<GetLeaderScheduleResponse> for Option<RpcLeaderSchedule> {
 
 #[cfg(test)]
 mod tests {
-	use serde_json::Value;
+	use std::collections::HashMap;
+
+	use assert2::check;
 	use solana_sdk::pubkey;
+	use solana_sdk::pubkey::Pubkey;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -69,32 +72,40 @@ mod tests {
 			))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getLeaderSchedule","params":[null,{"identity":"4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F"}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		assert_eq!(ser_value, raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getLeaderSchedule",
+    "params": [
+      null,
+      {
+        "identity": "4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F"
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]
 	fn response() {
 		let raw_json = r#"{"jsonrpc":"2.0","result":{"4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63]},"id":1}"#;
-
-		let response: ClientResponse<GetLeaderScheduleResponse> =
-			serde_json::from_str(raw_json).unwrap();
-
-		assert_eq!(response.id, 1);
-		assert_eq!(response.jsonrpc, "2.0");
-		let value = response.result.0.unwrap();
-		assert_eq!(
-			value["4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F"],
+		let schedule: HashMap<Pubkey, Vec<usize>> = HashMap::from([(
+			pubkey!("4Qkev8aNZcqFNSRhQzwyLMFSsi94jHqE8WNVTJzTP99F"),
 			vec![
 				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
 				23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
-				44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63
-			]
-		);
+				44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+			],
+		)]);
+		let response: ClientResponse<GetLeaderScheduleResponse> =
+			serde_json::from_str(raw_json).unwrap();
+		let expected = ClientResponse {
+			jsonrpc: String::from("2.0"),
+			result: GetLeaderScheduleResponse(Some(RpcLeaderSchedule(schedule))),
+			id: 1,
+		};
+
+		check!(response == expected);
 	}
 }

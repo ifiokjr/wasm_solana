@@ -3,11 +3,15 @@ use std::fmt;
 use std::net::SocketAddr;
 use std::str::FromStr;
 
+use derive_more::derive::Deref;
+use derive_more::derive::DerefMut;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
 use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
 use solana_sdk::clock::UnixTimestamp;
@@ -50,8 +54,7 @@ impl<T> OptionalContext<T> {
 	}
 }
 
-// pub type RpcResult<T> = client_error::Result<Response<T>>;
-
+#[skip_serializing_none]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcResponseContext {
@@ -113,6 +116,7 @@ pub struct Response<T> {
 	pub value: T,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockCommitment<T> {
@@ -120,27 +124,27 @@ pub struct RpcBlockCommitment<T> {
 	pub total_stake: u64,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcBlockhashFeeCalculator {
 	#[serde_as(as = "DisplayFromStr")]
 	pub blockhash: Hash,
 	pub fee_calculator: FeeCalculator,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcBlockhash {
 	#[serde_as(as = "DisplayFromStr")]
 	pub blockhash: Hash,
 	pub last_valid_block_height: u64,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcFees {
 	#[serde_as(as = "DisplayFromStr")]
 	pub blockhash: Hash,
@@ -149,9 +153,9 @@ pub struct RpcFees {
 	pub last_valid_block_height: u64,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct DeprecatedRpcFees {
 	#[serde_as(as = "DisplayFromStr")]
 	pub blockhash: Hash,
@@ -159,9 +163,9 @@ pub struct DeprecatedRpcFees {
 	pub last_valid_slot: Slot,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct Fees {
 	#[serde_as(as = "DisplayFromStr")]
 	pub blockhash: Hash,
@@ -181,7 +185,7 @@ pub struct RpcFeeRateGovernor {
 	pub fee_rate_governor: FeeRateGovernor,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcInflationGovernor {
 	pub initial: f64,
@@ -189,6 +193,23 @@ pub struct RpcInflationGovernor {
 	pub taper: f64,
 	pub foundation: f64,
 	pub foundation_term: f64,
+}
+
+impl PartialEq for RpcInflationGovernor {
+	fn eq(&self, other: &Self) -> bool {
+		approx_eq(self.initial, other.initial)
+			&& approx_eq(self.terminal, other.terminal)
+			&& approx_eq(self.taper, other.taper)
+			&& approx_eq(self.foundation, other.foundation)
+			&& approx_eq(self.foundation_term, other.foundation_term)
+	}
+}
+
+impl Eq for RpcInflationGovernor {}
+
+pub fn approx_eq(a: f64, b: f64) -> bool {
+	const EPSILON: f64 = 1e-6;
+	(a - b).abs() < EPSILON
 }
 
 impl From<Inflation> for RpcInflationGovernor {
@@ -212,9 +233,9 @@ pub struct RpcInflationRate {
 	pub epoch: Epoch,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcKeyedAccount {
 	#[serde_as(as = "DisplayFromStr")]
 	pub pubkey: Pubkey,
@@ -294,9 +315,10 @@ pub enum RpcSignatureResult {
 	ReceivedSignature(ReceivedSignatureResult),
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcLogsResponse {
 	#[serde_as(as = "DisplayFromStr")]
 	pub signature: Signature, // Signature as base58 string
@@ -312,6 +334,7 @@ pub struct LogsNotificationResponse {
 
 impl_websocket_notification!(LogsNotificationResponse, "logs");
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ProcessedSignatureResult {
@@ -324,9 +347,10 @@ pub enum ReceivedSignatureResult {
 	ReceivedSignature,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcContactInfo {
 	/// Pubkey of the node as a base-58 string
 	#[serde_as(as = "DisplayFromStr")]
@@ -361,7 +385,41 @@ pub struct RpcContactInfo {
 
 /// Map of leader base58 identity pubkeys to the slot indices relative to the
 /// first epoch slot
-pub type RpcLeaderSchedule = HashMap<String, Vec<usize>>;
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, Deref, DerefMut)]
+pub struct RpcLeaderSchedule(#[serde(with = "pubkey_string_map")] pub HashMap<Pubkey, Vec<usize>>);
+
+mod pubkey_string_map {
+	use serde::ser::SerializeMap;
+
+	use super::*;
+
+	pub fn serialize<S>(
+		map: &HashMap<Pubkey, Vec<usize>>,
+		serializer: S,
+	) -> std::result::Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		let mut ser_map = serializer.serialize_map(Some(map.len()))?;
+		for (k, v) in map {
+			ser_map.serialize_entry(&k.to_string(), v)?;
+		}
+		ser_map.end()
+	}
+
+	pub fn deserialize<'de, D>(
+		deserializer: D,
+	) -> std::result::Result<HashMap<Pubkey, Vec<usize>>, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let string_map: HashMap<String, Vec<usize>> = HashMap::deserialize(deserializer)?;
+		string_map
+			.into_iter()
+			.map(|(k, v)| Ok((Pubkey::from_str(&k).map_err(serde::de::Error::custom)?, v)))
+			.collect()
+	}
+}
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -379,6 +437,7 @@ pub struct RpcBlockProduction {
 	pub range: RpcBlockProductionRange,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub struct RpcVersionInfo {
@@ -412,9 +471,10 @@ pub struct RpcIdentity {
 	pub identity: String,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcVote {
 	/// Vote account address, as base-58 encoded string
 	#[serde_as(as = "DisplayFromStr")]
@@ -434,9 +494,9 @@ pub struct RpcVoteAccountStatus {
 	pub delinquent: Vec<RpcVoteAccountInfo>,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcVoteAccountInfo {
 	/// Vote account address, as base-58 encoded string
 	#[serde_as(as = "DisplayFromStr")]
@@ -456,8 +516,11 @@ pub struct RpcVoteAccountInfo {
 	/// is (Epoch, credits, `prev_credits`)
 	pub epoch_credits: Vec<(Epoch, u64, u64)>,
 	/// Most recent slot voted on by this vote account (0 if no votes exist)
+	#[serde(default)]
 	pub last_vote: u64,
+
 	/// Current root slot for this vote account (0 if no root slot exists)
+	#[serde(default)]
 	pub root_slot: Slot,
 }
 
@@ -468,6 +531,7 @@ pub struct RpcSignatureConfirmation {
 	pub status: Result<()>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcSimulateTransactionResult {
@@ -480,18 +544,18 @@ pub struct RpcSimulateTransactionResult {
 	pub replacement_blockhash: Option<RpcBlockhash>,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcStorageTurn {
 	#[serde_as(as = "DisplayFromStr")]
 	pub blockhash: Hash,
 	pub slot: Slot,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcAccountBalance {
 	#[serde_as(as = "DisplayFromStr")]
 	pub address: Pubkey,
@@ -524,9 +588,9 @@ pub struct RpcStakeActivation {
 	pub inactive: u64,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcTokenAccountBalance {
 	#[serde_as(as = "DisplayFromStr")]
 	pub address: Pubkey,
@@ -534,9 +598,10 @@ pub struct RpcTokenAccountBalance {
 	pub amount: UiTokenAmount,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[serde_as]
 pub struct RpcConfirmedTransactionStatusWithSignature {
 	#[serde_as(as = "DisplayFromStr")]
 	pub signature: Signature,
@@ -563,6 +628,7 @@ impl RpcPerfSample {
 	}
 }
 
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcInflationReward {
@@ -582,6 +648,7 @@ pub enum RpcBlockUpdateError {
 	UnsupportedTransactionVersion(u8),
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockUpdate {
@@ -618,6 +685,7 @@ impl From<ConfirmedTransactionStatusWithSignature> for RpcConfirmedTransactionSt
 	}
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RpcSnapshotSlotInfo {
 	pub full: Slot,

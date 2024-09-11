@@ -8,7 +8,7 @@ pub struct GetClusterNodesRequest;
 
 impl_http_method!(GetClusterNodesRequest, "getClusterNodes");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcContactInfoWasm {
 	pub pubkey: String,
@@ -20,7 +20,7 @@ pub struct RpcContactInfoWasm {
 	pub shred_version: Option<u16>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetClusterNodesResponse(Vec<RpcContactInfoWasm>);
 
 impl From<GetClusterNodesResponse> for Vec<RpcContactInfoWasm> {
@@ -32,7 +32,6 @@ impl From<GetClusterNodesResponse> for Vec<RpcContactInfoWasm> {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -47,12 +46,7 @@ mod tests {
 			.params(GetClusterNodesRequest)
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getClusterNodes"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getClusterNodes"}"###);
 	}
 
 	#[test]

@@ -23,11 +23,10 @@ use crate::solana_account_decoder::UiAccount;
 /// 	.config(RpcAccountInfoConfig::default())
 /// 	.build();
 /// ```
-
 #[derive(Debug, TypedBuilder)]
 pub struct GetAccountInfoRequest {
 	pub pubkey: Pubkey,
-	#[builder(default)]
+	#[builder(default = RpcAccountInfoConfig::builder().build())]
 	pub config: RpcAccountInfoConfig,
 }
 
@@ -66,7 +65,7 @@ impl Serialize for GetAccountInfoRequest {
 impl_http_method!(GetAccountInfoRequest, "getAccountInfo");
 impl_websocket_method!(GetAccountInfoRequest, "account");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetAccountInfoResponse {
 	pub context: Context,
 	pub value: Option<UiAccount>,
@@ -77,7 +76,6 @@ impl_websocket_notification!(GetAccountInfoResponse, "account");
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -96,12 +94,19 @@ mod tests {
 			.params(GetAccountInfoRequest::from(pubkey))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getAccountInfo","params":["vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg",{"encoding":"base58"}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getAccountInfo",
+    "params": [
+      "vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg",
+      {
+        "encoding": "base64"
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

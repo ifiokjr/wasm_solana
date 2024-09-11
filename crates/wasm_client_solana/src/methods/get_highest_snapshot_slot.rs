@@ -8,7 +8,7 @@ pub struct GetHighestSnapshotSlotRequest;
 
 impl_http_method!(GetHighestSnapshotSlotRequest, "getHighestSnapshotSlot");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetHighestSnapshotSlotResponse {
 	pub full: u64,
 	pub incremental: Option<u64>,
@@ -16,7 +16,6 @@ pub struct GetHighestSnapshotSlotResponse {
 
 #[cfg(test)]
 mod tests {
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -31,13 +30,7 @@ mod tests {
 			.params(GetHighestSnapshotSlotRequest)
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getHighestSnapshotSlot"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		assert_eq!(ser_value, raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getHighestSnapshotSlot"}"###);
 	}
 
 	#[test]

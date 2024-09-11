@@ -37,7 +37,7 @@ impl GetRecentPrioritizationFeesRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetRecentPrioritizationFeesResponse(Vec<RpcPrioritizationFee>);
 
 impl From<GetRecentPrioritizationFeesResponse> for Vec<RpcPrioritizationFee> {
@@ -49,7 +49,6 @@ impl From<GetRecentPrioritizationFeesResponse> for Vec<RpcPrioritizationFee> {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -67,13 +66,18 @@ mod tests {
 			]))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getRecentPrioritizationFees","params":[["CxELquR1gPP8wHe33gZ4QxqGB3sZ9RSwsJ2KshVewkFY"]]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getRecentPrioritizationFees",
+    "params": [
+      [
+        "CxELquR1gPP8wHe33gZ4QxqGB3sZ9RSwsJ2KshVewkFY"
+      ]
+    ]
+  }
+  "###);
 	}
 
 	#[test]

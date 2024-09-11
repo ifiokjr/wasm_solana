@@ -22,7 +22,7 @@ mod ssr_http_provider {
 	use super::*;
 	use crate::ClientError;
 
-	#[derive(Clone)]
+	#[derive(Debug, Clone)]
 	pub struct HttpProvider {
 		client: Client,
 		headers: HeaderMap,
@@ -53,9 +53,13 @@ mod ssr_http_provider {
 		) -> ClientResult<ClientResponse<R>> {
 			let client_request = ClientRequest::builder()
 				.method(T::NAME)
-				.id(0)
+				.id(1)
 				.params(request)
 				.build();
+			println!(
+				"sending request: {}",
+				serde_json::to_string_pretty(&client_request).unwrap()
+			);
 			let result: Value = self
 				.client
 				.post(&self.url)
@@ -104,7 +108,7 @@ mod wasm_http_provider {
 	use super::*;
 	use crate::ClientError;
 
-	#[derive(Clone)]
+	#[derive(Debug, Clone)]
 	pub struct HttpProvider(String);
 
 	impl HttpProvider {

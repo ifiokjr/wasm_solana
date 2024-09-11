@@ -28,7 +28,7 @@ impl GetSlotLeaderRequest {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetSlotLeaderResponse(#[serde_as(as = "DisplayFromStr")] Pubkey);
 
 impl From<GetSlotLeaderResponse> for Pubkey {
@@ -40,7 +40,6 @@ impl From<GetSlotLeaderResponse> for Pubkey {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 	use solana_sdk::pubkey;
 
 	use super::*;
@@ -56,12 +55,7 @@ mod tests {
 			.params(GetSlotLeaderRequest::new())
 			.build();
 
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getSlotLeader"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
-		insta::assert_json_snapshot!(ser_value, @"");
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getSlotLeader"}"###);
 	}
 
 	#[test]

@@ -39,7 +39,7 @@ impl GetBlocksRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetBlocksResponse(Vec<Slot>);
 
 impl From<GetBlocksResponse> for Vec<Slot> {
@@ -51,7 +51,6 @@ impl From<GetBlocksResponse> for Vec<Slot> {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -66,13 +65,7 @@ mod tests {
 			.params(GetBlocksRequest::new(5, Some(10)))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getBlocks","params":[5,10]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getBlocks", "params": [5, 10]}"###);
 	}
 
 	#[test]

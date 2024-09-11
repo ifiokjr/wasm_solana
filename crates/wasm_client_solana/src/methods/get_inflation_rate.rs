@@ -16,7 +16,6 @@ pub struct GetInflationRateResponse(RpcInflationRate);
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -31,13 +30,7 @@ mod tests {
 			.params(GetInflationRateRequest)
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1, "method":"getInflationRate"}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getInflationRate"}"###);
 	}
 
 	#[test]
@@ -50,9 +43,14 @@ mod tests {
 		check!(response.id == 1);
 		check!(response.jsonrpc == "2.0");
 		let value = response.result.0;
-		check!(value.foundation == 0.001);
+		assert!(approx_eq(value.foundation, 0.001));
 		check!(value.epoch == 100);
-		check!(value.total == 0.149);
-		check!(value.validator == 0.148);
+		assert!(approx_eq(value.total, 0.149));
+		assert!(approx_eq(value.validator, 0.148));
+	}
+
+	fn approx_eq(a: f64, b: f64) -> bool {
+		const EPSILON: f64 = 1e-6;
+		(a - b).abs() < EPSILON
 	}
 }

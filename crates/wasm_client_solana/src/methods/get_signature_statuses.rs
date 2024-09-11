@@ -38,7 +38,7 @@ impl GetSignatureStatusesRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SignatureStatusesValue {
 	pub slot: u64,
@@ -47,7 +47,7 @@ pub struct SignatureStatusesValue {
 	pub confirmation_status: Option<TransactionConfirmationStatus>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetSignatureStatusesResponse {
 	pub context: Context,
 	pub value: Vec<Option<SignatureStatusesValue>>,
@@ -58,7 +58,6 @@ mod tests {
 	use std::str::FromStr;
 
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -75,13 +74,21 @@ mod tests {
 				))
 				.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"jsonrpc":"2.0","id":1,"method":"getSignatureStatuses","params":[["5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW"],{"searchTransactionHistory":true}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getSignatureStatuses",
+    "params": [
+      [
+        "5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW"
+      ],
+      {
+        "searchTransactionHistory": true
+      }
+    ]
+  }
+  "###);
 	}
 
 	#[test]

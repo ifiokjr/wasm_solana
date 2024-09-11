@@ -27,7 +27,7 @@ impl GetLatestBlockhashRequest {
 	}
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct GetLatestBlockhashResponse {
 	pub context: Context,
 	pub value: RpcBlockhash,
@@ -36,7 +36,6 @@ pub struct GetLatestBlockhashResponse {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use serde_json::Value;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -53,27 +52,28 @@ mod tests {
 			))
 			.build();
 
-		insta::assert_json_snapshot!(request, @"");
-
-		let ser_value = serde_json::to_value(request).unwrap();
-		let raw_json = r#"{"id":1,"jsonrpc":"2.0","method":"getLatestBlockhash","params":[{"commitment":"processed"}]}"#;
-		let raw_value: Value = serde_json::from_str(raw_json).unwrap();
-
-		check!(ser_value == raw_value);
+		insta::assert_compact_json_snapshot!(request, @r###"{"jsonrpc": "2.0", "id": 1, "method": "getLatestBlockhash", "params": [{"commitment": "processed"}]}"###);
 	}
 
 	#[test]
 	fn response() {
 		let raw_json = r#"{"jsonrpc":"2.0","result":{"context":{"slot":2792},"value":{"blockhash":"EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N","lastValidBlockHeight":3090}},"id":1}"#;
-
 		let response: ClientResponse<GetLatestBlockhashResponse> =
 			serde_json::from_str(raw_json).unwrap();
+		let expected = ClientResponse {
+			jsonrpc: String::from("2.0"),
+			result: GetLatestBlockhashResponse {
+				context: Context { slot: 2_792 },
+				value: RpcBlockhash {
+					blockhash: "EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N"
+						.parse()
+						.unwrap(),
+					last_valid_block_height: 3_090,
+				},
+			},
+			id: 1,
+		};
 
-		check!(response.id == 1);
-		check!(response.jsonrpc == "2.0");
-		check!(response.result.context.slot == 2792);
-		let value = response.result.value;
-		check!(value.blockhash.to_string() == "EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N");
-		check!(value.last_valid_block_height == 3090);
+		check!(response == expected);
 	}
 }

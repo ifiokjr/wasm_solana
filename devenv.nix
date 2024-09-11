@@ -93,7 +93,7 @@
       set -e
       cargo update
       pnpm update --latest --recursive -i
-      copy:public
+      copy:js
     '';
     description = "Update dependencies.";
   };

@@ -63,6 +63,7 @@ use crate::solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use crate::solana_transaction_status::TransactionConfirmationStatus;
 use crate::solana_transaction_status::UiConfirmedBlock;
 use crate::solana_transaction_status::UiTransactionEncoding;
+use crate::ClientError;
 use crate::ClientResult;
 use crate::HttpProvider;
 use crate::SolanaRpcClientError;
@@ -122,10 +123,9 @@ use crate::SLEEP_MS;
 /// return [`ClientResponse`].
 ///
 /// Requests may timeout, in which case they return a [`ClientError`].
-#[derive(derive_more::Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct SolanaClient {
 	commitment_config: CommitmentConfig,
-	#[debug(skip)]
 	http: HttpProvider,
 	ws: WebSocketProvider,
 }
@@ -155,6 +155,8 @@ impl SolanaClient {
 	/// let client = RpcClient::new(url);
 	/// ```
 	pub fn new(endpoint: &str) -> Self {
+		println!("endpoint: {endpoint}");
+
 		Self {
 			http: HttpProvider::new(endpoint),
 			commitment_config: CommitmentConfig::confirmed(),
@@ -182,10 +184,24 @@ impl SolanaClient {
 	/// let client = SolanaRpcClient::new_with_commitment(url, commitment_config);
 	/// ```
 	pub fn new_with_commitment(endpoint: &str, commitment_config: CommitmentConfig) -> Self {
+		println!("endpoint: {endpoint}");
+
 		Self {
 			http: HttpProvider::new(endpoint),
 			commitment_config,
 			ws: WebSocketProvider::new(endpoint),
+		}
+	}
+
+	pub fn new_with_ws_and_commitment(
+		http_endpoint: &str,
+		ws_endpoint: &str,
+		commitment_config: CommitmentConfig,
+	) -> Self {
+		Self {
+			http: HttpProvider::new(http_endpoint),
+			commitment_config,
+			ws: WebSocketProvider::new(ws_endpoint),
 		}
 	}
 
@@ -269,9 +285,12 @@ impl SolanaClient {
 	}
 
 	pub async fn request_airdrop(&self, pubkey: &Pubkey, lamports: u64) -> ClientResult<Signature> {
+		println!("requesting airdrop");
 		let request =
 			RequestAirdropRequest::new_with_config(*pubkey, lamports, self.commitment_config);
-		let response: RequestAirdropResponse = self.send(request).await?;
+		let result: Result<RequestAirdropResponse, ClientError> = self.send(request).await;
+		println!("requesting airdrop done: {result:#?}");
+		let response = result?;
 
 		Ok(response.into())
 	}

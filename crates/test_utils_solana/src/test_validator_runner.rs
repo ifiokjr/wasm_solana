@@ -139,26 +139,27 @@ impl TestValidatorRunner {
 				faucet_pubkey,
 				AccountSharedData::new(sol_to_lamports(1_000_000.0), 0, &system_program::ID),
 			)
-			.warp_slot(100)
 			.add_accounts(funded_accounts)
 			.add_accounts(props.accounts);
 
 		let wrapped_future = SendWrapper::new(genesis.start_async());
 		let (validator, mint_keypair) = wrapped_future.await;
 
-		let rpc = SolanaClient::new_with_commitment(
+		let rpc = SolanaClient::new_with_ws_and_commitment(
 			&validator.rpc_url(),
+			&validator.rpc_pubsub_url(),
 			CommitmentConfig {
 				commitment: props.commitment,
 			},
 		);
+		println!("rpc: {rpc:#?}");
 
 		// waiting for fees to stablize doesn't seem to work, so here waiting for this
 		// random airdrop to succeed seems to work. An alternative is a 15 second daily.
 		// The validator to be warmed up.
+		// futures_timer::Delay::new(std::time::Duration::from_secs(15)).await;
 		rpc.request_airdrop(&Pubkey::new_unique(), sol_to_lamports(0.5))
 			.await?;
-		// Delay::new(Duration::from_secs(15)).await;
 
 		let runner = Self {
 			genesis,
