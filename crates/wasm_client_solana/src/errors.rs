@@ -26,7 +26,7 @@ impl Default for ErrorDetails {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SolanaRpcClientError {
-	pub(crate) id: u16,
+	pub(crate) id: u32,
 	pub(crate) jsonrpc: String,
 	pub(crate) error: ErrorDetails,
 }

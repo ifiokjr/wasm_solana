@@ -63,7 +63,7 @@ use crate::solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use crate::solana_transaction_status::TransactionConfirmationStatus;
 use crate::solana_transaction_status::UiConfirmedBlock;
 use crate::solana_transaction_status::UiTransactionEncoding;
-use crate::ClientError;
+use crate::ClientResponse;
 use crate::ClientResult;
 use crate::HttpProvider;
 use crate::SolanaRpcClientError;
@@ -155,8 +155,6 @@ impl SolanaClient {
 	/// let client = RpcClient::new(url);
 	/// ```
 	pub fn new(endpoint: &str) -> Self {
-		println!("endpoint: {endpoint}");
-
 		Self {
 			http: HttpProvider::new(endpoint),
 			commitment_config: CommitmentConfig::confirmed(),
@@ -219,7 +217,7 @@ impl SolanaClient {
 	}
 
 	async fn send<T: HttpMethod, R: DeserializeOwned>(&self, request: T) -> ClientResult<R> {
-		self.http.send(&request).await?.result
+		self.http.send::<T, R>(&request).await
 	}
 
 	pub async fn get_account_with_config(
@@ -231,9 +229,9 @@ impl SolanaClient {
 			.pubkey(*pubkey)
 			.config(config)
 			.build();
-		let response: GetAccountInfoResponse = self.send(request).await?;
+		let response: ClientResponse<GetAccountInfoResponse> = self.send(request).await?;
 
-		match response.value {
+		match response.result.value {
 			Some(ui_account) => Ok(ui_account.decode()),
 			None => Ok(None),
 		}
@@ -274,9 +272,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<u64> {
 		let request = GetBalanceRequest::new_with_config(*pubkey, commitment_config);
-		let response: GetBalanceResponse = self.send(request).await?;
+		let response: ClientResponse<GetBalanceResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_balance(&self, pubkey: &Pubkey) -> ClientResult<u64> {
@@ -285,14 +283,11 @@ impl SolanaClient {
 	}
 
 	pub async fn request_airdrop(&self, pubkey: &Pubkey, lamports: u64) -> ClientResult<Signature> {
-		println!("requesting airdrop");
 		let request =
 			RequestAirdropRequest::new_with_config(*pubkey, lamports, self.commitment_config);
-		let result: Result<RequestAirdropResponse, ClientError> = self.send(request).await;
-		println!("requesting airdrop done: {result:#?}");
-		let response = result?;
+		let response: ClientResponse<RequestAirdropResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_signature_statuses(
@@ -300,9 +295,9 @@ impl SolanaClient {
 		signatures: &[Signature],
 	) -> ClientResult<Vec<Option<SignatureStatusesValue>>> {
 		let request = GetSignatureStatusesRequest::new(signatures.into());
-		let response: GetSignatureStatusesResponse = self.send(request).await?;
+		let response: ClientResponse<GetSignatureStatusesResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_transaction_with_config(
@@ -311,9 +306,9 @@ impl SolanaClient {
 		config: RpcTransactionConfig,
 	) -> ClientResult<EncodedConfirmedTransactionWithStatusMeta> {
 		let request = GetTransactionRequest::new_with_config(*signature, config);
-		let response: GetTransactionResponse = self.send(request).await?;
+		let response: ClientResponse<GetTransactionResponse> = self.send(request).await?;
 
-		match response.into() {
+		match response.result.into() {
 			Some(result) => Ok(result),
 			None => {
 				Err(SolanaRpcClientError::new(format!("Signature {signature} not found.")).into())
@@ -326,11 +321,11 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<(Hash, u64)> {
 		let request = GetLatestBlockhashRequest::new_with_config(commitment_config);
-		let response: GetLatestBlockhashResponse = self.send(request).await?;
+		let response: ClientResponse<GetLatestBlockhashResponse> = self.send(request).await?;
 
 		Ok((
-			response.value.blockhash,
-			response.value.last_valid_block_height,
+			response.result.value.blockhash,
+			response.result.value.last_valid_block_height,
 		))
 	}
 
@@ -362,9 +357,9 @@ impl SolanaClient {
 				min_context_slot: None,
 			},
 		);
-		let response: IsBlockhashValidResponse = self.send(request).await?;
+		let response: ClientResponse<IsBlockhashValidResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_minimum_balance_for_rent_exemption(
@@ -372,16 +367,17 @@ impl SolanaClient {
 		data_len: usize,
 	) -> ClientResult<u64> {
 		let request = GetMinimumBalanceForRentExemptionRequest::new(data_len);
-		let response: GetMinimumBalanceForRentExemptionResponse = self.send(request).await?;
+		let response: ClientResponse<GetMinimumBalanceForRentExemptionResponse> =
+			self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_fee_for_message(&self, message: &Message) -> ClientResult<u64> {
 		let request = GetFeeForMessageRequest::new(message.to_owned());
-		let response: GetFeeForMessageResponse = self.send(request).await?;
+		let response: ClientResponse<GetFeeForMessageResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn send_transaction_with_config(
@@ -392,8 +388,8 @@ impl SolanaClient {
 		let transaction = transaction.to_owned();
 		let transaction_signature = transaction.signatures[0];
 		let request = SendTransactionRequest::new_with_config(transaction, config);
-		let response: SendTransactionResponse = self.send(request).await?;
-		let signature: Signature = response.into();
+		let response: ClientResponse<SendTransactionResponse> = self.send(request).await?;
+		let signature: Signature = response.result.into();
 
 		// A mismatching RPC response signature indicates an issue with the RPC node,
 		// and should not be passed along to confirmation methods. The transaction may
@@ -529,10 +525,11 @@ impl SolanaClient {
 		};
 
 		let request = GetProgramAccountsRequest::new_with_config(*pubkey, config);
-		let response: GetProgramAccountsResponse = self.send(request).await?;
+		let response: ClientResponse<GetProgramAccountsResponse> = self.send(request).await?;
 
 		// Parse keyed accounts
 		let accounts = response
+			.result
 			.keyed_accounts()
 			.ok_or_else(|| SolanaRpcClientError::new("Program account doesn't exist."))?;
 
@@ -573,9 +570,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<Slot> {
 		let request = GetSlotRequest::new_with_config(commitment_config);
-		let response: GetSlotResponse = self.send(request).await?;
+		let response: ClientResponse<GetSlotResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_slot(&self) -> ClientResult<Slot> {
@@ -589,29 +586,29 @@ impl SolanaClient {
 		config: RpcBlockConfig,
 	) -> ClientResult<UiConfirmedBlock> {
 		let request = GetBlockRequest::new_with_config(slot, config);
-		let response: GetBlockResponse = self.send(request).await?;
+		let response: ClientResponse<GetBlockResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_version(&self) -> ClientResult<RpcVersionInfo> {
-		let response: GetVersionResponse = self.send(GetVersionRequest).await?;
+		let response: ClientResponse<GetVersionResponse> = self.send(GetVersionRequest).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_first_available_block(&self) -> ClientResult<Slot> {
 		let request = GetFirstAvailableBlockRequest;
-		let response: GetFirstAvailableBlockResponse = self.send(request).await?;
+		let response: ClientResponse<GetFirstAvailableBlockResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_block_time(&self, slot: Slot) -> ClientResult<UnixTimestamp> {
 		let request = GetBlockTimeRequest::new(slot);
-		let response: GetBlockTimeResponse = self.send(request).await?;
+		let response: ClientResponse<GetBlockTimeResponse> = self.send(request).await?;
 
-		let maybe_timestamp: Option<UnixTimestamp> = response.into();
+		let maybe_timestamp: Option<UnixTimestamp> = response.result.into();
 		match maybe_timestamp {
 			Some(timestamp) => Ok(timestamp),
 			None => Err(SolanaRpcClientError::new(format!("Block Not Found: slot={slot}")).into()),
@@ -623,9 +620,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<u64> {
 		let request = GetBlockHeightRequest::new_with_config(commitment_config);
-		let response: GetBlockHeightResponse = self.send(request).await?;
+		let response: ClientResponse<GetBlockHeightResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_block_height(&self) -> ClientResult<u64> {
@@ -635,9 +632,9 @@ impl SolanaClient {
 
 	pub async fn get_genesis_hash(&self) -> ClientResult<Hash> {
 		let request = GetGenesisHashRequest;
-		let response: GetGenesisHashResponse = self.send(request).await?;
+		let response: ClientResponse<GetGenesisHashResponse> = self.send(request).await?;
 
-		let hash_string: String = response.into();
+		let hash_string: String = response.result.into();
 		let hash = hash_string
 			.parse()
 			.map_err(|_| SolanaRpcClientError::new("Hash is not parseable."))?;
@@ -650,9 +647,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<EpochInfo> {
 		let request = GetEpochInfoRequest::new_with_config(commitment_config);
-		let response: GetEpochInfoResponse = self.send(request).await?;
+		let response: ClientResponse<GetEpochInfoResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_epoch_info(&self) -> ClientResult<EpochInfo> {
@@ -665,23 +662,26 @@ impl SolanaClient {
 		limit: usize,
 	) -> ClientResult<Vec<RpcPerfSample>> {
 		let request = GetRecentPerformanceSamplesRequest::new_with_limit(limit);
-		let response: GetRecentPerformanceSamplesResponse = self.send(request).await?;
+		let response: ClientResponse<GetRecentPerformanceSamplesResponse> =
+			self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_recent_performance_samples(&self) -> ClientResult<Vec<RpcPerfSample>> {
 		let request = GetRecentPerformanceSamplesRequest::new();
-		let response: GetRecentPerformanceSamplesResponse = self.send(request).await?;
+		let response: ClientResponse<GetRecentPerformanceSamplesResponse> =
+			self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_recent_prioritization_fees(&self) -> ClientResult<Vec<RpcPrioritizationFee>> {
 		let request = GetRecentPrioritizationFeesRequest::new();
-		let response: GetRecentPrioritizationFeesResponse = self.send(request).await?;
+		let response: ClientResponse<GetRecentPrioritizationFeesResponse> =
+			self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_recent_prioritization_fees_with_accounts(
@@ -689,9 +689,10 @@ impl SolanaClient {
 		addresses: Vec<Pubkey>,
 	) -> ClientResult<Vec<RpcPrioritizationFee>> {
 		let request = GetRecentPrioritizationFeesRequest::new_with_accounts(addresses);
-		let response: GetRecentPrioritizationFeesResponse = self.send(request).await?;
+		let response: ClientResponse<GetRecentPrioritizationFeesResponse> =
+			self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_blocks_with_limit_and_commitment(
@@ -702,9 +703,9 @@ impl SolanaClient {
 	) -> ClientResult<Vec<Slot>> {
 		let request =
 			GetBlocksWithLimitRequest::new_with_config(start_slot, limit, commitment_config);
-		let response: GetBlocksWithLimitResponse = self.send(request).await?;
+		let response: ClientResponse<GetBlocksWithLimitResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_blocks_with_limit(
@@ -726,16 +727,16 @@ impl SolanaClient {
 		};
 
 		let request = GetLargestAccountsRequest::new_with_config(config);
-		let response: GetLargestAccountsResponse = self.send(request).await?;
+		let response: ClientResponse<GetLargestAccountsResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_supply_with_config(&self, config: RpcSupplyConfig) -> ClientResult<RpcSupply> {
 		let request = GetSupplyRequest::new_with_config(config);
-		let response: GetSupplyResponse = self.send(request).await?;
+		let response: ClientResponse<GetSupplyResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_stake_minimum_delegation_with_commitment(
@@ -744,9 +745,10 @@ impl SolanaClient {
 	) -> ClientResult<u64> {
 		let request =
 			GetStakeMinimumDelegationRequest::new_with_config(CommitmentConfig { commitment });
-		let response: GetStakeMinimumDelegationResponse = self.send(request).await?;
+		let response: ClientResponse<GetStakeMinimumDelegationResponse> =
+			self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_stake_minimum_delegation(&self) -> ClientResult<u64> {
@@ -774,9 +776,9 @@ impl SolanaClient {
 		config: RpcContextConfig,
 	) -> ClientResult<u64> {
 		let request = GetTransactionCountRequest::new_with_config(config);
-		let response: GetTransactionCountResponse = self.send(request).await?;
+		let response: ClientResponse<GetTransactionCountResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_transaction_count_with_commitment(
@@ -806,9 +808,10 @@ impl SolanaClient {
 		};
 
 		let request = GetMultipleAccountsRequest::new_with_config(pubkeys.to_vec(), config);
-		let response: GetMultipleAccountsResponse = self.send(request).await?;
+		let response: ClientResponse<GetMultipleAccountsResponse> = self.send(request).await?;
 
 		Ok(response
+			.result
 			.value
 			.iter()
 			.filter(|maybe_acc| maybe_acc.is_some())
@@ -840,9 +843,10 @@ impl SolanaClient {
 	}
 
 	pub async fn get_cluster_nodes(&self) -> ClientResult<Vec<RpcContactInfoWasm>> {
-		let response: GetClusterNodesResponse = self.send(GetClusterNodesRequest).await?;
+		let response: ClientResponse<GetClusterNodesResponse> =
+			self.send(GetClusterNodesRequest).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_vote_accounts_with_config(
@@ -850,9 +854,9 @@ impl SolanaClient {
 		config: RpcGetVoteAccountsConfig,
 	) -> ClientResult<RpcVoteAccountStatus> {
 		let request = GetVoteAccountsRequest::new_with_config(config);
-		let response: GetVoteAccountsResponse = self.send(request).await?;
+		let response: ClientResponse<GetVoteAccountsResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_vote_accounts_with_commitment(
@@ -872,9 +876,10 @@ impl SolanaClient {
 	}
 
 	pub async fn get_epoch_schedule(&self) -> ClientResult<EpochSchedule> {
-		let response: GetEpochScheduleResponse = self.send(GetEpochScheduleRequest).await?;
+		let response: ClientResponse<GetEpochScheduleResponse> =
+			self.send(GetEpochScheduleRequest).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_signatures_for_address_with_config(
@@ -891,15 +896,16 @@ impl SolanaClient {
 		};
 
 		let request = GetSignaturesForAddressRequest::new_with_config(*address, config);
-		let response: GetSignaturesForAddressResponse = self.send(request).await?;
+		let response: ClientResponse<GetSignaturesForAddressResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn minimum_ledger_slot(&self) -> ClientResult<Slot> {
-		let response: MinimumLedgerSlotResponse = self.send(MinimumLedgerSlotRequest).await?;
+		let response: ClientResponse<MinimumLedgerSlotResponse> =
+			self.send(MinimumLedgerSlotRequest).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_blocks_with_commitment(
@@ -909,9 +915,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<Vec<Slot>> {
 		let request = GetBlocksRequest::new_with_config(start_slot, end_slot, commitment_config);
-		let response: GetBlocksResponse = self.send(request).await?;
+		let response: ClientResponse<GetBlocksResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_blocks(
@@ -932,9 +938,9 @@ impl SolanaClient {
 			Some(s) => GetLeaderScheduleRequest::new_with_slot_and_config(s, config),
 			None => GetLeaderScheduleRequest::new_with_config(config),
 		};
-		let response: GetLeaderScheduleResponse = self.send(request).await?;
+		let response: ClientResponse<GetLeaderScheduleResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_leader_schedule_with_commitment(
@@ -957,9 +963,9 @@ impl SolanaClient {
 		config: RpcBlockProductionConfig,
 	) -> ClientResult<RpcBlockProduction> {
 		let request = GetBlockProductionRequest::new_with_config(config);
-		let response: GetBlockProductionResponse = self.send(request).await?;
+		let response: ClientResponse<GetBlockProductionResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_block_production_with_commitment(
@@ -983,9 +989,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<RpcInflationGovernor> {
 		let request = GetInflationGovernorRequest::new_with_config(commitment_config);
-		let response: GetInflationGovernorResponse = self.send(request).await?;
+		let response: ClientResponse<GetInflationGovernorResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_inflation_governor(&self) -> ClientResult<RpcInflationGovernor> {
@@ -994,9 +1000,10 @@ impl SolanaClient {
 	}
 
 	pub async fn get_inflation_rate(&self) -> ClientResult<RpcInflationRate> {
-		let response: GetInflationRateResponse = self.send(GetInflationRateRequest).await?;
+		let response: ClientResponse<GetInflationRateResponse> =
+			self.send(GetInflationRateRequest).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_inflation_reward_with_config(
@@ -1012,9 +1019,9 @@ impl SolanaClient {
 				..Default::default()
 			},
 		);
-		let response: GetInflationRewardResponse = self.send(request).await?;
+		let response: ClientResponse<GetInflationRewardResponse> = self.send(request).await?;
 
-		Ok(response.into())
+		Ok(response.result.into())
 	}
 
 	pub async fn get_inflation_reward(
@@ -1040,9 +1047,9 @@ impl SolanaClient {
 			.pubkey(*pubkey)
 			.config(config)
 			.build();
-		let response: GetAccountInfoResponse = self.send(request).await?;
+		let response: ClientResponse<GetAccountInfoResponse> = self.send(request).await?;
 
-		if let Some(acc) = response.value {
+		if let Some(acc) = response.result.value {
 			if let UiAccountData::Json(account_data) = acc.data {
 				let token_account_type: TokenAccountType =
 					match serde_json::from_value(account_data.parsed) {
@@ -1086,9 +1093,9 @@ impl SolanaClient {
 
 		let request =
 			GetTokenAccountsByOwnerRequest::new_with_config(*owner, token_account_filter, config);
-		let response: GetTokenAccountsByOwnerResponse = self.send(request).await?;
+		let response: ClientResponse<GetTokenAccountsByOwnerResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_token_accounts_by_owner(
@@ -1110,9 +1117,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<UiTokenAmount> {
 		let request = GetTokenAccountBalanceRequest::new_with_config(*pubkey, commitment_config);
-		let response: GetTokenAccountBalanceResponse = self.send(request).await?;
+		let response: ClientResponse<GetTokenAccountBalanceResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_token_account_balance(&self, pubkey: &Pubkey) -> ClientResult<UiTokenAmount> {
@@ -1126,9 +1133,9 @@ impl SolanaClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<UiTokenAmount> {
 		let request = GetTokenSupplyRequest::new_with_config(*mint, commitment_config);
-		let response: GetTokenSupplyResponse = self.send(request).await?;
+		let response: ClientResponse<GetTokenSupplyResponse> = self.send(request).await?;
 
-		Ok(response.value)
+		Ok(response.result.value)
 	}
 
 	pub async fn get_token_supply(&self, mint: &Pubkey) -> ClientResult<UiTokenAmount> {
@@ -1142,9 +1149,9 @@ impl SolanaClient {
 		config: RpcSimulateTransactionConfig,
 	) -> ClientResult<SimulateTransactionResponse> {
 		let request = SimulateTransactionRequest::new_with_config(transaction.to_owned(), config);
-		let response: SimulateTransactionResponse = self.send(request).await?;
+		let response: ClientResponse<SimulateTransactionResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn simulate_transaction(
@@ -1163,9 +1170,9 @@ impl SolanaClient {
 	}
 
 	pub async fn get_health(&self) -> ClientResult<GetHealthResponse> {
-		let response: GetHealthResponse = self.send(GetHealthRequest).await?;
+		let response: ClientResponse<GetHealthResponse> = self.send(GetHealthRequest).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	/// Returns the identity pubkey for the current node.
@@ -1176,9 +1183,9 @@ impl SolanaClient {
 	///
 	/// [`getIdentity`]: https://solana.com/docs/rpc/http/getidentity
 	pub async fn get_identity(&self) -> ClientResult<GetIdentityResponse> {
-		let response: GetIdentityResponse = self.send(GetIdentityRequest).await?;
+		let response: ClientResponse<GetIdentityResponse> = self.send(GetIdentityRequest).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	/// Returns commitment for particular block
@@ -1187,9 +1194,9 @@ impl SolanaClient {
 		slot: u64,
 	) -> ClientResult<GetBlockCommitmentResponse> {
 		let request = GetBlockCommitmentRequest::new(slot);
-		let response: GetBlockCommitmentResponse = self.send(request).await?;
+		let response: ClientResponse<GetBlockCommitmentResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	/// Returns the highest slot information that the node has snapshots for.
@@ -1201,25 +1208,26 @@ impl SolanaClient {
 	/// This method is only available in solana-core v1.9 or newer. Please use
 	/// getSnapshotSlot for solana-core v1.8 and below.
 	pub async fn get_highest_snapshot_slot(&self) -> ClientResult<GetHighestSnapshotSlotResponse> {
-		let response: GetHighestSnapshotSlotResponse =
+		let response: ClientResponse<GetHighestSnapshotSlotResponse> =
 			self.send(GetHighestSnapshotSlotRequest).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	/// Get the max slot seen from retransmit stage.
 	pub async fn get_max_retransmit_slot(&self) -> ClientResult<GetMaxRetransmitSlotResponse> {
-		let response: GetMaxRetransmitSlotResponse = self.send(GetMaxRetransmitSlotRequest).await?;
+		let response: ClientResponse<GetMaxRetransmitSlotResponse> =
+			self.send(GetMaxRetransmitSlotRequest).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	/// Returns the current slot leader
 	pub async fn get_slot_leader(&self) -> ClientResult<GetSlotLeaderResponse> {
 		let request = GetSlotLeaderRequest::new();
-		let response: GetSlotLeaderResponse = self.send(request).await?;
+		let response: ClientResponse<GetSlotLeaderResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	/// Returns the slot leaders for a given slot range
@@ -1229,17 +1237,17 @@ impl SolanaClient {
 		limit: u64,
 	) -> ClientResult<GetSlotLeadersResponse> {
 		let request = GetSlotLeadersRequest::new_with_config(start_slot, limit);
-		let response: GetSlotLeadersResponse = self.send(request).await?;
+		let response: ClientResponse<GetSlotLeadersResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	/// Returns the slot leaders for a given slot range
 	pub async fn get_slot_leaders(&self) -> ClientResult<GetSlotLeadersResponse> {
 		let request = GetSlotLeadersRequest::new();
-		let response: GetSlotLeadersResponse = self.send(request).await?;
+		let response: ClientResponse<GetSlotLeadersResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn get_stake_activation(
@@ -1247,9 +1255,9 @@ impl SolanaClient {
 		pubkey: Pubkey,
 	) -> ClientResult<GetStakeActivationResponse> {
 		let request = GetStakeActivationRequest::new(pubkey);
-		let response: GetStakeActivationResponse = self.send(request).await?;
+		let response: ClientResponse<GetStakeActivationResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn get_stake_activation_with_config(
@@ -1258,9 +1266,9 @@ impl SolanaClient {
 		config: RpcEpochConfig,
 	) -> ClientResult<GetStakeActivationResponse> {
 		let request = GetStakeActivationRequest::new_with_config(pubkey, config);
-		let response: GetStakeActivationResponse = self.send(request).await?;
+		let response: ClientResponse<GetStakeActivationResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn get_token_accounts_by_delegate_with_config(
@@ -1274,9 +1282,10 @@ impl SolanaClient {
 			filter,
 			config: Some(config),
 		};
-		let response: GetTokenAccountsByDelegateResponse = self.send(request).await?;
+		let response: ClientResponse<GetTokenAccountsByDelegateResponse> =
+			self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn get_token_accounts_by_delegate(
@@ -1289,9 +1298,10 @@ impl SolanaClient {
 			filter,
 			config: None,
 		};
-		let response: GetTokenAccountsByDelegateResponse = self.send(request).await?;
+		let response: ClientResponse<GetTokenAccountsByDelegateResponse> =
+			self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn get_token_largest_accounts(
@@ -1299,9 +1309,9 @@ impl SolanaClient {
 		pubkey: Pubkey,
 	) -> ClientResult<GetTokenLargestAccountsResponse> {
 		let request = GetTokenLargestAccountsRequest::new(pubkey);
-		let response: GetTokenLargestAccountsResponse = self.send(request).await?;
+		let response: ClientResponse<GetTokenLargestAccountsResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn get_token_largest_accounts_with_config(
@@ -1310,9 +1320,9 @@ impl SolanaClient {
 		config: CommitmentConfig,
 	) -> ClientResult<GetTokenLargestAccountsResponse> {
 		let request = GetTokenLargestAccountsRequest::new_with_config(pubkey, config);
-		let response: GetTokenLargestAccountsResponse = self.send(request).await?;
+		let response: ClientResponse<GetTokenLargestAccountsResponse> = self.send(request).await?;
 
-		Ok(response)
+		Ok(response.result)
 	}
 
 	pub async fn get_address_lookup_table(

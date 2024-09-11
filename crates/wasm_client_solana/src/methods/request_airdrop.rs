@@ -1,3 +1,5 @@
+use derive_more::derive::From;
+use derive_more::derive::Into;
 use serde::Deserialize;
 use serde_tuple::Serialize_tuple;
 use serde_with::serde_as;
@@ -40,14 +42,8 @@ impl RequestAirdropRequest {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, PartialEq, Eq, From, Into)]
 pub struct RequestAirdropResponse(#[serde_as(as = "DisplayFromStr")] Signature);
-
-impl From<RequestAirdropResponse> for Signature {
-	fn from(val: RequestAirdropResponse) -> Self {
-		val.0
-	}
-}
 
 #[cfg(test)]
 mod tests {

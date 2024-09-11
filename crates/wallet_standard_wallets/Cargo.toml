@@ -29,6 +29,7 @@ assert2 = { workspace = true }
 test_utils = { workspace = true }
 test_utils_solana = { workspace = true, features = ["test_validator", "ssr"] }
 tokio = { workspace = true, features = ["test-util"] }
+test-log = { workspace = true, features = ["trace"] }
 
 [features]
 default = []

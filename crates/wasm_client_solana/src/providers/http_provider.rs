@@ -6,7 +6,6 @@ pub use ssr_http_provider::HttpProvider;
 pub use wasm_http_provider::HttpProvider;
 
 use crate::ClientRequest;
-use crate::ClientResponse;
 use crate::ClientResult;
 use crate::ErrorDetails;
 use crate::HttpMethod;
@@ -50,16 +49,12 @@ mod ssr_http_provider {
 		pub async fn send<T: HttpMethod, R: DeserializeOwned>(
 			&self,
 			request: &T,
-		) -> ClientResult<ClientResponse<R>> {
+		) -> ClientResult<R> {
 			let client_request = ClientRequest::builder()
 				.method(T::NAME)
 				.id(1)
 				.params(request)
 				.build();
-			println!(
-				"sending request: {}",
-				serde_json::to_string_pretty(&client_request).unwrap()
-			);
 			let result: Value = self
 				.client
 				.post(&self.url)
@@ -70,14 +65,14 @@ mod ssr_http_provider {
 				.json()
 				.await?;
 
-			let Ok(response) = serde_json::from_value::<ClientResponse<R>>(result.clone()) else {
-				let error: SolanaRpcClientError =
-					serde_json::from_value(result).unwrap_or_default();
-
-				return Err(error.into());
-			};
-
-			Ok(response)
+			if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
+				Ok(response)
+			} else {
+				match serde_json::from_value::<SolanaRpcClientError>(result) {
+					Ok(error) => Err(error.into()),
+					Err(error) => Err(ClientError::Other(error.to_string())),
+				}
+			}
 		}
 	}
 
@@ -123,7 +118,7 @@ mod wasm_http_provider {
 		pub async fn send<T: HttpMethod, R: DeserializeOwned>(
 			&self,
 			request: &T,
-		) -> ClientResult<ClientResponse<R>> {
+		) -> ClientResult<R> {
 			let client_request = ClientRequest::builder()
 				.method(T::NAME)
 				.id(0)
@@ -136,14 +131,14 @@ mod wasm_http_provider {
 				.json()
 				.await?;
 
-			let Ok(response) = serde_json::from_value::<ClientResponse<R>>(result.clone()) else {
-				let error: SolanaRpcClientError =
-					serde_json::from_value(result).unwrap_or_default();
-
-				return Err(error.into());
-			};
-
-			Ok(response)
+			if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
+				Ok(response)
+			} else {
+				match serde_json::from_value::<SolanaRpcClientError>(result) {
+					Ok(error) => Err(error.into()),
+					Err(error) => Err(ClientError::Other(error.to_string())),
+				}
+			}
 		}
 	}
 

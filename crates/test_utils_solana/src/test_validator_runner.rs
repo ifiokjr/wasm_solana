@@ -88,7 +88,6 @@ pub struct TestValidatorRunner {
 	pub ports: (u16, u16, u16),
 	pub validator: TestValidator,
 	pub mint_keypair: Keypair,
-	pub faucet: AsyncKeypair,
 	pub rpc: SolanaClient,
 }
 
@@ -96,7 +95,6 @@ impl TestValidatorRunner {
 	pub async fn run(props: TestValidatorRunnerProps) -> Result<Arc<Self>> {
 		let mut genesis = TestValidatorGenesis::default();
 		let faucet_keypair = Keypair::new();
-		let faucet = AsyncKeypair::from(&faucet_keypair);
 		let faucet_pubkey = faucet_keypair.pubkey();
 		let programs = props
 			.programs
@@ -134,6 +132,9 @@ impl TestValidatorRunner {
 				enable_rpc_transaction_history: true,
 				..JsonRpcConfig::default_for_test()
 			})
+			// Needed to prevent all account transactions from failing with this error:
+			// `Attempt to debit an account but found no record of a prior credit.`
+			.warp_slot(100)
 			.add_upgradeable_programs_with_path(&programs)
 			.add_account(
 				faucet_pubkey,
@@ -152,13 +153,12 @@ impl TestValidatorRunner {
 				commitment: props.commitment,
 			},
 		);
-		println!("rpc: {rpc:#?}");
 
 		// waiting for fees to stablize doesn't seem to work, so here waiting for this
 		// random airdrop to succeed seems to work. An alternative is a 15 second daily.
 		// The validator to be warmed up.
 		// futures_timer::Delay::new(std::time::Duration::from_secs(15)).await;
-		rpc.request_airdrop(&Pubkey::new_unique(), sol_to_lamports(0.5))
+		rpc.request_airdrop(&mint_keypair.pubkey(), sol_to_lamports(500.0))
 			.await?;
 
 		let runner = Self {
@@ -166,7 +166,6 @@ impl TestValidatorRunner {
 			ports: (rpc_port, pubsub_port, faucet_port),
 			validator,
 			mint_keypair,
-			faucet,
 			rpc,
 		};
 

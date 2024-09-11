@@ -8,7 +8,6 @@ use borsh::BorshSerialize;
 use chrono_humanize::Accuracy;
 use chrono_humanize::HumanTime;
 use chrono_humanize::Tense;
-use log::info;
 use solana_banks_client::BanksClient;
 use solana_banks_client::BanksClientError;
 use solana_banks_interface::BanksTransactionResultWithSimulation;
@@ -409,7 +408,7 @@ impl ProgramTestExtension for ProgramTest {
 			)
 			.unwrap();
 
-			info!(
+			log::info!(
 				"\"{}\" BPF program from {}{}",
 				program_name,
 				program_file.display(),
@@ -481,7 +480,7 @@ impl ProgramTestExtension for ProgramTest {
 			)
 			.unwrap();
 
-			info!(
+			log::info!(
 				"\"{}\" BPF program from {}{}",
 				program_name,
 				program_file.display(),
