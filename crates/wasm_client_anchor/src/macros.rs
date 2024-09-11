@@ -22,11 +22,11 @@ macro_rules! base_create_request_builder {
 			#[derive(::derive_more::Debug, ::typed_builder::TypedBuilder)]
 			pub struct [<$name_prefix Request>]<
 				'a,
-				W: $crate::AnchorWallet + 'a,
+				W: $crate::WalletAnchor + 'a,
 			> {
 				/// This is the launchpad program.
 				pub launchpad: &'a $program_struct<W>,
-				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::AnchorWallet`] to allow for async signing via wallets.
+				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::WalletAnchor`] to allow for async signing via wallets.
 				pub wallet: &'a W,
 				/// Provide the args to the anchor program endpoint. This will be transformed into the instruction data when processing the transaction.
 				#[debug("args")]
@@ -52,10 +52,10 @@ macro_rules! base_create_request_builder {
 				pub options: SolanaSignAndSendTransactionOptions,
 			}
 
-			impl<'a, W: $crate::AnchorWallet + 'a> [<$name_prefix Request>]<'a, W> {}
+			impl<'a, W: $crate::WalletAnchor + 'a> [<$name_prefix Request>]<'a, W> {}
 
 			#[::async_trait::async_trait(?Send)]
-			impl<'a, W: $crate::AnchorWallet + 'a> $crate::AnchorRequestMethods<'a, W>
+			impl<'a, W: $crate::WalletAnchor + 'a> $crate::AnchorRequestMethods<'a, W>
 				for [<$name_prefix Request>]<'a, W>
 			{
 				fn options(&self) -> SolanaSignAndSendTransactionOptions {
@@ -120,7 +120,7 @@ macro_rules! create_request_builder {
 						(),
 					),
 				>;
-			impl<W: $crate::AnchorWallet> $program_struct<W> {
+			impl<W: $crate::WalletAnchor> $program_struct<W> {
 				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderArgsPartial>]<'_, W> {
 					[<$name_prefix Request>]::builder()
 						.launchpad(self)
@@ -133,7 +133,7 @@ macro_rules! create_request_builder {
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident, "required:args") => {
 		$crate::base_create_request_builder!($program, $program_struct, $name_prefix, $accounts);
 		::paste::paste! {
-			impl<W: $crate::AnchorWallet> $program_struct<W> {
+			impl<W: $crate::WalletAnchor> $program_struct<W> {
 				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderPartial>]<'_, W> {
 					[<$name_prefix Request>]::builder()
 						.launchpad(self)

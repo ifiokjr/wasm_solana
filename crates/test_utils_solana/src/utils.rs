@@ -38,12 +38,12 @@ use spl_associated_token_account::get_associated_token_address;
 use wasm_client_anchor::prelude::*;
 use wasm_client_anchor::AnchorClientError;
 use wasm_client_anchor::AnchorClientResult;
-use wasm_client_anchor::AnchorWallet;
+use wasm_client_anchor::WalletAnchor;
 
 pub const MAX_COMPUTE_UNITS: u64 = DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT as u64;
 
 #[async_trait(?Send)]
-pub trait BankClientAnchorRequestMethods<'a, W: AnchorWallet + Signer + 'a>:
+pub trait BankClientAnchorRequestMethods<'a, W: WalletAnchor + Signer + 'a>:
 	AnchorRequestMethods<'a, W>
 {
 	async fn sign_banks_client_transaction(
@@ -108,7 +108,7 @@ pub trait BankClientAnchorRequestMethods<'a, W: AnchorWallet + Signer + 'a>:
 	}
 }
 
-impl<'a, W: AnchorWallet + Signer + 'a, T> BankClientAnchorRequestMethods<'a, W> for T where
+impl<'a, W: WalletAnchor + Signer + 'a, T> BankClientAnchorRequestMethods<'a, W> for T where
 	T: AnchorRequestMethods<'a, W>
 {
 }

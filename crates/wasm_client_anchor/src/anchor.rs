@@ -27,18 +27,18 @@ use wasm_client_solana::SimulateTransactionResponse;
 use wasm_client_solana::SolanaClient;
 use wasm_client_solana::SolanaRpcClientError;
 
-pub trait AnchorWallet: WalletSolana + std::fmt::Debug + Clone {}
-impl<T> AnchorWallet for T where T: WalletSolana + std::fmt::Debug + Clone {}
+pub trait WalletAnchor: WalletSolana + std::fmt::Debug + Clone {}
+impl<T> WalletAnchor for T where T: WalletSolana + std::fmt::Debug + Clone {}
 
 #[derive(Clone, Debug, TypedBuilder)]
-pub struct AnchorProgram<W: AnchorWallet> {
+pub struct AnchorProgram<W: WalletAnchor> {
 	program_id: Pubkey,
 	wallet: W,
 	#[builder(setter(into))]
 	rpc: SolanaClient,
 }
 
-impl<W: AnchorWallet> AnchorProgram<W> {
+impl<W: WalletAnchor> AnchorProgram<W> {
 	pub fn new(wallet: W, rpc: SolanaClient, program_id: Pubkey) -> Self {
 		Self {
 			program_id,
@@ -105,7 +105,7 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
-pub struct AnchorRequest<'a, W: AnchorWallet + 'a> {
+pub struct AnchorRequest<'a, W: WalletAnchor + 'a> {
 	pub rpc: &'a SolanaClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
@@ -122,7 +122,7 @@ pub struct AnchorRequest<'a, W: AnchorWallet + 'a> {
 }
 
 #[async_trait(?Send)]
-impl<'a, W: AnchorWallet + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a, W> {
+impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a, W> {
 	fn options(&self) -> SolanaSignAndSendTransactionOptions {
 		self.options.clone()
 	}
@@ -159,7 +159,7 @@ pub type EmptyAnchorRequestBuilderPartial<'a, W> =
 
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
-pub struct EmptyAnchorRequest<'a, W: AnchorWallet + 'a> {
+pub struct EmptyAnchorRequest<'a, W: WalletAnchor + 'a> {
 	pub rpc: &'a SolanaClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
@@ -172,7 +172,7 @@ pub struct EmptyAnchorRequest<'a, W: AnchorWallet + 'a> {
 }
 
 #[async_trait(?Send)]
-impl<'a, W: AnchorWallet + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorRequest<'a, W> {
+impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorRequest<'a, W> {
 	fn options(&self) -> SolanaSignAndSendTransactionOptions {
 		self.options.clone()
 	}
@@ -195,7 +195,7 @@ impl<'a, W: AnchorWallet + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorReques
 }
 
 #[async_trait(?Send)]
-pub trait AnchorRequestMethods<'a, W: AnchorWallet + 'a> {
+pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	/// The additional options for signing and sending transactions.
 	fn options(&self) -> SolanaSignAndSendTransactionOptions;
 	/// The wallet that will pay for this transaction.
