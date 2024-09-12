@@ -54,7 +54,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        version: ["1.72.0", stable, beta, nightly]
+        version: ["1.75.0", stable, beta, nightly]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
@@ -100,7 +100,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        version: ["1.72.0", stable, beta, nightly]
+        version: ["1.75.0", stable, beta, nightly]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:

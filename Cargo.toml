@@ -9,7 +9,7 @@ edition = "2021"
 homepage = "https://github.com/ifiokjr/wasm_solana"
 license = "Unlicense"
 repository = "https://github.com/ifiokjr/wasm_solana"
-rust-version = "1.72.0"
+rust-version = "1.75.0"
 
 [workspace.dependencies]
 anchor-lang = "0.30"
