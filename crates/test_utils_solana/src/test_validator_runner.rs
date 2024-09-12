@@ -34,7 +34,7 @@ use solana_test_validator::TestValidator;
 use solana_test_validator::TestValidatorGenesis;
 use solana_test_validator::UpgradeableProgramInfo;
 use typed_builder::TypedBuilder;
-use wasm_client_solana::SolanaClient;
+use wasm_client_solana::SolanaRpcClient;
 
 use crate::FromAnchorData;
 
@@ -56,6 +56,10 @@ pub struct TestValidatorRunnerProps {
 	/// data and state.
 	#[builder(default)]
 	pub accounts: HashMap<Pubkey, AccountSharedData>,
+	/// The namespace to use for the validator client rpc. This is used to share
+	/// runners. Leave blank to always create a new runner.
+	#[builder(default, setter(into, strip_option(fallback = namespace_opt)))]
+	pub namespace: Option<&'static str>,
 }
 
 #[derive(Clone, TypedBuilder)]
@@ -88,22 +92,23 @@ impl From<TestProgramInfo> for UpgradeableProgramInfo {
 }
 
 /// A local test validator runner which can be used for the test validator.
+#[derive(Clone)]
 pub struct TestValidatorRunner {
-	genesis: TestValidatorGenesis,
+	genesis: Arc<TestValidatorGenesis>,
 	/// The ports used for the validator.
 	/// The first port is the `rpc_port`, the second is the `pubsub_port`, and
 	/// the third is the `faucet_port` to allow for airdrops.
 	ports: (u16, u16, u16),
 	/// The original wrapped test validator
-	validator: TestValidator,
+	validator: Arc<TestValidator>,
 	/// This is the keypair for the mint account and is funded with 500 SOL.
-	mint_keypair: Keypair,
+	mint_keypair: Arc<Keypair>,
 	/// The rpc client for the validator.
-	rpc: SolanaClient,
+	rpc: SolanaRpcClient,
 }
 
 impl TestValidatorRunner {
-	async fn run_internal(props: TestValidatorRunnerProps) -> Result<Arc<Self>> {
+	async fn run_internal(props: TestValidatorRunnerProps) -> Result<Self> {
 		let mut genesis = TestValidatorGenesis::default();
 		let faucet_keypair = Keypair::new();
 		let faucet_pubkey = faucet_keypair.pubkey();
@@ -157,7 +162,7 @@ impl TestValidatorRunner {
 		let wrapped_future = SendWrapper::new(genesis.start_async());
 		let (validator, mint_keypair) = wrapped_future.await;
 
-		let rpc = SolanaClient::new_with_ws_and_commitment(
+		let rpc = SolanaRpcClient::new_with_ws_and_commitment(
 			&validator.rpc_url(),
 			&validator.rpc_pubsub_url(),
 			CommitmentConfig {
@@ -173,20 +178,20 @@ impl TestValidatorRunner {
 			.await?;
 
 		let runner = Self {
-			genesis,
+			genesis: Arc::new(genesis),
 			ports: (rpc_port, pubsub_port, faucet_port),
-			validator,
-			mint_keypair,
+			validator: Arc::new(validator),
+			mint_keypair: Arc::new(mint_keypair),
 			rpc,
 		};
 
-		Ok(Arc::new(runner))
+		Ok(runner)
 	}
 
 	/// Create a new test validator runner.
 	///
-	/// This method is `Send` safe and can be called with a name that is used to
-	/// prevent duplication of shared runners.
+	/// This method is `Send` safe and can be called with a namespace that is
+	/// used to reuse runners.
 	///
 	/// ```rust
 	/// use std::sync::Arc;
@@ -194,18 +199,25 @@ impl TestValidatorRunner {
 	/// use test_utils_solana::TestValidatorRunner;
 	///
 	/// async fn run() -> Arc<TestValidatorRunner> {
-	/// 	TestValidatorRunner::run(Some("tests"), TestValidatorRunnerProps::default()).await
+	/// 	TestValidatorRunner::run(
+	/// 		TestValidatorRunnerProps::builder()
+	/// 			.namespace("tests")
+	/// 			.build(),
+	/// 	)
+	/// 	.await
 	/// }
 	/// ```
-	pub async fn run(name: Option<&'static str>, props: TestValidatorRunnerProps) -> Arc<Self> {
-		if let Some(wrapped_future) = name.and_then(get_runner_future) {
+	pub async fn run(props: TestValidatorRunnerProps) -> Self {
+		let namespace = props.namespace;
+
+		if let Some(wrapped_future) = namespace.and_then(get_runner_future) {
 			return wrapped_future.await;
 		}
 
 		let future = async { Self::run_internal(props).await.unwrap() };
 		let wrapped_future = SendWrapper::new(future.boxed().shared());
 
-		if let Some(name) = name {
+		if let Some(name) = namespace {
 			set_runner_future(name, wrapped_future.clone());
 		}
 
@@ -220,7 +232,7 @@ impl TestValidatorRunner {
 		self.validator.rpc_pubsub_url()
 	}
 
-	pub fn rpc(&self) -> &SolanaClient {
+	pub fn rpc(&self) -> &SolanaRpcClient {
 		&self.rpc
 	}
 
@@ -256,7 +268,7 @@ lazy_static! {
 }
 
 pub type RunnerFuture =
-	SendWrapper<Shared<Pin<Box<dyn Future<Output = Arc<TestValidatorRunner>> + Send>>>>;
+	SendWrapper<Shared<Pin<Box<dyn Future<Output = TestValidatorRunner> + Send>>>>;
 
 fn set_runner_future(name: &'static str, runner: RunnerFuture) {
 	let mut runners = RUNNERS.lock().unwrap();

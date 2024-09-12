@@ -4536,12 +4536,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 
 [[package]]
-name = "relative-path"
-version = "1.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba39f3699c378cd8970968dcbff9c43159ea4cfbd88d43c00b22f2ef10a435d2"
-
-[[package]]
 name = "reqwest"
 version = "0.11.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4718,36 +4712,6 @@ dependencies = [
  "libc",
  "rtoolbox",
  "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "rstest"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b423f0e62bdd61734b67cd21ff50871dfaeb9cc74f869dcd6af974fbcb19936"
-dependencies = [
- "futures 0.3.30",
- "futures-timer",
- "rstest_macros",
- "rustc_version",
-]
-
-[[package]]
-name = "rstest_macros"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5e1711e7d14f74b12a58411c542185ef7fb7f2e7f8ee6e2940a883628522b42"
-dependencies = [
- "cfg-if 1.0.0",
- "glob",
- "proc-macro-crate 3.2.0",
- "proc-macro2",
- "quote",
- "regex",
- "relative-path",
- "rustc_version",
- "syn 2.0.77",
- "unicode-ident",
 ]
 
 [[package]]
@@ -8678,8 +8642,10 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anyhow",
+ "assert2",
  "async-trait",
  "derive_more 1.0.0",
+ "insta",
  "log",
  "paste",
  "retrier",
@@ -8687,7 +8653,11 @@ dependencies = [
  "serde_json",
  "solana-program",
  "solana-sdk",
+ "test-log",
+ "test_utils",
+ "test_utils_solana",
  "thiserror",
+ "tokio",
  "typed-builder",
  "wallet_standard",
  "wasm_client_solana",
@@ -8699,7 +8669,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "assert2",
- "assert_matches",
  "async-trait",
  "base64 0.22.1",
  "bincode",
@@ -8721,7 +8690,6 @@ dependencies = [
  "reqwest 0.12.4",
  "reqwest-websocket",
  "retrier",
- "rstest",
  "semver",
  "send_wrapper 0.6.0",
  "serde",
@@ -8741,6 +8709,9 @@ dependencies = [
  "spl-token-group-interface 0.2.5",
  "spl-token-metadata-interface 0.3.5",
  "strum 0.26.3",
+ "test-log",
+ "test_utils",
+ "test_utils_solana",
  "thiserror",
  "tokio",
  "typed-builder",

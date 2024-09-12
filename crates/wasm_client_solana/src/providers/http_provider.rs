@@ -7,9 +7,9 @@ pub use wasm_http_provider::HttpProvider;
 
 use crate::ClientRequest;
 use crate::ClientResult;
-use crate::ErrorDetails;
 use crate::HttpMethod;
-use crate::SolanaRpcClientError;
+use crate::RpcError;
+use crate::RpcErrorDetails;
 use crate::DEFAULT_ERROR_CODE;
 
 #[cfg(feature = "ssr")]
@@ -68,7 +68,7 @@ mod ssr_http_provider {
 			if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
 				Ok(response)
 			} else {
-				match serde_json::from_value::<SolanaRpcClientError>(result) {
+				match serde_json::from_value::<RpcError>(result) {
 					Ok(error) => Err(error.into()),
 					Err(error) => Err(ClientError::Other(error.to_string())),
 				}
@@ -76,13 +76,13 @@ mod ssr_http_provider {
 		}
 	}
 
-	impl From<reqwest::Error> for SolanaRpcClientError {
+	impl From<reqwest::Error> for RpcError {
 		fn from(error: reqwest::Error) -> Self {
 			let message = error.to_string();
 			let code = i32::from(error.status().map_or(DEFAULT_ERROR_CODE, |s| s.as_u16()));
-			let error = ErrorDetails { code, message };
+			let error = RpcErrorDetails { code, message };
 
-			SolanaRpcClientError {
+			RpcError {
 				error,
 				..Default::default()
 			}
@@ -134,7 +134,7 @@ mod wasm_http_provider {
 			if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
 				Ok(response)
 			} else {
-				match serde_json::from_value::<SolanaRpcClientError>(result) {
+				match serde_json::from_value::<RpcError>(result) {
 					Ok(error) => Err(error.into()),
 					Err(error) => Err(ClientError::Other(error.to_string())),
 				}
@@ -142,13 +142,13 @@ mod wasm_http_provider {
 		}
 	}
 
-	impl From<gloo_net::Error> for SolanaRpcClientError {
+	impl From<gloo_net::Error> for RpcError {
 		fn from(error: gloo_net::Error) -> Self {
 			let message = error.to_string();
 			let code = i32::from(DEFAULT_ERROR_CODE);
-			let error = ErrorDetails { code, message };
+			let error = RpcErrorDetails { code, message };
 
-			SolanaRpcClientError {
+			RpcError {
 				error,
 				..Default::default()
 			}

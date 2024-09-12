@@ -12,7 +12,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::system_program;
 
 use crate::rpc_config::RpcAccountInfoConfig;
-use crate::SolanaClient;
+use crate::SolanaRpcClient;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum NonceError {
@@ -40,7 +40,7 @@ pub enum NonceError {
 /// - it returns an error if any of the checks from [`account_identity_ok`]
 ///   fail.
 pub async fn get_account(
-	rpc_client: &SolanaClient,
+	rpc_client: &SolanaRpcClient,
 	nonce_pubkey: &Pubkey,
 ) -> Result<Account, NonceError> {
 	get_account_with_commitment(rpc_client, nonce_pubkey, CommitmentConfig::default()).await
@@ -55,7 +55,7 @@ pub async fn get_account(
 /// - it returns an error if any of the checks from [`account_identity_ok`]
 ///   fail.
 pub async fn get_account_with_commitment(
-	rpc_client: &SolanaClient,
+	rpc_client: &SolanaRpcClient,
 	nonce_pubkey: &Pubkey,
 	commitment_config: CommitmentConfig,
 ) -> Result<Account, NonceError> {
@@ -98,36 +98,6 @@ pub fn account_identity_ok<T: ReadableAccount>(account: &T) -> Result<(), NonceE
 ///
 /// Returns an error if the account is not owned by the system program or
 /// contains no data.
-///
-/// # Examples
-///
-/// Determine if a nonce account is initialized:
-///
-/// ```no_run
-/// use anyhow::Result;
-/// use solana_client::nonce_utils;
-/// use solana_client::rpc_client::SolanaRpcClient;
-/// use solana_sdk::nonce::State;
-/// use solana_sdk::pubkey::Pubkey;
-///
-/// fn is_nonce_initialized(
-/// 	client: &SolanaRpcClient,
-/// 	nonce_account_pubkey: &Pubkey,
-/// ) -> Result<bool> {
-/// 	// Sign the tx with nonce_account's `blockhash` instead of the
-/// 	// network's latest blockhash.
-/// 	let nonce_account = client.get_account(nonce_account_pubkey)?;
-/// 	let nonce_state = nonce_utils::state_from_account(&nonce_account)?;
-///
-/// 	Ok(!matches!(nonce_state, State::Uninitialized))
-/// }
-/// #
-/// # let client = SolanaRpcClient::new(String::new());
-/// # let nonce_account_pubkey = Pubkey::new_unique();
-/// # is_nonce_initialized(&client, &nonce_account_pubkey)?;
-/// #
-/// # Ok::<(), anyhow::NonceError>(())
-/// ```
 pub fn state_from_account<T: ReadableAccount + StateMut<Versions>>(
 	account: &T,
 ) -> Result<State, NonceError> {
@@ -144,86 +114,6 @@ pub fn state_from_account<T: ReadableAccount + StateMut<Versions>>(
 /// Returns an error if the account is not owned by the system program or
 /// contains no data. Returns an error if the account state is uninitialized or
 /// fails to deserialize.
-///
-/// # Examples
-///
-/// Create and sign a transaction with a durable nonce:
-///
-/// ```no_run
-/// use solana_client::{
-///     rpc_client::SolanaRpcClient,
-///     nonce_utils,
-/// };
-/// use solana_sdk::{
-///     message::Message,
-///     pubkey::Pubkey,
-///     signature::{Keypair, Signer},
-///     system_instruction,
-///     transaction::Transaction,
-/// };
-/// use std::path::Path;
-/// use anyhow::Result;
-/// # use anyhow::anyhow;
-///
-/// fn create_transfer_tx_with_nonce(
-///     client: &SolanaRpcClient,
-///     nonce_account_pubkey: &Pubkey,
-///     payer: &Keypair,
-///     receiver: &Pubkey,
-///     amount: u64,
-///     tx_path: &Path,
-/// ) -> Result<()> {
-///
-///     let instr_transfer = system_instruction::transfer(
-///         &payer.pubkey(),
-///         receiver,
-///         amount,
-///     );
-///
-///     // In this example, `payer` is `nonce_account_pubkey`'s authority
-///     let instr_advance_nonce_account = system_instruction::advance_nonce_account(
-///         nonce_account_pubkey,
-///         &payer.pubkey(),
-///     );
-///
-///     // The `advance_nonce_account` instruction must be the first issued in
-///     // the transaction.
-///     let message = Message::new(
-///         &[
-///             instr_advance_nonce_account,
-///             instr_transfer
-///         ],
-///         Some(&payer.pubkey()),
-///     );
-///
-///     let mut tx = Transaction::new_unsigned(message);
-///
-///     // Sign the tx with nonce_account's `blockhash` instead of the
-///     // network's latest blockhash.
-///     let nonce_account = client.get_account(nonce_account_pubkey)?;
-///     let nonce_data = nonce_utils::data_from_account(&nonce_account)?;
-///     let blockhash = nonce_data.blockhash();
-///
-///     tx.try_sign(&[payer], blockhash)?;
-///
-///     // Save the signed transaction locally for later submission.
-///     save_tx_to_file(&tx_path, &tx)?;
-///
-///     Ok(())
-/// }
-/// #
-/// # fn save_tx_to_file(path: &Path, tx: &Transaction) -> Result<()> {
-/// #     Ok(())
-/// # }
-/// #
-/// # let client = SolanaRpcClient::new(String::new());
-/// # let nonce_account_pubkey = Pubkey::new_unique();
-/// # let payer = Keypair::new();
-/// # let receiver = Pubkey::new_unique();
-/// # create_transfer_tx_with_nonce(&client, &nonce_account_pubkey, &payer, &receiver, 1024, Path::new("new_tx"))?;
-/// #
-/// # Ok::<(), anyhow::NonceError>(())
-/// ```
 pub fn data_from_account<T: ReadableAccount + StateMut<Versions>>(
 	account: &T,
 ) -> Result<Data, NonceError> {

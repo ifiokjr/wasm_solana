@@ -10,12 +10,12 @@ use wallet_standard::WalletError;
 pub const DEFAULT_ERROR_CODE: u16 = 500u16;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct ErrorDetails {
+pub(crate) struct RpcErrorDetails {
 	pub(crate) code: i32,
 	pub(crate) message: String,
 }
 
-impl Default for ErrorDetails {
+impl Default for RpcErrorDetails {
 	fn default() -> Self {
 		let message = "Internal Server Error".into();
 		let code = DEFAULT_ERROR_CODE.into();
@@ -25,38 +25,38 @@ impl Default for ErrorDetails {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SolanaRpcClientError {
+pub struct RpcError {
 	pub(crate) id: u32,
 	pub(crate) jsonrpc: String,
-	pub(crate) error: ErrorDetails,
+	pub(crate) error: RpcErrorDetails,
 }
 
-impl std::error::Error for SolanaRpcClientError {}
+impl std::error::Error for RpcError {}
 
-impl Default for SolanaRpcClientError {
+impl Default for RpcError {
 	fn default() -> Self {
 		Self {
 			id: 0,
 			jsonrpc: String::from("2.0"),
-			error: ErrorDetails::default(),
+			error: RpcErrorDetails::default(),
 		}
 	}
 }
 
-impl SolanaRpcClientError {
+impl RpcError {
 	pub fn new(message: impl Into<String>) -> Self {
 		let message = message.into();
 		let code = 303;
-		let error = ErrorDetails { code, message };
+		let error = RpcErrorDetails { code, message };
 
-		SolanaRpcClientError {
+		RpcError {
 			error,
 			..Default::default()
 		}
 	}
 }
 
-impl fmt::Display for SolanaRpcClientError {
+impl fmt::Display for RpcError {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		f.write_str(format!("Client error: {}", self.error.message).as_str())
 	}
@@ -68,7 +68,7 @@ pub type ClientResult<T> = Result<T, ClientError>;
 pub enum ClientError {
 	/// An rpc client error.
 	#[error("{0}")]
-	Rpc(#[from] SolanaRpcClientError),
+	Rpc(#[from] RpcError),
 	/// The string of any unsupported errors.
 	#[error("Other: {0}")]
 	Other(String),
@@ -80,7 +80,7 @@ pub enum ClientError {
 
 impl IntoWalletError for ClientError {}
 impl IntoWalletError for ClientWebSocketError {}
-impl IntoWalletError for SolanaRpcClientError {}
+impl IntoWalletError for RpcError {}
 
 /// Error returned by WebSocket
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, thiserror::Error)]

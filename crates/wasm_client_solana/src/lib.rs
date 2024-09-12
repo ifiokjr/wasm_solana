@@ -1,3 +1,5 @@
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/readme.md"))]
+
 pub use crate::client::*;
 pub use crate::errors::*;
 pub use crate::extensions::*;

@@ -73,8 +73,10 @@ pub enum WalletError {
 	WalletWindowBlocked,
 	#[error("Wallet window closed")]
 	WalletWindowClosed,
-	#[error("Other: {0}")]
-	Other(String),
+	/// An error from an external source. Implement `IntoWalletError` for your
+	/// error to support this functionality.
+	#[error("{0}")]
+	External(String),
 }
 
 impl From<core::fmt::Error> for WalletError {
@@ -115,6 +117,6 @@ pub trait IntoWalletError: Display {}
 
 impl<E: IntoWalletError> From<E> for WalletError {
 	fn from(value: E) -> Self {
-		WalletError::Other(value.to_string())
+		WalletError::External(value.to_string())
 	}
 }

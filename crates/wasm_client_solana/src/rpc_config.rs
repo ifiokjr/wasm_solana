@@ -26,8 +26,8 @@ use crate::solana_account_decoder::UiDataSliceConfig;
 use crate::solana_transaction_status::TransactionDetails;
 use crate::solana_transaction_status::UiTransactionEncoding;
 use crate::ClientResult;
-use crate::SolanaClient;
-use crate::SolanaRpcClientError;
+use crate::RpcError;
+use crate::SolanaRpcClient;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -45,7 +45,7 @@ pub enum Source {
 impl Source {
 	pub async fn get_blockhash(
 		&self,
-		rpc_client: &SolanaClient,
+		rpc_client: &SolanaRpcClient,
 		commitment_config: CommitmentConfig,
 	) -> Result<Hash, Box<dyn std::error::Error>> {
 		match self {
@@ -67,7 +67,7 @@ impl Source {
 
 	pub async fn is_blockhash_valid(
 		&self,
-		rpc_client: &SolanaClient,
+		rpc_client: &SolanaRpcClient,
 		blockhash: &Hash,
 		commitment_config: CommitmentConfig,
 	) -> Result<bool, Box<dyn std::error::Error>> {
@@ -108,7 +108,7 @@ impl BlockhashQuery {
 
 	pub async fn get_blockhash(
 		&self,
-		rpc_client: &SolanaClient,
+		rpc_client: &SolanaRpcClient,
 		commitment_config: CommitmentConfig,
 	) -> Result<Hash, Box<dyn std::error::Error>> {
 		match self {
@@ -139,13 +139,13 @@ pub fn serialize_and_encode<T>(input: &T, encoding: UiTransactionEncoding) -> Cl
 where
 	T: Serialize,
 {
-	let serialized = serialize(input)
-		.map_err(|e| SolanaRpcClientError::new(format!("Serialization failed: {e}")))?;
+	let serialized =
+		serialize(input).map_err(|e| RpcError::new(format!("Serialization failed: {e}")))?;
 	let encoded = match encoding {
 		UiTransactionEncoding::Base58 => bs58::encode(serialized).into_string(),
 		UiTransactionEncoding::Base64 => BASE64_STANDARD.encode(serialized),
 		_ => {
-			return Err(SolanaRpcClientError::new(format!(
+			return Err(RpcError::new(format!(
 				"unsupported encoding: {encoding}. Supported encodings: base58, base64"
 			))
 			.into());

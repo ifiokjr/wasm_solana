@@ -20,7 +20,6 @@ use crate::solana_account_decoder::UiAccount;
 ///
 /// let request = GetAccountInfoRequest::builder()
 /// 	.pubkey(pubkey!("4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T"))
-/// 	.config(RpcAccountInfoConfig::default())
 /// 	.build();
 /// ```
 #[derive(Debug, TypedBuilder)]

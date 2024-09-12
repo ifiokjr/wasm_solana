@@ -26,7 +26,7 @@ use wallet_standard::STANDARD_CONNECT;
 use wallet_standard::STANDARD_DISCONNECT;
 use wallet_standard::STANDARD_EVENTS;
 use wasm_client_solana::prelude::*;
-use wasm_client_solana::SolanaClient;
+use wasm_client_solana::SolanaRpcClient;
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct MemoryWalletAccountInfo {
@@ -169,7 +169,7 @@ impl WalletInfo for MemoryWalletInfo {
 pub struct MemoryWallet {
 	wallet: MemoryWalletInfo,
 	account: Option<MemoryWalletAccountInfo>,
-	client: SolanaClient,
+	rpc: SolanaRpcClient,
 }
 
 impl Signer for MemoryWallet {
@@ -202,7 +202,7 @@ impl Signer for MemoryWallet {
 }
 
 impl MemoryWallet {
-	pub fn new(client: SolanaClient, accounts: &[Keypair]) -> Self {
+	pub fn new(client: SolanaRpcClient, accounts: &[Keypair]) -> Self {
 		let accounts = accounts
 			.iter()
 			.map(Into::into)
@@ -213,7 +213,7 @@ impl MemoryWallet {
 		Self {
 			wallet,
 			account,
-			client,
+			rpc: client,
 		}
 	}
 
@@ -300,12 +300,12 @@ impl WalletSolanaSignAndSendTransaction for MemoryWallet {
 		transaction.try_sign(
 			&[&**account],
 			if message_blockhash == solana_sdk::hash::Hash::default() {
-				Some(self.client.get_latest_blockhash().await?)
+				Some(self.rpc.get_latest_blockhash().await?)
 			} else {
 				None
 			},
 		)?;
-		let signature = self.client.send_transaction(&transaction).await?;
+		let signature = self.rpc.send_transaction(&transaction).await?;
 
 		Ok(signature)
 	}
@@ -341,7 +341,7 @@ impl WalletSolanaSignTransaction for MemoryWallet {
 		transaction.try_sign(
 			&[&**account],
 			if message_blockhash == solana_sdk::hash::Hash::default() {
-				Some(self.client.get_latest_blockhash().await?)
+				Some(self.rpc.get_latest_blockhash().await?)
 			} else {
 				None
 			},

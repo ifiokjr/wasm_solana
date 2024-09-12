@@ -1,3 +1,4 @@
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/readme.md"))]
 #![allow(clippy::manual_async_fn)]
 
 pub use browser_wallet::*;

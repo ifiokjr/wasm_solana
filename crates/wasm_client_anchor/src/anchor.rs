@@ -23,23 +23,24 @@ use wallet_standard::WalletError;
 use wasm_client_solana::prelude::*;
 use wasm_client_solana::rpc_config::RpcSimulateTransactionConfig;
 use wasm_client_solana::ClientError;
+use wasm_client_solana::RpcError;
 use wasm_client_solana::SimulateTransactionResponse;
-use wasm_client_solana::SolanaClient;
-use wasm_client_solana::SolanaRpcClientError;
+use wasm_client_solana::SolanaRpcClient;
 
 pub trait WalletAnchor: WalletSolana + std::fmt::Debug + Clone {}
 impl<T> WalletAnchor for T where T: WalletSolana + std::fmt::Debug + Clone {}
 
+/// Use this struct to interact with anchor programs.
 #[derive(Clone, Debug, TypedBuilder)]
 pub struct AnchorProgram<W: WalletAnchor> {
 	program_id: Pubkey,
 	wallet: W,
 	#[builder(setter(into))]
-	rpc: SolanaClient,
+	rpc: SolanaRpcClient,
 }
 
 impl<W: WalletAnchor> AnchorProgram<W> {
-	pub fn new(wallet: W, rpc: SolanaClient, program_id: Pubkey) -> Self {
+	pub fn new(wallet: W, rpc: SolanaRpcClient, program_id: Pubkey) -> Self {
 		Self {
 			program_id,
 			wallet,
@@ -56,8 +57,8 @@ impl<W: WalletAnchor> AnchorProgram<W> {
 			.wallet(&self.wallet)
 	}
 
-	/// Generate a custom empty request which uses the provide async message
-	/// signer as the payer.
+	/// Sometimes you don't want to interact with the program directly, but just
+	/// need to send a transaction using the wallet.
 	pub fn empty_request(&self) -> EmptyAnchorRequestBuilderPartial<'_, W> {
 		EmptyAnchorRequest::builder()
 			.rpc(self.rpc())
@@ -77,7 +78,7 @@ impl<W: WalletAnchor> AnchorProgram<W> {
 		self.program_id.key()
 	}
 
-	pub fn rpc(&self) -> &SolanaClient {
+	pub fn rpc(&self) -> &SolanaRpcClient {
 		&self.rpc
 	}
 
@@ -91,7 +92,7 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 	'a,
 	W,
 	(
-		(&'a SolanaClient,),
+		(&'a SolanaRpcClient,),
 		(Pubkey,),
 		(&'a W,),
 		(),
@@ -106,10 +107,10 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
 pub struct AnchorRequest<'a, W: WalletAnchor + 'a> {
-	pub rpc: &'a SolanaClient,
+	pub rpc: &'a SolanaRpcClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
-	pub args_data: Vec<u8>,
+	pub data: Vec<u8>,
 	pub accounts: Vec<AccountMeta>,
 	#[builder(default)]
 	pub signers: Vec<&'a dyn Signer>,
@@ -131,7 +132,7 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a,
 		self.wallet
 	}
 
-	fn rpc(&self) -> &'a SolanaClient {
+	fn rpc(&self) -> &'a SolanaRpcClient {
 		self.rpc
 	}
 
@@ -145,7 +146,7 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a,
 		instructions.push(Instruction {
 			program_id: self.program_id,
 			accounts: self.accounts.clone(),
-			data: self.args_data.clone(),
+			data: self.data.clone(),
 		});
 
 		instructions.append(&mut self.extra_instructions.clone());
@@ -155,12 +156,12 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a,
 }
 
 pub type EmptyAnchorRequestBuilderPartial<'a, W> =
-	EmptyAnchorRequestBuilder<'a, W, ((&'a SolanaClient,), (Pubkey,), (&'a W,), (), (), ())>;
+	EmptyAnchorRequestBuilder<'a, W, ((&'a SolanaRpcClient,), (Pubkey,), (&'a W,), (), (), ())>;
 
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
 pub struct EmptyAnchorRequest<'a, W: WalletAnchor + 'a> {
-	pub rpc: &'a SolanaClient,
+	pub rpc: &'a SolanaRpcClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
 	#[builder(default)]
@@ -181,7 +182,7 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorReques
 		self.wallet
 	}
 
-	fn rpc(&self) -> &'a SolanaClient {
+	fn rpc(&self) -> &'a SolanaRpcClient {
 		self.rpc
 	}
 
@@ -201,7 +202,7 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	/// The wallet that will pay for this transaction.
 	fn wallet(&self) -> &'a W;
 	/// The solana client that is used to send rpc methods.
-	fn rpc(&self) -> &'a SolanaClient;
+	fn rpc(&self) -> &'a SolanaRpcClient;
 	/// The sync signers
 	fn signers(&self) -> Vec<&'a dyn Signer>;
 	/// Get the custom instructions with the program instruction appended to the
@@ -300,7 +301,7 @@ pub enum AnchorClientError {
 	#[error("{0}")]
 	Custom(String),
 	#[error("{0}")]
-	Rpc(#[from] SolanaRpcClientError),
+	Rpc(#[from] RpcError),
 	#[error("{0}")]
 	Client(#[from] ClientError),
 	#[error("Unable to parse log: {0}")]
@@ -330,7 +331,7 @@ impl From<anchor_lang::error::Error> for AnchorClientError {
 pub type AnchorClientResult<T> = Result<T, AnchorClientError>;
 
 pub async fn get_anchor_account<T: AccountDeserialize>(
-	client: &SolanaClient,
+	client: &SolanaRpcClient,
 	address: &Pubkey,
 ) -> AnchorClientResult<T> {
 	let account = client

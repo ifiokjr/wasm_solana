@@ -20,7 +20,7 @@ use wallet_standard::AsyncSigner;
 use wallet_standard::AsyncSigners;
 
 use crate::ClientResult;
-use crate::SolanaClient;
+use crate::SolanaRpcClient;
 
 /// Add extensions which make it possible to partially sign a versioned
 /// transaction.
@@ -284,7 +284,7 @@ const MAX_LOOKUP_ADDRESSES_PER_TRANSACTION: usize = 30;
 /// Initialize a lookup table that can be used with versioned transactions.
 pub async fn initialize_lookup_table(
 	async_signer: &impl AsyncSigner,
-	rpc: SolanaClient,
+	rpc: SolanaRpcClient,
 	addresses: &[Pubkey],
 ) -> ClientResult<Pubkey> {
 	let slot = rpc.get_slot().await?;
@@ -352,7 +352,7 @@ fn get_lookup_address_start_and_end(
 
 #[derive(Debug, TypedBuilder)]
 pub struct CreateVersionedMessage<'a> {
-	pub rpc: &'a SolanaClient,
+	pub rpc: &'a SolanaRpcClient,
 	pub payer: &'a Pubkey,
 	pub instructions: &'a [Instruction],
 	#[builder(default, setter(into, strip_option))]

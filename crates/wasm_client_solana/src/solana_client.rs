@@ -66,7 +66,7 @@ use crate::solana_transaction_status::UiTransactionEncoding;
 use crate::ClientResponse;
 use crate::ClientResult;
 use crate::HttpProvider;
-use crate::SolanaRpcClientError;
+use crate::RpcError;
 use crate::Subscription;
 use crate::WebSocketProvider;
 use crate::MAX_RETRIES;
@@ -124,19 +124,19 @@ use crate::SLEEP_MS;
 ///
 /// Requests may timeout, in which case they return a [`ClientError`].
 #[derive(Debug, Clone)]
-pub struct SolanaClient {
+pub struct SolanaRpcClient {
 	commitment_config: CommitmentConfig,
 	http: HttpProvider,
 	ws: WebSocketProvider,
 }
 
-impl<S: Into<String>> From<S> for SolanaClient {
+impl<S: Into<String>> From<S> for SolanaRpcClient {
 	fn from(value: S) -> Self {
 		Self::new(&value.into())
 	}
 }
 
-impl SolanaClient {
+impl SolanaRpcClient {
 	/// Create an HTTP `SolanaRpcClient`.
 	///
 	/// The URL is an HTTP URL, usually for port 8899, as in
@@ -150,9 +150,10 @@ impl SolanaClient {
 	/// # Examples
 	///
 	/// ```
-	/// # use solana_rpc_client::nonblocking::rpc_client::RpcClient;
-	/// let url = "http://localhost:8899".to_string();
-	/// let client = RpcClient::new(url);
+	/// use wasm_client_solana::SolanaRpcClient;
+	/// use wasm_client_solana::DEVNET;
+	///
+	/// let client = SolanaRpcClient::new(DEVNET);
 	/// ```
 	pub fn new(endpoint: &str) -> Self {
 		Self {
@@ -171,16 +172,6 @@ impl SolanaClient {
 	///
 	/// The client has a default timeout of 30 seconds, and a user-specified
 	/// [`CommitmentLevel`] via [`CommitmentConfig`].
-	///
-	/// # Examples
-	///
-	/// ```
-	/// # use solana_sdk::commitment_config::CommitmentConfig;
-	/// # use solana_rpc_client::nonblocking::rpc_client::RpcClient;
-	/// let url = "http://localhost:8899".to_string();
-	/// let commitment_config = CommitmentConfig::processed();
-	/// let client = SolanaRpcClient::new_with_commitment(url, commitment_config);
-	/// ```
 	pub fn new_with_commitment(endpoint: &str, commitment_config: CommitmentConfig) -> Self {
 		println!("endpoint: {endpoint}");
 
@@ -257,7 +248,7 @@ impl SolanaClient {
 		let result = self
 			.get_account_with_commitment(pubkey, self.commitment_config())
 			.await?
-			.ok_or_else(|| SolanaRpcClientError::new(format!("Account {pubkey} not found.")))?;
+			.ok_or_else(|| RpcError::new(format!("Account {pubkey} not found.")))?;
 
 		Ok(result)
 	}
@@ -310,9 +301,7 @@ impl SolanaClient {
 
 		match response.result.into() {
 			Some(result) => Ok(result),
-			None => {
-				Err(SolanaRpcClientError::new(format!("Signature {signature} not found.")).into())
-			}
+			None => Err(RpcError::new(format!("Signature {signature} not found.")).into()),
 		}
 	}
 
@@ -398,7 +387,7 @@ impl SolanaClient {
 		if signature == transaction_signature {
 			Ok(signature)
 		} else {
-			Err(SolanaRpcClientError::new(format!(
+			Err(RpcError::new(format!(
 				"RPC node returned mismatched signature {signature:?}, expected \
 				 {transaction_signature:?}"
 			))
@@ -531,18 +520,18 @@ impl SolanaClient {
 		let accounts = response
 			.result
 			.keyed_accounts()
-			.ok_or_else(|| SolanaRpcClientError::new("Program account doesn't exist."))?;
+			.ok_or_else(|| RpcError::new("Program account doesn't exist."))?;
 
 		let mut pubkey_accounts: Vec<(Pubkey, Account)> = Vec::with_capacity(accounts.len());
 		for RpcKeyedAccount { pubkey, account } in accounts {
-			let pubkey = pubkey.parse().map_err(|_| {
-				SolanaRpcClientError::new(format!("{pubkey} is not a valid pubkey."))
-			})?;
+			let pubkey = pubkey
+				.parse()
+				.map_err(|_| RpcError::new(format!("{pubkey} is not a valid pubkey.")))?;
 			pubkey_accounts.push((
 				pubkey,
-				account.decode().ok_or_else(|| {
-					SolanaRpcClientError::new(format!("Unable to decode {pubkey}"))
-				})?,
+				account
+					.decode()
+					.ok_or_else(|| RpcError::new(format!("Unable to decode {pubkey}")))?,
 			));
 		}
 		Ok(pubkey_accounts)
@@ -611,7 +600,7 @@ impl SolanaClient {
 		let maybe_timestamp: Option<UnixTimestamp> = response.result.into();
 		match maybe_timestamp {
 			Some(timestamp) => Ok(timestamp),
-			None => Err(SolanaRpcClientError::new(format!("Block Not Found: slot={slot}")).into()),
+			None => Err(RpcError::new(format!("Block Not Found: slot={slot}")).into()),
 		}
 	}
 
@@ -637,7 +626,7 @@ impl SolanaClient {
 		let hash_string: String = response.result.into();
 		let hash = hash_string
 			.parse()
-			.map_err(|_| SolanaRpcClientError::new("Hash is not parseable."))?;
+			.map_err(|_| RpcError::new("Hash is not parseable."))?;
 
 		Ok(hash)
 	}
@@ -1054,7 +1043,7 @@ impl SolanaClient {
 				let token_account_type: TokenAccountType =
 					match serde_json::from_value(account_data.parsed) {
 						Ok(t) => t,
-						Err(e) => return Err(SolanaRpcClientError::new(e.to_string()).into()),
+						Err(e) => return Err(RpcError::new(e.to_string()).into()),
 					};
 
 				if let TokenAccountType::Account(token_account) = token_account_type {
@@ -1063,7 +1052,7 @@ impl SolanaClient {
 			}
 		}
 
-		Err(SolanaRpcClientError::new(format!("AccountNotFound: pubkey={pubkey}")).into())
+		Err(RpcError::new(format!("AccountNotFound: pubkey={pubkey}")).into())
 	}
 
 	pub async fn get_token_account(&self, pubkey: &Pubkey) -> ClientResult<Option<UiTokenAccount>> {
@@ -1331,7 +1320,7 @@ impl SolanaClient {
 	) -> ClientResult<LookupTableAccountType> {
 		let account = self.get_account(pubkey).await?;
 		let table_type = parse_address_lookup_table(&account.data)
-			.map_err(|error| SolanaRpcClientError::new(error.to_string()))?;
+			.map_err(|error| RpcError::new(error.to_string()))?;
 
 		Ok(table_type)
 	}
@@ -1368,18 +1357,23 @@ impl SolanaClient {
 	///
 	/// [`accountSubscribe`]: https://docs.solana.com/api/websocket#accountsubscribe
 	///
-	/// ```rust,no-run
-	/// use wasm_client_solana::SolanaRpcClient;
-	/// use solana_sdk::pubkey;
+	/// ```rust
+	/// # use wasm_client_solana::DEVNET;
+	/// # use wasm_client_solana::SolanaRpcClient;
+	/// # use solana_sdk::pubkey;
+	/// # use futures::StreamExt;
 	///
-	///
+	/// # async fn run() -> anyhow::Result<()> {
 	/// let pubkey = pubkey!("99P8ZgtJYe1buSK8JXkvpLh8xPsCFuLYhz9hQFNw93WJ");
-	/// let mut client = SolanaRpcClient::new("https://api.devnet.solana.com");
-	/// let subscription = client.account_subscribe(&pubkey).await?;
+	/// let mut client = SolanaRpcClient::new(DEVNET);
+	/// let mut subscription = client.account_subscribe(&pubkey).await?;
 	///
 	/// while let Some(notification) = subscription.next().await {
-	/// 		println!("Notification: {notification:?}");
+	/// 	println!("Notification: {notification:?}");
 	/// }
+	///
+	/// # Ok(())
+	/// # }
 	/// ```
 	pub async fn account_subscribe(
 		&mut self,

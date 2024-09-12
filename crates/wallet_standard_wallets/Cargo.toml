@@ -2,11 +2,13 @@
 name = "wallet_standard_wallets"
 version = { workspace = true }
 authors = { workspace = true }
+categories = ["wasm"]
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 rust-version = { workspace = true }
+tags = ["solana", "wallet", "web3", "blockchain"]
 description = "A collection of solana wallet implementations primarily used for testing."
 
 [dependencies]

@@ -1,7 +1,5 @@
 #![cfg(feature = "ssr")]
 
-use std::sync::Arc;
-
 use anyhow::Result;
 use assert2::check;
 use solana_sdk::native_token::sol_to_lamports;
@@ -68,12 +66,12 @@ async fn sign_and_send_transaction() -> Result<()> {
 	Ok(())
 }
 
-async fn run() -> Arc<TestValidatorRunner> {
+async fn run() -> TestValidatorRunner {
 	let pubkey = get_wallet_keypair().pubkey();
 	TestValidatorRunner::run(
-		Some("tests"),
 		TestValidatorRunnerProps::builder()
 			.pubkeys(vec![pubkey])
+			.namespace("tests")
 			.build(),
 	)
 	.await

@@ -2,6 +2,7 @@
 name = "wallet_standard"
 version = { workspace = true }
 authors = { workspace = true }
+categories = ["wasm", "web-programming"]
 edition = { workspace = true }
 homepage = { workspace = true }
 include = ["src/**/*", "Cargo.toml", "readme.md"]
@@ -10,6 +11,7 @@ publish = true
 readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
+tags = ["solana", "wallet", "web3", "blockchain"]
 description = "An implementation of the solana wallet standard in rust"
 
 [dependencies]

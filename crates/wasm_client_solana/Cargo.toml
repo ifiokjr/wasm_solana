@@ -1,13 +1,15 @@
 [package]
 name = "wasm_client_solana"
-version = { workspace = true }
+version = "0.1.0"
 authors = { workspace = true }
+categories = ["wasm", "web-programming"]
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 rust-version = { workspace = true }
-description = "A wasm compatible solana client with support for anchor programs as well"
+tags = ["solana", "wallet", "web3", "blockchain", "websocket", "rpc", "pubsub"]
+description = "A wasm compatible solana rpc and pubsub client"
 
 [lints]
 workspace = true
@@ -66,13 +68,15 @@ zstd = { workspace = true, optional = true }
 [dev-dependencies]
 anyhow = { workspace = true }
 assert2 = { workspace = true }
-assert_matches = { workspace = true }
 insta = { workspace = true, features = ["redactions", "json"] }
-rstest = { workspace = true }
 spl-pod = { workspace = true }
+test-log = { workspace = true, features = ["trace"] }
+test_utils = { workspace = true }
+test_utils_solana = { workspace = true, features = ["test_validator", "ssr"] }
+tokio = { workspace = true, features = ["test-util"] }
 wasm-bindgen-test = { workspace = true }
 
 [features]
 js = ["retrier/wasm-bindgen", "futures-timer/wasm-bindgen"]
 ssr = ["dep:reqwest", "dep:reqwest-websocket", "dep:tokio"]
-zstd = ["dep:zstd"]
+zstd = ["ssr", "dep:zstd"]

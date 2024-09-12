@@ -1,3 +1,5 @@
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/readme.md"))]
+
 pub use anchor::*;
 
 mod anchor;
@@ -33,4 +35,13 @@ pub mod prelude {
 	pub use wasm_client_solana::prelude::*;
 
 	pub use crate::AnchorRequestMethods;
+}
+
+pub mod external {
+	pub use anchor_lang;
+	pub use derive_more;
+	pub use paste;
+	pub use solana_sdk;
+	pub use typed_builder;
+	pub use wasm_client_solana;
 }

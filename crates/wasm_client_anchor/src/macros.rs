@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! base_create_request_builder {
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident) => {
-		::paste::paste! {
+		$crate::external$crate::external$crate::external::paste::paste! {
 			pub type [<$name_prefix RequestBuilderPartial>]<'a, W> =
 				[<$name_prefix RequestBuilder>]<
 					'a,
@@ -19,7 +19,7 @@ macro_rules! base_create_request_builder {
 					),
 				>;
 
-			#[derive(::derive_more::Debug, ::typed_builder::TypedBuilder)]
+			#[derive($crate::external::derive_more::Debug, $crate::external::typed_builder::TypedBuilder)]
 			pub struct [<$name_prefix Request>]<
 				'a,
 				W: $crate::WalletAnchor + 'a,
@@ -37,16 +37,16 @@ macro_rules! base_create_request_builder {
 				pub accounts: ::$program::accounts::$accounts,
 				/// Additional accounts which might be needed in a transfer hook / or in a future transaction when the transaction is saved on chain for a later date.
 				#[builder(default)]
-				pub remaining_accounts: Vec<::solana_sdk::instruction::AccountMeta>,
+				pub remaining_accounts: Vec<$crate::external::solana_sdk::instruction::AccountMeta>,
 				/// Signers that can sign the data synchronously
 				#[builder(default)]
-				pub signers: Vec<&'a dyn ::solana_sdk::signer::Signer>,
+				pub signers: Vec<&'a dyn $crate::external::solana_sdk::signer::Signer>,
 				#[builder(default)]
 				/// Instructions that are run before the anchor instruction.
-				pub instructions: Vec<::solana_sdk::instruction::Instruction>,
+				pub instructions: Vec<$crate::external::solana_sdk::instruction::Instruction>,
 				#[builder(default)]
 				/// Instructions that are run after the anchor instruction is completed.
-				pub extra_instructions: Vec<::solana_sdk::instruction::Instruction>,
+				pub extra_instructions: Vec<$crate::external::solana_sdk::instruction::Instruction>,
 				/// Options to be passed into the transaction being signed or sent.
 				#[builder(default)]
 				pub options: SolanaSignAndSendTransactionOptions,
@@ -66,24 +66,24 @@ macro_rules! base_create_request_builder {
 					self.wallet
 				}
 
-				fn rpc(&self) -> &'a ::wasm_client_solana::SolanaRpcClient {
+				fn rpc(&self) -> &'a $crate::external::wasm_client_solana::SolanaRpcClient {
 					self.launchpad.rpc()
 				}
 
-				fn signers(&self) -> Vec<&'a dyn ::solana_sdk::signer::Signer> {
+				fn signers(&self) -> Vec<&'a dyn $crate::external::solana_sdk::signer::Signer> {
 					self.signers.clone()
 				}
 
-				fn instructions(&self) -> Vec<::solana_sdk::instruction::Instruction> {
-					use anchor_lang::InstructionData;
-					use anchor_lang::ToAccountMetas;
+				fn instructions(&self) -> Vec<$crate::external::solana_sdk::instruction::Instruction> {
+					use $crate::external::anchor_lang::InstructionData;
+					use $crate::external::anchor_lang::ToAccountMetas;
 
 					let mut accounts = self.accounts.to_account_metas(None);
 					let mut instructions = self.instructions.clone();
 
 					accounts.append(&mut self.remaining_accounts.clone());
 
-					instructions.push(::solana_sdk::instruction::Instruction {
+					instructions.push($crate::external::solana_sdk::instruction::Instruction {
 						program_id: self.launchpad.id(),
 						accounts,
 						data: self.args.data(),
@@ -103,7 +103,7 @@ macro_rules! base_create_request_builder {
 macro_rules! create_request_builder {
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident, "optional:args") => {
 		$crate::base_create_request_builder!($program, $program_struct, $name_prefix, $accounts);
-		::paste::paste! {
+		$crate::external::paste::paste! {
 			pub type [<$name_prefix RequestBuilderArgsPartial>]<'a, W> =
 				[<$name_prefix RequestBuilder>]<
 					'a,
@@ -132,7 +132,7 @@ macro_rules! create_request_builder {
 	};
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident, "required:args") => {
 		$crate::base_create_request_builder!($program, $program_struct, $name_prefix, $accounts);
-		::paste::paste! {
+		$crate::external::paste::paste! {
 			impl<W: $crate::WalletAnchor> $program_struct<W> {
 				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderPartial>]<'_, W> {
 					[<$name_prefix Request>]::builder()

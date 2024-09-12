@@ -1,0 +1,59 @@
+[workspace]
+git_release_name = "{{ package }}@v{{ version }}"
+git_tag_name = "{{ package }}@v{{ version }}"
+
+[[package]]
+name = "test_utils"
+semver_check = false
+changelog_update = false
+publish = false
+release = false
+git_release_enable = false
+git_tag_enable = false
+
+[[package]]
+name = "test_utils_solana"
+changelog_path = "crates/test_utils_solana/changelog.md"
+
+[[package]]
+name = "wallet_standard"
+changelog_path = "crates/wallet_standard/changelog.md"
+
+[[package]]
+name = "wallet_standard_browser"
+changelog_path = "crates/wallet_standard_browser/changelog.md"
+
+[[package]]
+name = "wallet_standard_wallets"
+changelog_path = "crates/wallet_standard_wallets/changelog.md"
+
+[[package]]
+name = "wasm_client_anchor"
+changelog_path = "crates/wasm_client_anchor/changelog.md"
+
+[[package]]
+name = "wasm_client_solana"
+changelog_path = "crates/wasm_client_solana/changelog.md"
+
+[changelog]
+commit_parsers = [
+	{ message = "^feat", group = "<!-- 0 -->🎉 Added" },
+	{ message = "^changed", group = "📝 Changed" },
+	{ message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+	{ message = "^deprecated", group = "🗑️ Deprecated" },
+	{ message = "^doc", group = "<!-- 3 -->📚 Documentation" },
+	{ message = "^perf", group = "<!-- 4 -->⚡ Performance" },
+	{ message = "^refactor\\(clippy\\)", skip = true },
+	{ message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
+	{ message = "^style", group = "<!-- 5 -->🎨 Styling" },
+	{ message = "^test", group = "<!-- 6 -->🧪 Testing" },
+	{ message = "^chore\\(release\\):", skip = true },
+	{ message = "^chore: release", skip = true },
+	{ message = "^chore\\(deps.*\\)", skip = true },
+	{ message = "^chore\\(pr\\)", skip = true },
+	{ message = "^chore\\(pull\\)", skip = true },
+	{ message = "^chore\\(npm\\).*yarn\\.lock", skip = true },
+	{ message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+	{ body = ".*security", group = "<!-- 8 -->🛡️ Security" },
+	{ message = "^revert", group = "<!-- 9 -->◀️ Revert" },
+]

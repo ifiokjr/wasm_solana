@@ -228,7 +228,6 @@ fn slice_data(data: &[u8], data_slice_config: Option<UiDataSliceConfig>) -> &[u8
 
 #[cfg(test)]
 mod test {
-	use assert_matches::assert_matches;
 	use solana_sdk::account::Account;
 	use solana_sdk::account::AccountSharedData;
 
@@ -317,6 +316,8 @@ mod test {
 	#[cfg(feature = "zstd")]
 	#[test]
 	fn test_base64_zstd() {
+		use assert2::check;
+
 		let encoded_account = UiAccount::encode(
 			&Pubkey::default(),
 			&AccountSharedData::from(Account {
@@ -327,14 +328,13 @@ mod test {
 			None,
 			None,
 		);
-		assert_matches!(
-			encoded_account.data,
-			UiAccountData::Binary(_, UiAccountEncoding::Base64Zstd)
-		);
+
+		insta::assert_compact_json_snapshot!(encoded_account.data, @r###"["KLUv/QBYTQAAEAAAAQD7K4AF", "base64+zstd"]"###);
 
 		let decoded_account = encoded_account.decode::<Account>().unwrap();
-		assert_eq!(decoded_account.data(), &vec![0; 1024]);
+		check!(decoded_account.data() == &vec![0; 1024]);
+
 		let decoded_account = encoded_account.decode::<AccountSharedData>().unwrap();
-		assert_eq!(decoded_account.data(), &vec![0; 1024]);
+		check!(decoded_account.data() == &vec![0; 1024]);
 	}
 }
