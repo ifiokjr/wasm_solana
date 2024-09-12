@@ -54,10 +54,6 @@ export default tseslint.config(
 		},
 	},
 	{
-		...playwright.configs["flat/recommended"],
-		files: ["apps/kickjump/e2e/**/*.test.ts"],
-	},
-	{
 		plugins: {
 			"file-progress": fileProgress,
 		},

@@ -32,15 +32,6 @@ pub fn get_verified_account_data<T: AccountSerialize + AccountDeserialize + Owne
 }
 
 /// Get the instruction data for the anchor program method.
-///
-/// ```rust
-/// use kickjump_launchpad::instruction::SetOwners;
-/// use kickjump_programs::get_anchor_instruction_data;
-///
-/// let data = SetOwners { owners: vec![] };
-///
-/// get_anchor_instruction_data(data)?;
-/// ```
 pub fn get_anchor_instruction_data<T: AnchorSerialize + Discriminator>(
 	data: &T,
 ) -> Result<Vec<u8>> {

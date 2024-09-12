@@ -21,8 +21,8 @@
 <br />
 
 <p align="center">
-  <a href="https://github.com/kickjump/kickjump/actions?query=workflow:ci">
-    <img src="https://github.com/kickjump/kickjump/workflows/ci/badge.svg?branch=main" alt="Continuous integration badge for github actions" title="CI Badge" />
+  <a href="https://github.com/ifiokjr/wasm_solana/actions?query=workflow:ci">
+    <img src="https://github.com/ifiokjr/wasm_solana/workflows/ci/badge.svg?branch=main" alt="Continuous integration badge for github actions" title="CI Badge" />
   </a>
 </p>
 
