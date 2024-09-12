@@ -57,7 +57,7 @@
 		"**/snapshots",
 		"**/target",
 		"**/node_modules,",
-		"docs/book/**",
+		"**/changelog.md",
 		".bin/",
 		".local-cache/",
 		"**/dist/**",
