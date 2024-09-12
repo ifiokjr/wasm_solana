@@ -2,7 +2,6 @@
 
 {
   packages = [
-    pkgs.binaryen
     pkgs.cargo-binstall
     pkgs.cargo-run-bin
     pkgs.curl
@@ -13,12 +12,9 @@
     pkgs.protobuf # needed for `solana-test-validator` in tests
     pkgs.rustup
     pkgs.shfmt
-    pkgs.trunk
   ] ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk; [
-    frameworks.CoreFoundation
     frameworks.Security
     frameworks.System
-    frameworks.SystemConfiguration
     pkgs.coreutils
     pkgs.libiconv
   ]);
