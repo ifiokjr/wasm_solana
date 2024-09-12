@@ -71,7 +71,6 @@ async fn run() -> TestValidatorRunner {
 	TestValidatorRunner::run(
 		TestValidatorRunnerProps::builder()
 			.pubkeys(vec![pubkey])
-			.namespace("tests")
 			.build(),
 	)
 	.await

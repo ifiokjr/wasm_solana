@@ -52,3 +52,7 @@ node_modules/
 /playwright-report
 /test-ledger
 /test-results
+
+**/*.pem
+lcov.info
+codecov.json
