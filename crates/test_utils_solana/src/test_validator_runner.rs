@@ -58,6 +58,13 @@ pub struct TestValidatorRunnerProps {
 	pub accounts: HashMap<Pubkey, AccountSharedData>,
 	/// The namespace to use for the validator client rpc. This is used to share
 	/// runners. Leave blank to always create a new runner.
+	///
+	/// This should only be used when sure that the runners are not launched in
+	/// separate threads. If this is the case you will see the following error:
+	///
+	/// ```markup
+	/// Dropped SendWrapper<T> variable from a thread different to the one it has been created with.
+	/// ```
 	#[builder(default, setter(into, strip_option(fallback = namespace_opt)))]
 	pub namespace: Option<&'static str>,
 }
@@ -194,11 +201,10 @@ impl TestValidatorRunner {
 	/// used to reuse runners.
 	///
 	/// ```rust
-	/// use std::sync::Arc;
-	///
 	/// use test_utils_solana::TestValidatorRunner;
+	/// use test_utils_solana::TestValidatorRunnerProps;
 	///
-	/// async fn run() -> Arc<TestValidatorRunner> {
+	/// async fn run() -> TestValidatorRunner {
 	/// 	TestValidatorRunner::run(
 	/// 		TestValidatorRunnerProps::builder()
 	/// 			.namespace("tests")
