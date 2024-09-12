@@ -114,13 +114,10 @@ wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.1.0" }
 
 [workspace.metadata.bin]
 anchor-cli = { version = "0.30.1", bins = ["anchor"] }
-cargo-insta = { version = "1.39.0" }
-cargo-leptos = { version = "0.2.17" }
+cargo-insta = { version = "1.40.0" }
 cargo-llvm-cov = { version = "0.6.10" }
 cargo-mutants = { version = "24.7.0" }
 cargo-nextest = { version = "0.9.72" }
-leptosfmt = { version = "0.1.18", git = "https://github.com/bram209/leptosfmt", rev = "926b642b68c22cc957fa82a18f09d02343cdf024", bins = ["leptosfmt"] }
-wasm-pack = { version = "0.13.0", bins = ["wasm-pack"] }
 
 [workspace.lints.rust]
 # Group lints

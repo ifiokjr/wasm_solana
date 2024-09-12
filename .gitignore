@@ -28,7 +28,6 @@ node_modules/
 /.sass-cache/
 /.test-results/
 /test-results/
-/playwright-report/
 
 # misc
 .DS_Store
@@ -48,8 +47,6 @@ node_modules/
 **/*.pem
 
 # tests
-/.playwright-state
-/playwright-report
 /test-ledger
 /test-results
 

@@ -43,8 +43,7 @@
   scripts."install:all" = {
     exec = ''
       set -e
-      install:pnpm
-      setup:extensions
+      pnpm install
       install:cargo:bin
       install:solana
     '';
@@ -55,22 +54,6 @@
       solana-keygen new -s -o $DEVENV_ROOT/$1.json --no-bip39-passphrase || true
     '';
     description = "Generate a local solana keypair. Must provide a name.";
-  };
-  scripts."install:pnpm" = {
-    exec = ''
-      set -e
-
-      if [ -f /.dockerenv ]; then
-        yes | pnpm install
-      elif [ -z "$CI" ]; then
-        pnpm install
-        echo "Installing playwright"
-        pnpm playwright install
-      else
-        yes | pnpm install
-      fi
-    '';
-    description = "Install NPM packages.";
   };
   scripts."install:cargo:bin" = {
     exec = ''

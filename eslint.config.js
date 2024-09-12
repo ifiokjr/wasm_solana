@@ -2,7 +2,6 @@
 
 import js from "@eslint/js";
 import fileProgress from "eslint-plugin-file-progress";
-import playwright from "eslint-plugin-playwright";
 import unicorn from "eslint-plugin-unicorn";
 import globals from "globals";
 import tseslint from "typescript-eslint";
@@ -16,7 +15,6 @@ export default tseslint.config(
 			"**/.git/**",
 			"**/.helix/**",
 			"**/.local-cache/**",
-			"**/.playwright-state/**",
 			"**/.state/",
 			".vscode/**",
 			"test-results/",
@@ -29,7 +27,6 @@ export default tseslint.config(
 			"**/public/**",
 			"**/target/**",
 			"**/node_modules/",
-			"**/playwright-report/",
 			"**/dist/",
 			"**/pkg/",
 			"**/extensions/",

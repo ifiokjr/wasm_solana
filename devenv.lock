@@ -3,10 +3,10 @@
     "devenv": {
       "locked": {
         "dir": "src/modules",
-        "lastModified": 1726050924,
+        "lastModified": 1726063457,
         "owner": "cachix",
         "repo": "devenv",
-        "rev": "cf471f691c3765ed431199f61b8bd70530bc4305",
+        "rev": "39bf6ce569103c9390d37322daa59468c31b3ce7",
         "type": "github"
       },
       "original": {
@@ -53,10 +53,10 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1726061832,
+        "lastModified": 1726144775,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "72239d5c1a80c07afb8b7ded0d510d49837a551c",
+        "rev": "d5d601581e5f1b2e17becb3cb940530cd91582ce",
         "type": "github"
       },
       "original": {
@@ -131,10 +131,10 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1726021481,
+        "lastModified": 1726107922,
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "1c2c120246c51a644c20ba2a36a33d3bd4860d70",
+        "rev": "fb1cf4398436a12f1f8b07da08d94fc72fcb1a69",
         "type": "github"
       },
       "original": {
