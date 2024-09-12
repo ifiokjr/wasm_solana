@@ -1,4 +1,4 @@
-# wasm_client_anchor
+# `wasm_client_anchor`
 
 <br />
 

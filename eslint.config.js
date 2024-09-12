@@ -146,7 +146,7 @@ export default tseslint.config(
 			"prefer-template": "warn",
 			"guard-for-in": "warn",
 			"prefer-object-spread": "warn",
-			curly: ["warn", "all"],
+			curly: ["off", "all"],
 			"no-invalid-regexp": "error",
 			"no-multi-str": "error",
 			"no-extra-boolean-cast": "error",

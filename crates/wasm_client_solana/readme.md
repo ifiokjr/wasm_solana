@@ -1,4 +1,4 @@
-# wasm_client_solana
+# `wasm_client_solana`
 
 <br />
 
