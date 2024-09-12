@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   lint:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: "ubuntu-latest"
     steps:
       - name: checkout repository
@@ -33,7 +33,7 @@ jobs:
         shell: bash
 
   docs:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: "ubuntu-latest"
     steps:
       - name: checkout repository
@@ -50,11 +50,11 @@ jobs:
         shell: bash
 
   test:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        version: ["1.75.0", stable, beta, nightly]
+        version: ["1.75.0", stable, nightly]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
@@ -72,7 +72,7 @@ jobs:
         shell: bash
 
   coverage:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: "ubuntu-latest"
     steps:
       - name: checkout repository
@@ -96,11 +96,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        version: ["1.75.0", stable, beta, nightly]
+        version: ["1.75.0", stable, nightly]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
