@@ -97,6 +97,18 @@
     '';
     description = "Update dependencies.";
   };
+  scripts."build:all" = {
+    exec = ''
+      cargo build --all-features
+    '';
+    description = "Build all crates with all features activated.";
+  };
+  scripts."build:docs" = {
+    exec = ''
+      RUSTDOCFLAGS="--cfg docsrs" cargo doc --all-features
+    '';
+    description = "Build documentation site.";
+  };
   scripts."test:all" = {
     exec = ''
       set -e

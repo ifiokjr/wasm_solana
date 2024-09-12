@@ -10,10 +10,8 @@
 	"exec": {
 		"commands": [
 			{
-				"command": "cargo bin leptosfmt --stdin --rustfmt",
-				"exts": [
-					"rs"
-				]
+				"command": "rustfmt --unstable-features --edition 2021",
+				"exts": ["rs"]
 			},
 			{
 				"command": "nixfmt",
