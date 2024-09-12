@@ -103,7 +103,7 @@ jobs:
   release:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test, lint, build]
     steps:
       - name: generate token
         uses: actions/create-github-app-token@v1
