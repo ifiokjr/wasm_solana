@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   lint:
-    timeout-minutes: 20
+    timeout-minutes: 25
     runs-on: "ubuntu-latest"
     steps:
       - name: checkout repository
@@ -33,7 +33,7 @@ jobs:
         shell: bash
 
   docs:
-    timeout-minutes: 20
+    timeout-minutes: 25
     runs-on: "ubuntu-latest"
     steps:
       - name: checkout repository
@@ -50,7 +50,7 @@ jobs:
         shell: bash
 
   test:
-    timeout-minutes: 20
+    timeout-minutes: 25
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
@@ -72,7 +72,7 @@ jobs:
         shell: bash
 
   coverage:
-    timeout-minutes: 20
+    timeout-minutes: 25
     runs-on: "ubuntu-latest"
     steps:
       - name: checkout repository
@@ -96,7 +96,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
-    timeout-minutes: 20
+    timeout-minutes: 25
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
