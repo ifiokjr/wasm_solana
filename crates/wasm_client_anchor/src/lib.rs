@@ -39,9 +39,9 @@ pub mod prelude {
 
 pub mod external {
 	pub use anchor_lang;
-	pub use derive_more;
 	pub use paste;
 	pub use solana_sdk;
 	pub use typed_builder;
+	pub use wallet_standard;
 	pub use wasm_client_solana;
 }

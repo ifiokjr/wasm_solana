@@ -19,7 +19,7 @@ macro_rules! base_create_request_builder {
 					),
 				>;
 
-			#[derive($crate::external::derive_more::Debug, $crate::external::typed_builder::TypedBuilder)]
+			#[derive($crate::external::typed_builder::TypedBuilder)]
 			pub struct [<$name_prefix Request>]<
 				'a,
 				W: $crate::WalletAnchor + 'a,
@@ -29,11 +29,9 @@ macro_rules! base_create_request_builder {
 				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::WalletAnchor`] to allow for async signing via wallets.
 				pub wallet: &'a W,
 				/// Provide the args to the anchor program endpoint. This will be transformed into the instruction data when processing the transaction.
-				#[debug("args")]
 				#[builder(setter(into))]
 				pub args: ::$program::instruction::$name_prefix,
 				/// Provide the anchor accounts that will be used for the anchor instruction
-				#[debug("accounts")]
 				pub accounts: ::$program::accounts::$accounts,
 				/// Additional accounts which might be needed in a transfer hook / or in a future transaction when the transaction is saved on chain for a later date.
 				#[builder(default)]
@@ -49,7 +47,7 @@ macro_rules! base_create_request_builder {
 				pub extra_instructions: Vec<$crate::external::solana_sdk::instruction::Instruction>,
 				/// Options to be passed into the transaction being signed or sent.
 				#[builder(default)]
-				pub options: SolanaSignAndSendTransactionOptions,
+				pub options: $crate::external::wallet_standard::SolanaSignAndSendTransactionOptions,
 			}
 
 			impl<'a, W: $crate::WalletAnchor + 'a> [<$name_prefix Request>]<'a, W> {}
@@ -58,7 +56,7 @@ macro_rules! base_create_request_builder {
 			impl<'a, W: $crate::WalletAnchor + 'a> $crate::AnchorRequestMethods<'a, W>
 				for [<$name_prefix Request>]<'a, W>
 			{
-				fn options(&self) -> SolanaSignAndSendTransactionOptions {
+				fn options(&self) -> $crate::external::wallet_standard::SolanaSignAndSendTransactionOptions {
 					self.options.clone()
 				}
 

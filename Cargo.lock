@@ -8644,7 +8644,6 @@ dependencies = [
  "anyhow",
  "assert2",
  "async-trait",
- "derive_more 1.0.0",
  "insta",
  "log",
  "paste",

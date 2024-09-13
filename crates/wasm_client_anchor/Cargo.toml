@@ -20,7 +20,6 @@ crate-type = ["cdylib", "lib"]
 [dependencies]
 anchor-lang = { workspace = true }
 async-trait = { workspace = true }
-derive_more = { workspace = true, features = ["debug"] }
 log = { workspace = true }
 paste = { workspace = true }
 retrier = { workspace = true }
