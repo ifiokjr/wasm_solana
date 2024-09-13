@@ -146,15 +146,6 @@ impl SolanaRpcClient {
 	/// [commitment level][cl] of [`Finalized`](CommitmentLevel::Finalized).
 	///
 	/// [cl]: https://solana.com/docs/rpc#configuring-state-commitment
-	///
-	/// # Examples
-	///
-	/// ```
-	/// use wasm_client_solana::SolanaRpcClient;
-	/// use wasm_client_solana::DEVNET;
-	///
-	/// let client = SolanaRpcClient::new(DEVNET);
-	/// ```
 	pub fn new(endpoint: &str) -> Self {
 		Self {
 			http: HttpProvider::new(endpoint),
