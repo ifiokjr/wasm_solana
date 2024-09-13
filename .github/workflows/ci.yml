@@ -126,6 +126,10 @@ jobs:
           nix-cache: /tmp/nixcache
 
       - name: build
+        run: cargo build
+        shell: bash
+
+      - name: build all features
         run: build:all
         shell: bash
 
