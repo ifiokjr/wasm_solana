@@ -2,21 +2,25 @@
 
 {
   packages = [
+    pkgs.act
+    pkgs.binaryen
     pkgs.cargo-binstall
     pkgs.cargo-run-bin
+    pkgs.coreutils
     pkgs.curl
     pkgs.dprint
     pkgs.fnm
     pkgs.jq
+    pkgs.libiconv
     pkgs.nixfmt-rfc-style
     pkgs.protobuf # needed for `solana-test-validator` in tests
     pkgs.rustup
     pkgs.shfmt
   ] ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk; [
+    frameworks.CoreFoundation
     frameworks.Security
     frameworks.System
-    pkgs.coreutils
-    pkgs.libiconv
+    frameworks.SystemConfiguration
   ]);
 
   # disable dotenv since it breaks the variable interpolation supported by `direnv`
@@ -54,12 +58,14 @@
   };
   scripts."generate:keypair" = {
     exec = ''
+      set -e
       solana-keygen new -s -o $DEVENV_ROOT/$1.json --no-bip39-passphrase || true
     '';
     description = "Generate a local solana keypair. Must provide a name.";
   };
   scripts."install:cargo:bin" = {
     exec = ''
+      set -e
       cargo bin --install
     '';
     description = "Install cargo binaries locally.";
@@ -85,7 +91,14 @@
   };
   scripts."build:all" = {
     exec = ''
-      cargo build --all-features
+      set -e
+      if [ -z "$CI" ]; then
+        echo "Builing project locally"
+        cargo build --all-features
+      else
+        echo "Building in CI"
+        cargo build --all-features --locked
+      fi
     '';
     description = "Build all crates with all features activated.";
   };
