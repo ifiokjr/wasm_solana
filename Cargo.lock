@@ -8654,8 +8654,6 @@ dependencies = [
  "solana-program",
  "solana-sdk",
  "test-log",
- "test_utils",
- "test_utils_solana",
  "thiserror",
  "tokio",
  "typed-builder",
