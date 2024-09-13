@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! base_create_request_builder {
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident) => {
-		$crate::external$crate::external$crate::external::paste::paste! {
+		$crate::external::paste::paste! {
 			pub type [<$name_prefix RequestBuilderPartial>]<'a, W> =
 				[<$name_prefix RequestBuilder>]<
 					'a,
