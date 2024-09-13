@@ -8710,8 +8710,6 @@ dependencies = [
  "spl-token-metadata-interface 0.3.5",
  "strum 0.26.3",
  "test-log",
- "test_utils",
- "test_utils_solana",
  "thiserror",
  "tokio",
  "typed-builder",
