@@ -3,13 +3,13 @@
 use async_trait::async_trait;
 use js_sys::Array;
 use solana_sdk::signature::Signature;
-use wallet_standard::AsyncSigner;
 use wallet_standard::SolanaSignInInput;
 use wallet_standard::SolanaSignInOutput;
 use wallet_standard::SolanaSignMessageOutput;
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
+use wallet_standard::WalletSolanaPubkey;
 use wallet_standard::WalletSolanaSignIn;
 use wallet_standard::SOLANA_SIGN_IN;
 use wasm_bindgen::prelude::*;

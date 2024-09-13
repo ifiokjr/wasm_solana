@@ -16,9 +16,6 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
 use crate::FeatureFromJs;
-use crate::SolanaSignAndSendTransactionFeature;
-use crate::SolanaSignMessageFeature;
-use crate::SolanaSignTransactionFeature;
 use crate::StandardConnectFeature;
 use crate::StandardDisconnectFeature;
 use crate::StandardEventsFeature;
@@ -274,13 +271,6 @@ impl BrowserWalletInfo {
 		self.is_feature_supported::<StandardConnectFeature>()
 			&& self.is_feature_supported::<StandardEventsFeature>()
 			&& self.is_feature_supported::<StandardDisconnectFeature>()
-	}
-
-	pub fn is_solana_standard_compatible(&self) -> bool {
-		self.is_standard_compatible()
-			&& self.is_feature_supported::<SolanaSignMessageFeature>()
-			&& self.is_feature_supported::<SolanaSignTransactionFeature>()
-			&& self.is_feature_supported::<SolanaSignAndSendTransactionFeature>()
 	}
 }
 
