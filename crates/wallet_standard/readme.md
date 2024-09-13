@@ -2,7 +2,7 @@
 
 <br />
 
-> Utilities and extensions for testing solana in wasm compatible environments.
+> An implementation of the solana wallet standard in rust.
 
 <br />
 

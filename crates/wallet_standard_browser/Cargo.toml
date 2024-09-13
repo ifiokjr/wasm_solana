@@ -11,7 +11,7 @@ publish = true
 repository = { workspace = true }
 rust-version = { workspace = true }
 tags = ["solana", "wallet", "web3", "blockchain"]
-description = "Use the wallet standard with WASM from within your browser."
+description = "The wasm / browser compatible rust based implementation of the wallet standard."
 
 [lints]
 workspace = true

@@ -2,7 +2,7 @@
 
 <br />
 
-> Utilities and extensions for testing solana in wasm compatible environments.
+> A wasm compatible anchor client.
 
 <br />
 
