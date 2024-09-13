@@ -23,6 +23,10 @@ Or directly add the following to your `Cargo.toml`:
 wallet_standard_browser = "0.1" # replace with the latest version
 ```
 
+## Usage
+
+The [Wallet Standard](https://github.com/wallet-standard/wallet-standard) is a set of traits and conventions designed to improve the user experience and developer experience of wallets and applications for any blockchain.
+
 [crate-image]: https://img.shields.io/crates/v/wallet_standard_browser.svg
 [crate-link]: https://crates.io/crates/wallet_standard_browser
 [docs-image]: https://docs.rs/wallet_standard_browser/badge.svg

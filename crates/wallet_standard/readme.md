@@ -30,6 +30,10 @@ wallet_standard = "0.1" # replace with the latest version
 | `browser` | Enables the `browser` feature for the `wallet_standard_browser` crate. |
 | `solana`  | Enables the `solana` feature for the `wallet_standard_solana` crate.   |
 
+## Usage
+
+The [Wallet Standard](https://github.com/wallet-standard/wallet-standard) is a set of traits and conventions designed to improve the user experience and developer experience of wallets and applications for any blockchain.
+
 [crate-image]: https://img.shields.io/crates/v/wallet_standard.svg
 [crate-link]: https://crates.io/crates/wallet_standard
 [docs-image]: https://docs.rs/wallet_standard/badge.svg
