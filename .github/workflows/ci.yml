@@ -28,9 +28,17 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
-      - name: lint
-        run: lint:all
+      - name: lint ecmascript
+        run: lint:es
         shell: bash
+
+      - name: lint formatting
+        run: lint:format
+        shell: bash
+
+      - uses: clechasseur/rs-clippy-check@v3
+        with:
+          args: --all-features
 
   docs:
     timeout-minutes: 25
