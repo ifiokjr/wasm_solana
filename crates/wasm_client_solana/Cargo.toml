@@ -71,8 +71,6 @@ assert2 = { workspace = true }
 insta = { workspace = true, features = ["redactions", "json"] }
 spl-pod = { workspace = true }
 test-log = { workspace = true, features = ["trace"] }
-test_utils = { workspace = true }
-test_utils_solana = { workspace = true, features = ["test_validator", "ssr"] }
 tokio = { workspace = true, features = ["test-util"] }
 wasm-bindgen-test = { workspace = true }
 
