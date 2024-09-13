@@ -130,7 +130,7 @@ impl VersionedTransactionExtension for VersionedTransaction {
 			.iter()
 			.map(|pos| pos.ok_or(SignerError::KeypairPubkeyMismatch))
 			.collect::<Result<Vec<_>, _>>()?;
-		self.try_sign_unchecked(keypairs, positions, recent_blockhash);
+		self.try_sign_unchecked(keypairs, positions, recent_blockhash)?;
 
 		Ok(self)
 	}
