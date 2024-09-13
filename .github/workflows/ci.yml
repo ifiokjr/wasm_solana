@@ -17,7 +17,7 @@ concurrency:
 jobs:
   lint:
     timeout-minutes: 25
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
 
   docs:
     timeout-minutes: 25
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
 
   test:
     timeout-minutes: 25
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         version: ["1.75.0", stable, nightly]
@@ -67,13 +67,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
-      - name: test
-        run: test:all
+      - name: test `wallet_standard_wallets` with `ssr`
+        run: test:wallet_standard_wallets:ssr
+        shell: bash
+
+      - name: test `wallet_standard_wallets` with `docs`
+        run: test:wallet_standard_wallets:docs
+        shell: bash
+
+      - name: test `wasm_client_solana` with `ssr`
+        run: test:wasm_client_solana:ssr
+        shell: bash
+
+      - name: test `wasm_client_solana` with `docs`
+        run: test:wasm_client_solana:docs
         shell: bash
 
   coverage:
     timeout-minutes: 25
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -97,7 +109,7 @@ jobs:
 
   build:
     timeout-minutes: 25
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         version: ["1.75.0", stable, nightly]

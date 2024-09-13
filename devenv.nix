@@ -40,13 +40,6 @@
     '';
     description = "The `release-plz` executable";
   };
-  scripts.wasm-pack = {
-    exec = ''
-      set -e
-      cargo bin wasm-pack $@
-    '';
-    description = "The `wasm-pack` executable for bundling wasm for the browser.";
-  };
   scripts."install:all" = {
     exec = ''
       set -e
@@ -119,18 +112,46 @@
   scripts."test:wallet_standard_wallets" = {
     exec = ''
       set -e
-      cargo nextest run --package wallet_standard_wallets --features="ssr"
-      cargo test --package wallet_standard_wallets --doc --features="ssr"
+      test:wallet_standard_wallets:ssr
+      test:wallet_standard_wallets:docs
     '';
     description = "Run tests for the `wallet_standard_wallets` crate.";
+  };
+  scripts."test:wallet_standard_wallets:ssr" = {
+    exec = ''
+      set -e
+      cargo nextest run --package wallet_standard_wallets --features="ssr"
+    '';
+    description = "Run tests for the `wallet_standard_wallets` crate with the `ssr` feature.";
+  };
+  scripts."test:wallet_standard_wallets:docs" = {
+    exec = ''
+      set -e
+      cargo test --package wallet_standard_wallets --doc --features="ssr"
+    '';
+    description = "Run doctests for the `wallet_standard_wallets` crate with the `ssr` feature.";
   };
   scripts."test:wasm_client_solana" = {
     exec = ''
       set -e
-      cargo nextest run --package wasm_client_solana --features="ssr"
-      cargo test --package wasm_client_solana --doc --features="ssr"
+      test:wasm_client_solana:ssr
+      test:wasm_client_solana:docs
     '';
     description = "Run tests for the `wasm_client_solana` crate.";
+  };
+  scripts."test:wasm_client_solana:ssr" = {
+    exec = ''
+      set -e
+      cargo nextest run --package wasm_client_solana --features="ssr"
+    '';
+    description = "Run tests for the `wasm_client_solana` crate with the `ssr` feature.";
+  };
+  scripts."test:wasm_client_solana:docs" = {
+    exec = ''
+      set -e
+      cargo test --package wasm_client_solana --doc --features="ssr"
+    '';
+    description = "Run doctests for the `wasm_client_solana` crate with the `ssr` feature.";
   };
   scripts."coverage:all" = {
     exec = ''
