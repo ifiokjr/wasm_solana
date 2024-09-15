@@ -17,6 +17,7 @@ workspace = true
 anchor-lang = { workspace = true }
 anchor-spl = { workspace = true }
 anyhow = { workspace = true }
+assert2 = { workspace = true }
 async-trait = { workspace = true }
 bincode = { workspace = true }
 borsh = { workspace = true, features = ["derive"] }

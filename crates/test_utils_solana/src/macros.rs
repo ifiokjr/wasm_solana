@@ -1,3 +1,6 @@
+/// A wrapper providing supports for anchor programs in
+/// [`solana_program_test::processor`]
+///
 /// The current processor for [`solana_program_test`] doesn't support anchor
 /// programs due to lifetime conflicts. This is a wrapper that supports the
 /// anchor lifetimes by using [`Box::leak`] on the accounts array.
@@ -14,6 +17,53 @@ macro_rules! anchor_processor {
 			$program::entry(program_id, accounts, instruction_data)
 		}
 
-		::solana_program_test::processor!(entry)
+		$crate::external::processor!(entry)
+	}};
+}
+
+/// Assert that the banks client simulation errors with the provided anchor
+/// error.
+#[macro_export]
+macro_rules! assert_banks_client_simulated_error {
+	($result:ident, $expected_error:path) => {{
+		let error_name = $expected_error.name();
+
+		$crate::external::check!(
+			$result.result.unwrap().is_err(),
+			"the simulation was expected to error"
+		);
+		$crate::external::check!(
+			$result
+				.simulation_details
+				.unwrap()
+				.logs
+				.iter()
+				.any(|log| log.contains(format!("Error Code: {error_name}").as_str())),
+			"`{:#?}` not found in logs",
+			$expected_error,
+		);
+	}};
+}
+
+/// Assert that the banks client errors with the expected anchor error code.
+#[macro_export]
+macro_rules! assert_banks_client_metadata_error {
+	($result:ident, $expected_error:path) => {{
+		let error_name = $expected_error.name();
+
+		$crate::external::check!(
+			$result.result.is_err(),
+			"the simulation was expected to error"
+		);
+		$crate::external::check!(
+			$result
+				.metadata
+				.unwrap()
+				.log_messages
+				.iter()
+				.any(|log| log.contains(format!("Error Code: {error_name}").as_str())),
+			"`{:#?}` not found in logs",
+			$expected_error,
+		);
 	}};
 }
