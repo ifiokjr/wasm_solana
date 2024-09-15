@@ -22,12 +22,17 @@ pub mod prelude {
 	pub use wallet_standard::prelude::*;
 	pub use wasm_client_anchor::prelude::*;
 
-	pub use super::BankClientAnchorRequestMethods;
-	pub use super::BanksClientExt;
+	pub use super::BanksClientAnchorRequestMethods;
+	pub use super::BanksClientAsyncExtension;
 	pub use super::FromAnchorData;
 	pub use super::ProgramTestBanksClientExt;
 	pub use super::ProgramTestContextExtension;
 	pub use super::ProgramTestExtension;
 	#[cfg(feature = "test_validator")]
 	pub use super::TestValidatorGenesisExtensions;
+}
+
+pub mod external {
+	pub use assert2::check;
+	pub use solana_program_test::processor;
 }

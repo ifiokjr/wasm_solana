@@ -1,5 +1,7 @@
 #![allow(clippy::too_many_arguments)]
 
+use std::fmt::Display;
+
 use anchor_lang::AccountDeserialize;
 use anchor_lang::AnchorSerialize;
 use anchor_lang::Discriminator;
@@ -35,6 +37,9 @@ use solana_sdk::signature::Signer;
 use solana_sdk::sysvar::rent::Rent;
 use solana_sdk::transaction::VersionedTransaction;
 use spl_associated_token_account::get_associated_token_address;
+use wallet_standard::prelude::*;
+use wallet_standard::SolanaSignAndSendTransactionProps;
+use wallet_standard::SolanaSignTransactionProps;
 use wasm_client_anchor::prelude::*;
 use wasm_client_anchor::AnchorClientError;
 use wasm_client_anchor::AnchorClientResult;
@@ -43,7 +48,110 @@ use wasm_client_anchor::WalletAnchor;
 pub const MAX_COMPUTE_UNITS: u64 = DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT as u64;
 
 #[async_trait(?Send)]
-pub trait BankClientAnchorRequestMethods<'a, W: WalletAnchor + Signer + 'a>:
+pub trait BanksClientAsyncExtension {
+	/// Sign the transaction with the provided wallet.
+	async fn wallet_sign_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		props: SolanaSignTransactionProps,
+	) -> WalletResult<VersionedTransaction>;
+	/// Sign the transaction and process it via the current banks client.
+	async fn wallet_sign_and_process_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		props: SolanaSignAndSendTransactionProps,
+	) -> WalletResult<BanksTransactionResultWithMetadata>;
+	/// Sign and imulate the transaction.
+	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		props: SolanaSignAndSendTransactionProps,
+	) -> AnchorClientResult<BanksTransactionResultWithSimulation>;
+}
+
+fn into_wallet_error<T: Display>(error: T) -> WalletError {
+	WalletError::External(error.to_string())
+}
+
+#[async_trait(?Send)]
+impl BanksClientAsyncExtension for BanksClient {
+	async fn wallet_sign_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		SolanaSignTransactionProps {
+			mut transaction, ..
+		}: SolanaSignTransactionProps,
+	) -> WalletResult<VersionedTransaction> {
+		let hash = self
+			.get_latest_blockhash()
+			.await
+			.map_err(into_wallet_error)?;
+		transaction.try_sign(&[wallet], Some(hash))?;
+
+		Ok(transaction)
+	}
+
+	async fn wallet_sign_and_process_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		SolanaSignAndSendTransactionProps {
+			transaction,
+			chain,
+			options,
+			..
+		}: SolanaSignAndSendTransactionProps,
+	) -> WalletResult<BanksTransactionResultWithMetadata> {
+		let transaction = self
+			.wallet_sign_transaction(
+				wallet,
+				SolanaSignTransactionProps {
+					transaction,
+					chain,
+					options: options.map(Into::into),
+				},
+			)
+			.await?;
+
+		let metadata = self
+			.process_transaction_with_metadata(transaction)
+			.await
+			.map_err(into_wallet_error)?;
+
+		Ok(metadata)
+	}
+
+	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		SolanaSignAndSendTransactionProps {
+			transaction,
+			chain,
+			options,
+			..
+		}: SolanaSignAndSendTransactionProps,
+	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
+		let transaction = self
+			.wallet_sign_transaction(
+				wallet,
+				SolanaSignTransactionProps {
+					transaction,
+					chain,
+					options: options.map(Into::into),
+				},
+			)
+			.await?;
+
+		let result = self
+			.simulate_transaction(transaction)
+			.await
+			.map_err(into_wallet_error)?;
+
+		Ok(result)
+	}
+}
+
+#[async_trait(?Send)]
+pub trait BanksClientAnchorRequestMethods<'a, W: WalletAnchor + Signer + 'a>:
 	AnchorRequestMethods<'a, W>
 {
 	async fn sign_banks_client_transaction(
@@ -108,7 +216,7 @@ pub trait BankClientAnchorRequestMethods<'a, W: WalletAnchor + Signer + 'a>:
 	}
 }
 
-impl<'a, W: WalletAnchor + Signer + 'a, T> BankClientAnchorRequestMethods<'a, W> for T where
+impl<'a, W: WalletAnchor + Signer + 'a, T> BanksClientAnchorRequestMethods<'a, W> for T where
 	T: AnchorRequestMethods<'a, W>
 {
 }
