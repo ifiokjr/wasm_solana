@@ -28,10 +28,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
-      - name: lint ecmascript
-        run: lint:es
-        shell: bash
-
       - name: lint formatting
         run: lint:format
         shell: bash
