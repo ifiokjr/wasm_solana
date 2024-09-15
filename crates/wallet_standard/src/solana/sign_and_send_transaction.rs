@@ -21,9 +21,9 @@ pub struct SolanaSignAndSendTransactionProps {
 	#[builder(setter(into))]
 	pub transaction: VersionedTransaction,
 	/// Chain to use.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = chain_opt)))]
 	pub chain: Option<String>,
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = options_opt)))]
 	pub options: Option<SolanaSignAndSendTransactionOptions>,
 }
 
