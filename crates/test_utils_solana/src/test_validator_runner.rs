@@ -21,8 +21,10 @@ use port_check::is_local_ipv4_port_free;
 use rand::Rng;
 use send_wrapper::SendWrapper;
 use solana_faucet::faucet::run_local_faucet_with_port;
+use solana_program::epoch_schedule::EpochSchedule;
 use solana_rpc::rpc::JsonRpcConfig;
 use solana_sdk::account::AccountSharedData;
+use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::commitment_config::CommitmentLevel;
 use solana_sdk::native_token::sol_to_lamports;
@@ -43,11 +45,16 @@ pub struct TestValidatorRunnerProps {
 	/// The programs to add to the validator.
 	#[builder(default)]
 	pub programs: Vec<TestProgramInfo>,
-	/// The pubkeys to fund with an amount of sol each.
+	/// The funded pubkeys to fund with an amount of sol each. The amount can be
+	/// overriden via [`TestValidatorRunnerProps::initial_lamports`]. For more
+	/// custom control on funded accounts you can use the `accounts` field.
 	#[builder(default)]
 	pub pubkeys: Vec<Pubkey>,
-	/// The initial lamports to add to each pubkey account.
-	#[builder(default = sol_to_lamports(50.0))]
+	/// The initial lamports to add to the defined
+	/// [`TestValidatorRunnerProps::pubkeys`].
+	///
+	/// The default amount is `5.0 SOL`.
+	#[builder(default = sol_to_lamports(5.0))]
 	pub initial_lamports: u64,
 	/// The default commitment level to use for the validator client rpc.
 	#[builder(default, setter(into))]
@@ -67,6 +74,37 @@ pub struct TestValidatorRunnerProps {
 	/// ```
 	#[builder(default, setter(into, strip_option(fallback = namespace_opt)))]
 	pub namespace: Option<&'static str>,
+	/// Warp the ledger to `warp_slot` after starting the validator.
+	#[builder(default = 1000, setter(into))]
+	pub warp_slot: Slot,
+	/// Override the epoch schedule.
+	#[builder(default)]
+	pub epoch_schedule: EpochSchedule,
+}
+
+impl TestValidatorRunnerProps {
+	/// Defers to the [`TestValidatorRunner::run`] method with the props
+	/// defined in this struct.
+	///
+	/// ```rust
+	/// use solana_sdk::native_token::sol_to_lamports;
+	/// use solana_sdk::pubkey;
+	/// use test_utils_solana::TestValidatorRunnerProps;
+	///
+	/// async fn run() {
+	/// 	let user = pubkey!("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin");
+	/// 	let runner = TestValidatorRunnerProps::builder()
+	/// 		.pubkeys(vec![user])
+	/// 		.initial_lamports(sol_to_lamports(2.0))
+	/// 		.namespace("custom")
+	/// 		.build()
+	/// 		.run()
+	/// 		.await;
+	/// }
+	/// ```
+	pub async fn run(self) -> TestValidatorRunner {
+		TestValidatorRunner::run(self).await
+	}
 }
 
 #[derive(Clone, TypedBuilder)]
@@ -112,18 +150,27 @@ pub struct TestValidatorRunner {
 	mint_keypair: Arc<Keypair>,
 	/// The rpc client for the validator.
 	rpc: SolanaRpcClient,
+	/// The namespace for this runner.
+	namespace: Option<&'static str>,
 }
 
 impl TestValidatorRunner {
-	async fn run_internal(props: TestValidatorRunnerProps) -> Result<Self> {
+	async fn run_internal(
+		TestValidatorRunnerProps {
+			programs,
+			pubkeys,
+			initial_lamports,
+			commitment,
+			accounts,
+			namespace,
+			warp_slot,
+			epoch_schedule,
+		}: TestValidatorRunnerProps,
+	) -> Result<Self> {
 		let mut genesis = TestValidatorGenesis::default();
 		let faucet_keypair = Keypair::new();
 		let faucet_pubkey = faucet_keypair.pubkey();
-		let programs = props
-			.programs
-			.into_iter()
-			.map(Into::into)
-			.collect::<Vec<_>>();
+		let programs = programs.into_iter().map(Into::into).collect::<Vec<_>>();
 		let (rpc_port, pubsub_port, faucet_port) =
 			find_ports().context("could not find a port for the solana localnet")?;
 
@@ -141,10 +188,10 @@ impl TestValidatorRunner {
 			.expect("run solana faucet")
 			.expect("there was an error running the solana faucet");
 
-		let funded_accounts = props.pubkeys.iter().map(|pubkey| {
+		let funded_accounts = pubkeys.iter().map(|pubkey| {
 			(
 				*pubkey,
-				AccountSharedData::new(sol_to_lamports(100.0), 0, &Pubkey::default()),
+				AccountSharedData::new(initial_lamports, 0, &Pubkey::default()),
 			)
 		});
 
@@ -157,14 +204,15 @@ impl TestValidatorRunner {
 			})
 			// Needed to prevent all account transactions from failing with this error:
 			// `Attempt to debit an account but found no record of a prior credit.`
-			.warp_slot(100)
+			.warp_slot(warp_slot)
+			.epoch_schedule(epoch_schedule)
 			.add_upgradeable_programs_with_path(&programs)
 			.add_account(
 				faucet_pubkey,
 				AccountSharedData::new(sol_to_lamports(1_000_000.0), 0, &system_program::ID),
 			)
 			.add_accounts(funded_accounts)
-			.add_accounts(props.accounts);
+			.add_accounts(accounts);
 
 		let wrapped_future = SendWrapper::new(genesis.start_async());
 		let (validator, mint_keypair) = wrapped_future.await;
@@ -172,9 +220,7 @@ impl TestValidatorRunner {
 		let rpc = SolanaRpcClient::new_with_ws_and_commitment(
 			&validator.rpc_url(),
 			&validator.rpc_pubsub_url(),
-			CommitmentConfig {
-				commitment: props.commitment,
-			},
+			CommitmentConfig { commitment },
 		);
 
 		// waiting for fees to stablize doesn't seem to work, so here waiting for this
@@ -190,15 +236,13 @@ impl TestValidatorRunner {
 			validator: Arc::new(validator),
 			mint_keypair: Arc::new(mint_keypair),
 			rpc,
+			namespace,
 		};
 
 		Ok(runner)
 	}
 
-	/// Create a new test validator runner.
-	///
-	/// This method is `Send` safe and can be called with a namespace that is
-	/// used to reuse runners.
+	/// Create a new runner for the solana test validator.
 	///
 	/// ```rust
 	/// use test_utils_solana::TestValidatorRunner;
@@ -256,6 +300,10 @@ impl TestValidatorRunner {
 
 	pub fn mint_keypair(&self) -> &Keypair {
 		&self.mint_keypair
+	}
+
+	pub fn namespace(&self) -> Option<&'static str> {
+		self.namespace
 	}
 }
 
