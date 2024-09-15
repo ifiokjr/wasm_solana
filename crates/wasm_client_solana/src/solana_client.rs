@@ -515,11 +515,8 @@ impl SolanaRpcClient {
 
 		let mut pubkey_accounts: Vec<(Pubkey, Account)> = Vec::with_capacity(accounts.len());
 		for RpcKeyedAccount { pubkey, account } in accounts {
-			let pubkey = pubkey
-				.parse()
-				.map_err(|_| RpcError::new(format!("{pubkey} is not a valid pubkey.")))?;
 			pubkey_accounts.push((
-				pubkey,
+				*pubkey,
 				account
 					.decode()
 					.ok_or_else(|| RpcError::new(format!("Unable to decode {pubkey}")))?,
@@ -868,8 +865,8 @@ impl SolanaRpcClient {
 		config: GetConfirmedSignaturesForAddress2Config,
 	) -> ClientResult<Vec<RpcConfirmedTransactionStatusWithSignature>> {
 		let config = RpcSignaturesForAddressConfig {
-			before: config.before.map(|signature| signature.to_string()),
-			until: config.until.map(|signature| signature.to_string()),
+			before: config.before,
+			until: config.until,
 			limit: config.limit,
 			commitment: config.commitment,
 			min_context_slot: None,

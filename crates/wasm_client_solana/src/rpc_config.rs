@@ -29,10 +29,12 @@ use crate::ClientResult;
 use crate::RpcError;
 use crate::SolanaRpcClient;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde_as]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcKeyedAccount {
-	pub pubkey: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub pubkey: Pubkey,
 	pub account: UiAccount,
 }
 
@@ -161,10 +163,12 @@ pub struct RpcSignatureStatusConfig {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcSendTransactionConfig {
 	#[serde(default)]
+	#[builder(!default, setter(into, !strip_option, strip_bool(fallback = skip_preflight_bool)))]
 	pub skip_preflight: bool,
 	pub preflight_commitment: Option<CommitmentLevel>,
 	pub encoding: Option<UiTransactionEncoding>,
@@ -173,40 +177,52 @@ pub struct RpcSendTransactionConfig {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcSimulateTransactionAccountsConfig {
 	pub encoding: Option<UiAccountEncoding>,
+	#[builder(setter(!strip_option))]
 	pub addresses: Vec<String>,
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcSimulateTransactionConfig {
 	#[serde(default)]
+	#[builder(setter(into, strip_bool(fallback = sig_verify_bool)))]
 	pub sig_verify: bool,
 	#[serde(default)]
+	#[builder(default, setter(into, strip_option(fallback = replace_recent_blockhash_opt)))]
 	pub replace_recent_blockhash: Option<bool>,
 	#[serde(flatten)]
+	#[builder(default, setter(into, strip_option(fallback = commitment_opt)))]
 	pub commitment: Option<CommitmentConfig>,
+	#[builder(default, setter(into, strip_option(fallback = encoding_opt)))]
 	pub encoding: Option<UiTransactionEncoding>,
+	#[builder(default, setter(into, strip_option(fallback = accounts_opt)))]
 	pub accounts: Option<RpcSimulateTransactionAccountsConfig>,
+	#[builder(default, setter(into, strip_option(fallback = min_context_slot_opt)))]
 	pub min_context_slot: Option<Slot>,
 }
 
+#[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcRequestAirdropConfig {
-	pub recent_blockhash: Option<String>, // base-58 encoded blockhash
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub recent_blockhash: Option<Hash>, // base-58 encoded blockhash
 	#[serde(flatten)]
 	pub commitment: Option<CommitmentConfig>,
 }
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcLeaderScheduleConfig {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -216,28 +232,35 @@ pub struct RpcLeaderScheduleConfig {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockProductionConfigRange {
 	pub first_slot: Slot,
+	#[builder(default, setter(into, strip_option(fallback = last_slot_opt)))]
 	pub last_slot: Option<Slot>,
 }
 
+#[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockProductionConfig {
-	pub identity: Option<String>, // validator identity, as a base-58 encoded string
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub identity: Option<Pubkey>, // validator identity, as a base-58 encoded string
 	pub range: Option<RpcBlockProductionConfigRange>, // current epoch if `None`
 	#[serde(flatten)]
 	pub commitment: Option<CommitmentConfig>,
 }
 
+#[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcGetVoteAccountsConfig {
-	pub vote_pubkey: Option<String>, // validator vote address, as a base-58 encoded string
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub vote_pubkey: Option<Pubkey>, // validator vote address, as a base-58 encoded string
 	#[serde(flatten)]
 	pub commitment: Option<CommitmentConfig>,
 	pub keep_unstaked_delinquents: Option<bool>,
@@ -269,7 +292,8 @@ pub enum RpcLargestAccountsFilter {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcLargestAccountsConfig {
 	#[serde(flatten)]
@@ -287,7 +311,8 @@ pub struct RpcSupplyConfig {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcEpochConfig {
 	pub epoch: Option<Epoch>,
@@ -312,12 +337,14 @@ pub struct RpcAccountInfoConfig {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcProgramAccountsConfig {
+	#[builder(default, setter(strip_option(fallback = filters_opt)))]
 	pub filters: Option<Vec<RpcFilterType>>,
 	#[serde(flatten)]
 	pub account_config: RpcAccountInfoConfig,
+	#[builder(default, setter(strip_option(fallback = with_context_opt)))]
 	pub with_context: Option<bool>,
 }
 
@@ -335,12 +362,13 @@ impl Serialize for ProgramSubscribeRequest {
 	where
 		S: Serializer,
 	{
+		#[serde_as]
 		#[skip_serializing_none]
 		#[derive(Serialize)]
 		#[serde(rename = "ProgramSubscribeRequest")]
-		struct Inner<'serde_tuple_inner>(
-			&'serde_tuple_inner Pubkey,
-			&'serde_tuple_inner Option<RpcProgramAccountsConfig>,
+		struct Inner<'a>(
+			#[serde_as(as = "DisplayFromStr")] &'a Pubkey,
+			&'a Option<RpcProgramAccountsConfig>,
 		);
 
 		let inner = Inner(&self.program_id, &self.config);
@@ -353,9 +381,14 @@ impl<'de> Deserialize<'de> for ProgramSubscribeRequest {
 	where
 		D: Deserializer<'de>,
 	{
+		#[serde_as]
+		#[skip_serializing_none]
 		#[derive(Deserialize)]
 		#[serde(rename = "ProgramSubscribeRequest")]
-		struct Inner(Pubkey, Option<RpcProgramAccountsConfig>);
+		struct Inner(
+			#[serde_as(as = "DisplayFromStr")] Pubkey,
+			Option<RpcProgramAccountsConfig>,
+		);
 
 		let inner: Inner = Deserialize::deserialize(serde_tuple::Deserializer(deserializer))?;
 		Ok(ProgramSubscribeRequest {
@@ -373,12 +406,16 @@ pub enum RpcTokenAccountsFilter {
 	ProgramId(#[serde_as(as = "DisplayFromStr")] Pubkey),
 }
 
+#[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcSignaturesForAddressConfig {
-	pub before: Option<String>, // Signature as base-58 string
-	pub until: Option<String>,  // Signature as base-58 string
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub before: Option<Signature>, // Signature as base-58 string
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub until: Option<Signature>, // Signature as base-58 string
 	pub limit: Option<usize>,
 	#[serde(flatten)]
 	pub commitment: Option<CommitmentConfig>,
@@ -418,7 +455,8 @@ pub trait EncodingConfig {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockConfig {
 	pub encoding: Option<UiTransactionEncoding>,
@@ -462,7 +500,8 @@ impl From<RpcBlockConfig> for RpcEncodingConfigWrapper<RpcBlockConfig> {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
 #[serde(rename_all = "camelCase")]
 pub struct RpcTransactionConfig {
 	pub encoding: Option<UiTransactionEncoding>,
@@ -498,8 +537,9 @@ impl RpcBlocksConfigWrapper {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
+#[builder(field_defaults(default, setter(strip_option)))]
 pub struct RpcContextConfig {
 	#[serde(flatten)]
 	pub commitment: Option<CommitmentConfig>,
@@ -572,7 +612,7 @@ pub struct RpcSignatureSubscribeConfig {
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct BlockSubscribeRequest {
 	pub filter: RpcBlockSubscribeFilter,
-	#[builder(default)]
+	#[builder(default, setter(into, strip_option(fallback = config_opt)))]
 	pub config: Option<RpcBlockSubscribeConfig>,
 }
 
@@ -615,6 +655,7 @@ impl<'de> Deserialize<'de> for BlockSubscribeRequest {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
+#[builder(field_defaults(setter(into)))]
 pub struct LogsSubscribeRequest {
 	pub filter: RpcTransactionLogsFilter,
 	pub config: RpcTransactionLogsConfig,

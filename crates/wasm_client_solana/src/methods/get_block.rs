@@ -104,9 +104,19 @@ mod tests {
 
 		check!(value.block_height == Some(428));
 		check!(value.block_time.is_none());
-		check!(value.blockhash == "3Eq21vXNB5s86c62bVuUfTeaMif1N2kUqRPBmGRJhyTA");
+		check!(
+			value.blockhash
+				== "3Eq21vXNB5s86c62bVuUfTeaMif1N2kUqRPBmGRJhyTA"
+					.parse()
+					.unwrap()
+		);
 		check!(value.parent_slot == 429);
-		check!(value.previous_blockhash == "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B");
+		check!(
+			value.previous_blockhash
+				== "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B"
+					.parse()
+					.unwrap()
+		);
 
 		let encoded = EncodedTransactionWithStatusMeta {
 			version: None,

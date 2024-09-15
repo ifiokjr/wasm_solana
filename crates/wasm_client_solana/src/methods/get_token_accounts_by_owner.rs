@@ -112,7 +112,7 @@ mod tests {
             response.result.value==
             vec![RpcKeyedAccount {
                 account: UiAccount {
-                    owner: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA".to_string(),
+                    owner: pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
                     data: UiAccountData::Json(ParsedAccount {
                         program: "spl-token".to_string(),
                         space: 165,
@@ -123,7 +123,7 @@ mod tests {
                     rent_epoch: 4,
                     space: Some(165)
                 },
-                pubkey: "C2gJg6tKpQs41PRS1nC8aw3ZKNZK3HQQZGVrDFDup5nx".to_string()
+                pubkey: pubkey!("C2gJg6tKpQs41PRS1nC8aw3ZKNZK3HQQZGVrDFDup5nx"),
             }]
         );
 	}

@@ -135,7 +135,7 @@ mod tests {
             Some(
             vec![RpcKeyedAccount {
                 account: UiAccount {
-                    owner: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA".to_string(),
+                    owner: pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
                     data: UiAccountData::Json(ParsedAccount {
                         program: "spl-token".to_string(),
                         space: 165,
@@ -146,7 +146,7 @@ mod tests {
                     rent_epoch: 4,
                     space: Some(165)
                 },
-                pubkey: "28YTZEwqtMHWrhWcvv34se7pjS7wctgqzCPB3gReCFKp".to_string()
+                pubkey: pubkey!("28YTZEwqtMHWrhWcvv34se7pjS7wctgqzCPB3gReCFKp")
             }])
         );
 	}

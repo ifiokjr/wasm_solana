@@ -53,7 +53,7 @@ mod tests {
 			.id(1)
 			.params(GetVoteAccountsRequest::new_with_config(
 				RpcGetVoteAccountsConfig {
-					vote_pubkey: Some("3ZT31jkAGhUaw8jsy4bTknwBMP8i4Eueh52By4zXcsVw".to_string()),
+					vote_pubkey: Some(pubkey!("3ZT31jkAGhUaw8jsy4bTknwBMP8i4Eueh52By4zXcsVw")),
 					..Default::default()
 				},
 			))

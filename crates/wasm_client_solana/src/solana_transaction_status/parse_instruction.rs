@@ -6,6 +6,9 @@ use heck::ToKebabCase;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::address_lookup_table;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::message::AccountKeys;
@@ -81,11 +84,14 @@ pub enum ParseInstructionError {
 	SerdeJsonError(#[from] serde_json::error::Error),
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParsedInstruction {
 	pub program: String,
-	pub program_id: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub program_id: Pubkey,
 	pub parsed: Value,
 	pub stack_height: Option<u32>,
 }
@@ -143,7 +149,7 @@ pub fn parse(
 	};
 	Ok(ParsedInstruction {
 		program: format!("{program_name:?}").to_kebab_case(),
-		program_id: program_id.to_string(),
+		program_id: *program_id,
 		parsed: parsed_json,
 		stack_height,
 	})
@@ -191,7 +197,7 @@ mod test {
 			parse(&MEMO_V1_PROGRAM_ID, &memo_instruction, &no_keys, None).unwrap(),
 			ParsedInstruction {
 				program: "spl-memo".to_string(),
-				program_id: MEMO_V1_PROGRAM_ID.to_string(),
+				program_id: *MEMO_V1_PROGRAM_ID,
 				parsed: json!("🦖"),
 				stack_height: None,
 			}
@@ -200,7 +206,7 @@ mod test {
 			parse(&MEMO_V3_PROGRAM_ID, &memo_instruction, &no_keys, Some(1)).unwrap(),
 			ParsedInstruction {
 				program: "spl-memo".to_string(),
-				program_id: MEMO_V3_PROGRAM_ID.to_string(),
+				program_id: *MEMO_V3_PROGRAM_ID,
 				parsed: json!("🦖"),
 				stack_height: Some(1),
 			}

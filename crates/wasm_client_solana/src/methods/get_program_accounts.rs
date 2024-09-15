@@ -128,11 +128,11 @@ mod tests {
 						executable: false,
 						data: UiAccountData::LegacyBinary("2R9jLfiAQ9bgdcw6h8s44439".to_string()),
 						lamports: 15_298_080,
-						owner: "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T".to_string(),
+						owner: pubkey!("4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T"),
 						rent_epoch: 28,
 						space: Some(42)
 					},
-					pubkey: "CxELquR1gPP8wHe33gZ4QxqGB3sZ9RSwsJ2KshVewkFY".to_string()
+					pubkey: pubkey!("CxELquR1gPP8wHe33gZ4QxqGB3sZ9RSwsJ2KshVewkFY")
 				}]
 		);
 	}

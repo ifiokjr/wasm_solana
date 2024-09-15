@@ -193,11 +193,15 @@ impl UiCompiledInstruction {
 
 /// A partially decoded `CompiledInstruction` that includes explicit account
 /// addresses
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiPartiallyDecodedInstruction {
-	pub program_id: String,
-	pub accounts: Vec<String>,
+	#[serde_as(as = "DisplayFromStr")]
+	pub program_id: Pubkey,
+	#[serde_as(as = "Vec<DisplayFromStr>")]
+	pub accounts: Vec<Pubkey>,
 	pub data: String,
 	pub stack_height: Option<u32>,
 }
@@ -209,11 +213,11 @@ impl UiPartiallyDecodedInstruction {
 		stack_height: Option<u32>,
 	) -> Self {
 		Self {
-			program_id: account_keys[instruction.program_id_index as usize].to_string(),
+			program_id: account_keys[instruction.program_id_index as usize],
 			accounts: instruction
 				.accounts
 				.iter()
-				.map(|&i| account_keys[i as usize].to_string())
+				.map(|&index| account_keys[index as usize])
 				.collect(),
 			data: bs58::encode(instruction.data.clone()).into_string(),
 			stack_height,
@@ -309,45 +313,19 @@ impl From<InnerInstructions> for UiInnerInstructions {
 	}
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct TransactionTokenBalance {
-	pub account_index: u8,
-	pub mint: String,
-	pub ui_token_amount: UiTokenAmount,
-	pub owner: String,
-	pub program_id: String,
-}
-
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UiTransactionTokenBalance {
+pub struct TransactionTokenBalance {
 	pub account_index: u8,
-	pub mint: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub mint: Pubkey,
 	pub ui_token_amount: UiTokenAmount,
 	#[serde_as(as = "Option<DisplayFromStr>")]
-	pub owner: Option<String>,
+	pub owner: Option<Pubkey>,
 	#[serde_as(as = "Option<DisplayFromStr>")]
-	pub program_id: Option<String>,
-}
-
-impl From<TransactionTokenBalance> for UiTransactionTokenBalance {
-	fn from(token_balance: TransactionTokenBalance) -> Self {
-		Self {
-			account_index: token_balance.account_index,
-			mint: token_balance.mint,
-			ui_token_amount: token_balance.ui_token_amount,
-			owner: token_balance
-				.owner
-				.is_empty()
-				.then_some(token_balance.owner),
-			program_id: token_balance
-				.program_id
-				.is_empty()
-				.then_some(token_balance.program_id),
-		}
-	}
+	pub program_id: Option<Pubkey>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -398,8 +376,8 @@ pub struct UiTransactionStatusMeta {
 	pub post_balances: Vec<u64>,
 	pub inner_instructions: Option<Vec<UiInnerInstructions>>,
 	pub log_messages: Option<Vec<String>>,
-	pub pre_token_balances: Option<Vec<UiTransactionTokenBalance>>,
-	pub post_token_balances: Option<Vec<UiTransactionTokenBalance>>,
+	pub pre_token_balances: Option<Vec<TransactionTokenBalance>>,
+	pub post_token_balances: Option<Vec<TransactionTokenBalance>>,
 	pub rewards: Option<Rewards>,
 	pub loaded_addresses: Option<UiLoadedAddresses>,
 	pub return_data: Option<UiTransactionReturnData>,
@@ -571,10 +549,13 @@ pub struct ConfirmedTransactionStatusWithSignature {
 	pub block_time: Option<UnixTimestamp>,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Reward {
-	pub pubkey: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub pubkey: Pubkey,
 	pub lamports: i64,
 	pub post_balance: u64, // Account balance in lamports after `lamports` was applied
 	pub reward_type: Option<RewardType>,
@@ -597,8 +578,8 @@ pub enum ConvertBlockError {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConfirmedBlock {
-	pub previous_blockhash: String,
-	pub blockhash: String,
+	pub previous_blockhash: Hash,
+	pub blockhash: Hash,
 	pub parent_slot: Slot,
 	pub transactions: Vec<TransactionWithStatusMeta>,
 	pub rewards: Rewards,
@@ -611,8 +592,8 @@ pub struct ConfirmedBlock {
 // is always present. Used for uploading to BigTable.
 #[derive(Clone, Debug, PartialEq)]
 pub struct VersionedConfirmedBlock {
-	pub previous_blockhash: String,
-	pub blockhash: String,
+	pub previous_blockhash: Hash,
+	pub blockhash: Hash,
 	pub parent_slot: Slot,
 	pub transactions: Vec<VersionedTransactionWithStatusMeta>,
 	pub rewards: Rewards,
@@ -707,7 +688,7 @@ impl ConfirmedBlock {
 					Some(
 						self.transactions
 							.into_iter()
-							.map(|tx_with_meta| tx_with_meta.transaction_signature().to_string())
+							.map(|tx_with_meta| *tx_with_meta.transaction_signature())
 							.collect(),
 					),
 				)
@@ -748,11 +729,15 @@ impl ConfirmedBlock {
 	}
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct EncodedConfirmedBlock {
-	pub previous_blockhash: String,
-	pub blockhash: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub previous_blockhash: Hash,
+	#[serde_as(as = "DisplayFromStr")]
+	pub blockhash: Hash,
 	pub parent_slot: Slot,
 	pub transactions: Vec<EncodedTransactionWithStatusMeta>,
 	pub rewards: Rewards,
@@ -776,19 +761,20 @@ impl From<UiConfirmedBlock> for EncodedConfirmedBlock {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfirmedBlock {
-	pub previous_blockhash: String,
-	pub blockhash: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub previous_blockhash: Hash,
+	#[serde_as(as = "DisplayFromStr")]
+	pub blockhash: Hash,
 	pub parent_slot: Slot,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub transactions: Option<Vec<EncodedTransactionWithStatusMeta>>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub signatures: Option<Vec<String>>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
+	#[serde_as(as = "Option<Vec<DisplayFromStr>>")]
+	pub signatures: Option<Vec<Signature>>,
 	pub rewards: Option<Rewards>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub num_reward_partitions: Option<u64>,
 	pub block_time: Option<UnixTimestamp>,
 	pub block_height: Option<u64>,
@@ -1202,7 +1188,7 @@ impl Encodable for Message {
 			let account_keys = AccountKeys::new(&self.account_keys, None);
 			UiMessage::Parsed(UiParsedMessage {
 				account_keys: parse_legacy_message_accounts(self),
-				recent_blockhash: self.recent_blockhash.to_string(),
+				recent_blockhash: self.recent_blockhash,
 				instructions: self
 					.instructions
 					.iter()
@@ -1239,7 +1225,7 @@ impl EncodableWithMeta for v0::Message {
 			let loaded_message = LoadedMessage::new_borrowed(self, &meta.loaded_addresses);
 			UiMessage::Parsed(UiParsedMessage {
 				account_keys: parse_v0_message_accounts(&loaded_message),
-				recent_blockhash: self.recent_blockhash.to_string(),
+				recent_blockhash: self.recent_blockhash,
 				instructions: self
 					.instructions
 					.iter()
@@ -1321,39 +1307,47 @@ impl From<&MessageAddressTableLookup> for UiAddressTableLookup {
 
 /// A duplicate representation of a Message, in parsed format, for pretty JSON
 /// serialization
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiParsedMessage {
 	pub account_keys: Vec<ParsedAccount>,
-	pub recent_blockhash: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub recent_blockhash: Hash,
 	pub instructions: Vec<UiInstruction>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub address_table_lookups: Option<Vec<UiAddressTableLookup>>,
 }
 
 // A serialized `Vec<TransactionByAddrInfo>` is stored in the `tx-by-addr`
 // table.  The row keys are the one's compliment of the slot so that rows may be
 // listed in reverse order
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TransactionByAddrInfo {
-	pub signature: Signature,          // The transaction signature
+	#[serde_as(as = "DisplayFromStr")]
+	pub signature: Signature, // The transaction signature
 	pub err: Option<TransactionError>, // None if the transaction executed successfully
 	pub index: u32,                    // Where the transaction is located in the block
 	pub memo: Option<String>,          // Transaction memo
 	pub block_time: Option<UnixTimestamp>,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransactionReturnData {
-	pub program_id: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub program_id: Pubkey,
 	pub data: (String, UiReturnDataEncoding),
 }
 
 impl Default for UiTransactionReturnData {
 	fn default() -> Self {
 		Self {
-			program_id: String::default(),
+			program_id: Pubkey::default(),
 			data: (String::default(), UiReturnDataEncoding::Base64),
 		}
 	}
@@ -1362,7 +1356,7 @@ impl Default for UiTransactionReturnData {
 impl From<TransactionReturnData> for UiTransactionReturnData {
 	fn from(return_data: TransactionReturnData) -> Self {
 		Self {
-			program_id: return_data.program_id.to_string(),
+			program_id: return_data.program_id,
 			data: (
 				BASE64_STANDARD.encode(return_data.data),
 				UiReturnDataEncoding::Base64,
@@ -1506,7 +1500,7 @@ mod test {
 		                            DXM2yVSouSg1twmQgHLKoSReqXhtUroehWxrTgPmmfWi\",\"\
 		                            uiTokenAmount\": {
                 \"amount\": \"1\",\"decimals\": 0,\"uiAmount\": 1.0,\"uiAmountString\": \"1\"}}";
-		test_serde::<UiTransactionTokenBalance>(json_input, expected_json_output);
+		test_serde::<TransactionTokenBalance>(json_input, expected_json_output);
 	}
 
 	#[test]

@@ -1,8 +1,12 @@
 use bincode::deserialize;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::UnixTimestamp;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::stake::state::Authorized;
 use solana_sdk::stake::state::Delegation;
 use solana_sdk::stake::state::Lockup;
@@ -12,7 +16,6 @@ use solana_sdk::stake::state::StakeStateV2;
 
 use super::parse_account_data::ParsableAccount;
 use super::parse_account_data::ParseAccountError;
-use super::StringAmount;
 
 pub fn parse_stake(data: &[u8]) -> Result<StakeAccountType, ParseAccountError> {
 	let stake_state: StakeStateV2 = deserialize(data)
@@ -55,7 +58,7 @@ pub struct UiStakeAccount {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMeta {
-	pub rent_exempt_reserve: StringAmount,
+	pub rent_exempt_reserve: u64,
 	pub authorized: UiAuthorized,
 	pub lockup: UiLockup,
 }
@@ -63,19 +66,21 @@ pub struct UiMeta {
 impl From<Meta> for UiMeta {
 	fn from(meta: Meta) -> Self {
 		Self {
-			rent_exempt_reserve: meta.rent_exempt_reserve.to_string(),
+			rent_exempt_reserve: meta.rent_exempt_reserve,
 			authorized: meta.authorized.into(),
 			lockup: meta.lockup.into(),
 		}
 	}
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiLockup {
 	pub unix_timestamp: UnixTimestamp,
 	pub epoch: Epoch,
-	pub custodian: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub custodian: Pubkey,
 }
 
 impl From<Lockup> for UiLockup {
@@ -83,23 +88,26 @@ impl From<Lockup> for UiLockup {
 		Self {
 			unix_timestamp: lockup.unix_timestamp,
 			epoch: lockup.epoch,
-			custodian: lockup.custodian.to_string(),
+			custodian: lockup.custodian,
 		}
 	}
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiAuthorized {
-	pub staker: String,
-	pub withdrawer: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub staker: Pubkey,
+	#[serde_as(as = "DisplayFromStr")]
+	pub withdrawer: Pubkey,
 }
 
 impl From<Authorized> for UiAuthorized {
 	fn from(authorized: Authorized) -> Self {
 		Self {
-			staker: authorized.staker.to_string(),
-			withdrawer: authorized.withdrawer.to_string(),
+			staker: authorized.staker,
+			withdrawer: authorized.withdrawer,
 		}
 	}
 }
@@ -120,13 +128,16 @@ impl From<Stake> for UiStake {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiDelegation {
-	pub voter: String,
-	pub stake: StringAmount,
-	pub activation_epoch: StringAmount,
-	pub deactivation_epoch: StringAmount,
+	#[serde_as(as = "DisplayFromStr")]
+	pub voter: Pubkey,
+	pub stake: u64,
+	pub activation_epoch: u64,
+	pub deactivation_epoch: u64,
 	#[deprecated(
 		since = "1.16.7",
 		note = "Please use `solana_sdk::stake::stake::warmup_cooldown_rate()` instead"
@@ -138,10 +149,10 @@ impl From<Delegation> for UiDelegation {
 	fn from(delegation: Delegation) -> Self {
 		#[allow(deprecated)]
 		Self {
-			voter: delegation.voter_pubkey.to_string(),
-			stake: delegation.stake.to_string(),
-			activation_epoch: delegation.activation_epoch.to_string(),
-			deactivation_epoch: delegation.deactivation_epoch.to_string(),
+			voter: delegation.voter_pubkey,
+			stake: delegation.stake,
+			activation_epoch: delegation.activation_epoch,
+			deactivation_epoch: delegation.deactivation_epoch,
 			warmup_cooldown_rate: delegation.warmup_cooldown_rate,
 		}
 	}

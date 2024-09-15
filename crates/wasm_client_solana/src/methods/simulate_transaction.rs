@@ -1,6 +1,10 @@
 use serde::ser::SerializeTuple;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
 use solana_sdk::transaction::VersionedTransaction;
 use typed_builder::TypedBuilder;
@@ -82,10 +86,13 @@ pub struct SimulateTransactionResponseValue {
 	pub return_data: Option<UiTransactionReturnData>,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransactionReturnData {
-	pub program_id: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub program_id: Pubkey,
 	pub data: (String, UiReturnDataEncoding),
 }
 
@@ -106,6 +113,7 @@ mod tests {
 	use assert2::check;
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
+	use solana_sdk::pubkey;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -169,7 +177,7 @@ mod tests {
 						"Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri success".to_string()
 					]),
 					return_data: Some(UiTransactionReturnData {
-						program_id: "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri".to_string(),
+						program_id: pubkey!("83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri"),
 						data: ("Kg==".to_string(), UiReturnDataEncoding::Base64)
 					}),
 					units_consumed: Some(2366)

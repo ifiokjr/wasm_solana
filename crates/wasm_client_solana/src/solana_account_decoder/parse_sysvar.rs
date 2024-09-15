@@ -2,11 +2,15 @@ use bincode::deserialize;
 use bv::BitVec;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
 use solana_sdk::clock::UnixTimestamp;
 use solana_sdk::epoch_schedule::EpochSchedule;
+use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::rent::Rent;
 use solana_sdk::slot_hashes::SlotHashes;
@@ -49,7 +53,7 @@ pub fn parse_sysvar(data: &[u8], pubkey: &Pubkey) -> Result<SysvarAccountType, P
 						.iter()
 						.map(|entry| {
 							UiRecentBlockhashesEntry {
-								blockhash: entry.blockhash.to_string(),
+								blockhash: entry.blockhash,
 								fee_calculator: entry.fee_calculator.into(),
 							}
 						})
@@ -71,7 +75,7 @@ pub fn parse_sysvar(data: &[u8], pubkey: &Pubkey) -> Result<SysvarAccountType, P
 					.map(|slot_hash| {
 						UiSlotHashEntry {
 							slot: slot_hash.0,
-							hash: slot_hash.1.to_string(),
+							hash: slot_hash.1,
 						}
 					})
 					.collect();
@@ -203,18 +207,24 @@ impl From<Rewards> for UiRewards {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiRecentBlockhashesEntry {
-	pub blockhash: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub blockhash: Hash,
 	pub fee_calculator: UiFeeCalculator,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiSlotHashEntry {
 	pub slot: Slot,
-	pub hash: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub hash: Hash,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -329,7 +339,7 @@ mod test {
 				)
 				.unwrap(),
 				SysvarAccountType::RecentBlockhashes(vec![UiRecentBlockhashesEntry {
-					blockhash: hash.to_string(),
+					blockhash: hash,
 					fee_calculator: FeeCalculator::new(10).into(),
 				}]),
 			);
@@ -357,10 +367,7 @@ mod test {
 		let slot_hashes_sysvar = create_account_for_test(&slot_hashes);
 		assert_eq!(
 			parse_sysvar(&slot_hashes_sysvar.data, &sysvar::slot_hashes::id()).unwrap(),
-			SysvarAccountType::SlotHashes(vec![UiSlotHashEntry {
-				slot: 1,
-				hash: hash.to_string(),
-			}]),
+			SysvarAccountType::SlotHashes(vec![UiSlotHashEntry { slot: 1, hash }]),
 		);
 
 		let mut slot_history = SlotHistory::default();

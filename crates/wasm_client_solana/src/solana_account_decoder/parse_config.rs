@@ -3,6 +3,8 @@ use bincode::serialized_size;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
+use serde_with::serde_as;
+use serde_with::DisplayFromStr;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::short_vec;
 use solana_sdk::stake::config::Config as StakeConfig;
@@ -67,7 +69,7 @@ where
 		.iter()
 		.map(|key| {
 			UiConfigKey {
-				pubkey: key.0.to_string(),
+				pubkey: key.0,
 				signer: key.1,
 			}
 		})
@@ -82,10 +84,12 @@ pub enum ConfigAccountType {
 	ValidatorInfo(UiConfig<Value>),
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfigKey {
-	pub pubkey: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub pubkey: Pubkey,
 	pub signer: bool,
 }
 

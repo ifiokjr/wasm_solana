@@ -4,6 +4,9 @@ use bincode::deserialize;
 use bincode::serialized_size;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::bpf_loader_upgradeable::UpgradeableLoaderState;
 use solana_sdk::pubkey::Pubkey;
 
@@ -30,7 +33,7 @@ pub fn parse_bpf_upgradeable_loader(
 					- serialized_size(&Pubkey::default()).unwrap() as usize
 			};
 			BpfUpgradeableLoaderAccountType::Buffer(UiBuffer {
-				authority: authority_address.map(|pubkey| pubkey.to_string()),
+				authority: authority_address,
 				data: UiAccountData::Binary(
 					BASE64_STANDARD.encode(&data[offset..]),
 					UiAccountEncoding::Base64,
@@ -56,7 +59,7 @@ pub fn parse_bpf_upgradeable_loader(
 			};
 			BpfUpgradeableLoaderAccountType::ProgramData(UiProgramData {
 				slot,
-				authority: upgrade_authority_address.map(|pubkey| pubkey.to_string()),
+				authority: upgrade_authority_address,
 				data: UiAccountData::Binary(
 					BASE64_STANDARD.encode(&data[offset..]),
 					UiAccountEncoding::Base64,
@@ -76,10 +79,13 @@ pub enum BpfUpgradeableLoaderAccountType {
 	ProgramData(UiProgramData),
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiBuffer {
-	pub authority: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
 	pub data: UiAccountData,
 }
 
@@ -89,11 +95,14 @@ pub struct UiProgram {
 	pub program_data: String,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiProgramData {
 	pub slot: u64,
-	pub authority: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
 	pub data: UiAccountData,
 }
 
@@ -124,7 +133,7 @@ mod test {
 		assert_eq!(
 			parse_bpf_upgradeable_loader(&account_data).unwrap(),
 			BpfUpgradeableLoaderAccountType::Buffer(UiBuffer {
-				authority: Some(authority.to_string()),
+				authority: Some(authority),
 				data: UiAccountData::Binary(
 					BASE64_STANDARD.encode(&program),
 					UiAccountEncoding::Base64
@@ -174,7 +183,7 @@ mod test {
 			parse_bpf_upgradeable_loader(&account_data).unwrap(),
 			BpfUpgradeableLoaderAccountType::ProgramData(UiProgramData {
 				slot,
-				authority: Some(authority.to_string()),
+				authority: Some(authority),
 				data: UiAccountData::Binary(
 					BASE64_STANDARD.encode(&program),
 					UiAccountEncoding::Base64

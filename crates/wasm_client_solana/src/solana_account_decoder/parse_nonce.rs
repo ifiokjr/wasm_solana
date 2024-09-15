@@ -1,8 +1,13 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
+use solana_sdk::hash::Hash;
 use solana_sdk::instruction::InstructionError;
 use solana_sdk::nonce::state::Versions;
 use solana_sdk::nonce::State;
+use solana_sdk::pubkey::Pubkey;
 
 use super::parse_account_data::ParseAccountError;
 use super::UiFeeCalculator;
@@ -22,8 +27,8 @@ pub fn parse_nonce(data: &[u8]) -> Result<UiNonceState, ParseAccountError> {
 		}
 		State::Initialized(data) => {
 			Ok(UiNonceState::Initialized(UiNonceData {
-				authority: data.authority.to_string(),
-				blockhash: data.blockhash().to_string(),
+				authority: data.authority,
+				blockhash: data.blockhash(),
 				fee_calculator: data.fee_calculator.into(),
 			}))
 		}
@@ -38,21 +43,23 @@ pub enum UiNonceState {
 	Initialized(UiNonceData),
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiNonceData {
-	pub authority: String,
-	pub blockhash: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub authority: Pubkey,
+	#[serde_as(as = "DisplayFromStr")]
+	pub blockhash: Hash,
 	pub fee_calculator: UiFeeCalculator,
 }
 
 #[cfg(test)]
 mod test {
-	use solana_sdk::hash::Hash;
 	use solana_sdk::nonce::state::Data;
 	use solana_sdk::nonce::state::Versions;
 	use solana_sdk::nonce::State;
-	use solana_sdk::pubkey::Pubkey;
 
 	use super::*;
 
@@ -63,8 +70,8 @@ mod test {
 		assert_eq!(
 			parse_nonce(&nonce_account_data).unwrap(),
 			UiNonceState::Initialized(UiNonceData {
-				authority: Pubkey::default().to_string(),
-				blockhash: Hash::default().to_string(),
+				authority: Pubkey::default(),
+				blockhash: Hash::default(),
 				fee_calculator: UiFeeCalculator {
 					lamports_per_signature: 0.to_string(),
 				},

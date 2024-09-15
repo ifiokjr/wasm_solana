@@ -135,6 +135,10 @@ pub struct RpcBlockhashFeeCalculator {
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+struct A(#[serde_as(as = "DisplayFromStr")] Pubkey);
+
+#[serde_as]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockhash {
 	#[serde_as(as = "DisplayFromStr")]
@@ -464,11 +468,14 @@ impl fmt::Display for RpcVersionInfo {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub struct RpcIdentity {
 	/// The current node identity pubkey
-	pub identity: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub identity: Pubkey,
 }
 
 #[serde_as]

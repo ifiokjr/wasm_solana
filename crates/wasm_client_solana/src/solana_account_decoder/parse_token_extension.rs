@@ -1,5 +1,8 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::clock::UnixTimestamp;
 use solana_sdk::program_pack::Pack;
 use spl_token_2022::extension::BaseState;
@@ -197,11 +200,15 @@ impl From<extension::transfer_fee::TransferFee> for UiTransferFee {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransferFeeConfig {
-	pub transfer_fee_config_authority: Option<String>,
-	pub withdraw_withheld_authority: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub transfer_fee_config_authority: Option<Pubkey>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub withdraw_withheld_authority: Option<Pubkey>,
 	pub withheld_amount: u64,
 	pub older_transfer_fee: UiTransferFee,
 	pub newer_transfer_fee: UiTransferFee,
@@ -215,10 +222,8 @@ impl From<extension::transfer_fee::TransferFeeConfig> for UiTransferFeeConfig {
 			transfer_fee_config.withdraw_withheld_authority.into();
 
 		Self {
-			transfer_fee_config_authority: transfer_fee_config_authority
-				.map(|pubkey| pubkey.to_string()),
-			withdraw_withheld_authority: withdraw_withheld_authority
-				.map(|pubkey| pubkey.to_string()),
+			transfer_fee_config_authority,
+			withdraw_withheld_authority,
 			withheld_amount: u64::from(transfer_fee_config.withheld_amount),
 			older_transfer_fee: transfer_fee_config.older_transfer_fee.into(),
 			newer_transfer_fee: transfer_fee_config.newer_transfer_fee.into(),
@@ -240,18 +245,19 @@ impl From<extension::transfer_fee::TransferFeeAmount> for UiTransferFeeAmount {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMintCloseAuthority {
-	pub close_authority: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub close_authority: Option<Pubkey>,
 }
 
 impl From<extension::mint_close_authority::MintCloseAuthority> for UiMintCloseAuthority {
 	fn from(mint_close_authority: extension::mint_close_authority::MintCloseAuthority) -> Self {
-		let authority: Option<Pubkey> = mint_close_authority.close_authority.into();
-		Self {
-			close_authority: authority.map(|pubkey| pubkey.to_string()),
-		}
+		let close_authority: Option<Pubkey> = mint_close_authority.close_authority.into();
+		Self { close_authority }
 	}
 }
 
@@ -286,10 +292,13 @@ impl From<extension::memo_transfer::MemoTransfer> for UiMemoTransfer {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiInterestBearingConfig {
-	pub rate_authority: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub rate_authority: Option<Pubkey>,
 	pub initialization_timestamp: UnixTimestamp,
 	pub pre_update_average_rate: i16,
 	pub last_update_timestamp: UnixTimestamp,
@@ -303,7 +312,7 @@ impl From<extension::interest_bearing_mint::InterestBearingConfig> for UiInteres
 		let rate_authority: Option<Pubkey> = interest_bearing_config.rate_authority.into();
 
 		Self {
-			rate_authority: rate_authority.map(|pubkey| pubkey.to_string()),
+			rate_authority,
 			initialization_timestamp: UnixTimestamp::from(
 				interest_bearing_config.initialization_timestamp,
 			),
@@ -330,25 +339,29 @@ impl From<extension::cpi_guard::CpiGuard> for UiCpiGuard {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiPermanentDelegate {
-	pub delegate: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub delegate: Option<Pubkey>,
 }
 
 impl From<extension::permanent_delegate::PermanentDelegate> for UiPermanentDelegate {
 	fn from(permanent_delegate: extension::permanent_delegate::PermanentDelegate) -> Self {
 		let delegate: Option<Pubkey> = permanent_delegate.delegate.into();
-		Self {
-			delegate: delegate.map(|pubkey| pubkey.to_string()),
-		}
+		Self { delegate }
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfidentialTransferMint {
-	pub authority: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
 	pub auto_approve_new_accounts: bool,
 	pub auditor_elgamal_pubkey: Option<String>,
 }
@@ -363,17 +376,20 @@ impl From<extension::confidential_transfer::ConfidentialTransferMint>
 		let auditor_elgamal_pubkey: Option<ElGamalPubkey> =
 			confidential_transfer_mint.auditor_elgamal_pubkey.into();
 		Self {
-			authority: authority.map(|pubkey| pubkey.to_string()),
+			authority,
 			auto_approve_new_accounts: confidential_transfer_mint.auto_approve_new_accounts.into(),
 			auditor_elgamal_pubkey: auditor_elgamal_pubkey.map(|pubkey| pubkey.to_string()),
 		}
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfidentialTransferFeeConfig {
-	pub authority: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
 	pub withdraw_withheld_authority_elgamal_pubkey: Option<String>,
 	pub harvest_to_mint_enabled: bool,
 	pub withheld_amount: String,
@@ -391,7 +407,7 @@ impl From<extension::confidential_transfer_fee::ConfidentialTransferFeeConfig>
 				.withdraw_withheld_authority_elgamal_pubkey
 				.into();
 		Self {
-			authority: authority.map(|pubkey| pubkey.to_string()),
+			authority,
 			withdraw_withheld_authority_elgamal_pubkey: withdraw_withheld_authority_elgamal_pubkey
 				.map(|pubkey| pubkey.to_string()),
 			harvest_to_mint_enabled: confidential_transfer_fee_config
@@ -475,29 +491,38 @@ impl From<extension::confidential_transfer_fee::ConfidentialTransferFeeAmount>
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMetadataPointer {
-	pub authority: Option<String>,
-	pub metadata_address: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub metadata_address: Option<Pubkey>,
 }
 
 impl From<extension::metadata_pointer::MetadataPointer> for UiMetadataPointer {
 	fn from(metadata_pointer: extension::metadata_pointer::MetadataPointer) -> Self {
 		let authority: Option<Pubkey> = metadata_pointer.authority.into();
 		let metadata_address: Option<Pubkey> = metadata_pointer.metadata_address.into();
+
 		Self {
-			authority: authority.map(|pubkey| pubkey.to_string()),
-			metadata_address: metadata_address.map(|pubkey| pubkey.to_string()),
+			authority,
+			metadata_address,
 		}
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenMetadata {
-	pub update_authority: Option<String>,
-	pub mint: String,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub update_authority: Option<Pubkey>,
+	#[serde_as(as = "DisplayFromStr")]
+	pub mint: Pubkey,
 	pub name: String,
 	pub symbol: String,
 	pub uri: String,
@@ -508,8 +533,8 @@ impl From<TokenMetadata> for UiTokenMetadata {
 	fn from(token_metadata: TokenMetadata) -> Self {
 		let update_authority: Option<Pubkey> = token_metadata.update_authority.into();
 		Self {
-			update_authority: update_authority.map(|pubkey| pubkey.to_string()),
-			mint: token_metadata.mint.to_string(),
+			update_authority,
+			mint: token_metadata.mint,
 			name: token_metadata.name,
 			symbol: token_metadata.symbol,
 			uri: token_metadata.uri,
@@ -518,20 +543,25 @@ impl From<TokenMetadata> for UiTokenMetadata {
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransferHook {
-	pub authority: Option<String>,
-	pub program_id: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub program_id: Option<Pubkey>,
 }
 
 impl From<extension::transfer_hook::TransferHook> for UiTransferHook {
 	fn from(transfer_hook: extension::transfer_hook::TransferHook) -> Self {
 		let authority: Option<Pubkey> = transfer_hook.authority.into();
 		let program_id: Option<Pubkey> = transfer_hook.program_id.into();
+
 		Self {
-			authority: authority.map(|pubkey| pubkey.to_string()),
-			program_id: program_id.map(|pubkey| pubkey.to_string()),
+			authority,
+			program_id,
 		}
 	}
 }
@@ -550,47 +580,59 @@ impl From<extension::transfer_hook::TransferHookAccount> for UiTransferHookAccou
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiGroupPointer {
-	pub authority: Option<String>,
-	pub group_address: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub group_address: Option<Pubkey>,
 }
 
 impl From<extension::group_pointer::GroupPointer> for UiGroupPointer {
 	fn from(group_pointer: extension::group_pointer::GroupPointer) -> Self {
 		let authority: Option<Pubkey> = group_pointer.authority.into();
 		let group_address: Option<Pubkey> = group_pointer.group_address.into();
+
 		Self {
-			authority: authority.map(|pubkey| pubkey.to_string()),
-			group_address: group_address.map(|pubkey| pubkey.to_string()),
+			authority,
+			group_address,
 		}
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiGroupMemberPointer {
-	pub authority: Option<String>,
-	pub member_address: Option<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub member_address: Option<Pubkey>,
 }
 
 impl From<extension::group_member_pointer::GroupMemberPointer> for UiGroupMemberPointer {
 	fn from(member_pointer: extension::group_member_pointer::GroupMemberPointer) -> Self {
 		let authority: Option<Pubkey> = member_pointer.authority.into();
 		let member_address: Option<Pubkey> = member_pointer.member_address.into();
+
 		Self {
-			authority: authority.map(|pubkey| pubkey.to_string()),
-			member_address: member_address.map(|pubkey| pubkey.to_string()),
+			authority,
+			member_address,
 		}
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenGroup {
-	pub update_authority: Option<String>,
-	pub mint: String,
+	pub update_authority: Option<Pubkey>,
+	pub mint: Pubkey,
 	pub size: u32,
 	pub max_size: u32,
 }
@@ -599,27 +641,31 @@ impl From<TokenGroup> for UiTokenGroup {
 	fn from(token_group: TokenGroup) -> Self {
 		let update_authority: Option<Pubkey> = token_group.update_authority.into();
 		Self {
-			update_authority: update_authority.map(|pubkey| pubkey.to_string()),
-			mint: token_group.mint.to_string(),
+			update_authority,
+			mint: token_group.mint,
 			size: token_group.size.into(),
 			max_size: token_group.max_size.into(),
 		}
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenGroupMember {
-	pub mint: String,
-	pub group: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub mint: Pubkey,
+	#[serde_as(as = "DisplayFromStr")]
+	pub group: Pubkey,
 	pub member_number: u32,
 }
 
 impl From<TokenGroupMember> for UiTokenGroupMember {
 	fn from(member: TokenGroupMember) -> Self {
 		Self {
-			mint: member.mint.to_string(),
-			group: member.group.to_string(),
+			mint: member.mint,
+			group: member.group,
 			member_number: member.member_number.into(),
 		}
 	}

@@ -15,17 +15,20 @@ pub mod validator_info;
 
 use std::io::Read;
 use std::io::Write;
-use std::str::FromStr;
 
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::account::ReadableAccount;
 use solana_sdk::account::WritableAccount;
 use solana_sdk::clock::Epoch;
 use solana_sdk::fee_calculator::FeeCalculator;
 use solana_sdk::pubkey::Pubkey;
+use typed_builder::TypedBuilder;
 
 use self::parse_account_data::parse_account_data_v2;
 use self::parse_account_data::AccountAdditionalDataV2;
@@ -36,14 +39,19 @@ pub type StringDecimals = String;
 pub const MAX_BASE58_BYTES: usize = 128;
 
 /// A duplicate representation of an Account for pretty JSON serialization
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct UiAccount {
 	pub lamports: u64,
 	pub data: UiAccountData,
-	pub owner: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub owner: Pubkey,
+	#[builder(setter(into, strip_bool(fallback = executable_bool)))]
 	pub executable: bool,
 	pub rent_epoch: Epoch,
+	#[builder(default, setter(into, strip_option(fallback = space_opt)))]
 	pub space: Option<u64>,
 }
 
@@ -164,7 +172,7 @@ impl UiAccount {
 		UiAccount {
 			lamports: account.lamports(),
 			data,
-			owner: account.owner().to_string(),
+			owner: *account.owner(),
 			executable: account.executable(),
 			rent_epoch: account.rent_epoch(),
 			space: Some(space as u64),
@@ -176,7 +184,7 @@ impl UiAccount {
 		Some(T::create(
 			self.lamports,
 			data,
-			Pubkey::from_str(&self.owner).ok()?,
+			self.owner,
 			self.executable,
 			self.rent_epoch,
 		))

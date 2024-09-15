@@ -122,7 +122,7 @@ mod tests {
 		let value = response.result.value.unwrap();
 		assert!(!value.executable);
 		check!(value.lamports == 1_000_000_000);
-		check!(value.owner == "11111111111111111111111111111111");
+		check!(value.owner == Pubkey::default());
 		check!(value.rent_epoch == 2);
 		check!(value.space == Some(80));
 		check!(value.data == UiAccountData::Binary("11116bv5nS2h3y12kD1yUKeMZvGcKLSjQgX6BeV7u1FrjeJcKfsHRTPuR3oZ1EioKtYGiYxpxMG5vpbZLsbcBYBEmZZcMKaSoGx9JZeAuWf".to_string(), UiAccountEncoding::Base58));

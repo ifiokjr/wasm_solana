@@ -1,5 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
+use solana_sdk::pubkey::Pubkey;
 
 use crate::impl_http_method;
 
@@ -8,10 +12,13 @@ pub struct GetClusterNodesRequest;
 
 impl_http_method!(GetClusterNodesRequest, "getClusterNodes");
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcContactInfoWasm {
-	pub pubkey: String,
+	#[serde_as(as = "DisplayFromStr")]
+	pub pubkey: Pubkey,
 	pub gossip: Option<String>,
 	pub tpu: Option<String>,
 	pub rpc: Option<String>,
@@ -32,6 +39,7 @@ impl From<GetClusterNodesResponse> for Vec<RpcContactInfoWasm> {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
+	use solana_sdk::pubkey;
 
 	use super::*;
 	use crate::methods::HttpMethod;
@@ -62,7 +70,7 @@ mod tests {
 		let value = &response.result.0[0];
 
 		check!(value.gossip.as_ref().unwrap() == "10.239.6.48:8001");
-		check!(value.pubkey == "9QzsJf7LPLj8GkXbYT3LFDKqsj2hHG7TA3xinJHu8epQ");
+		check!(value.pubkey == pubkey!("9QzsJf7LPLj8GkXbYT3LFDKqsj2hHG7TA3xinJHu8epQ"));
 		check!(value.rpc.as_ref().unwrap() == "10.239.6.48:8899");
 		check!(value.tpu.as_ref().unwrap() == "10.239.6.48:8856");
 		check!(value.version.as_ref().unwrap() == "1.0.0 c375ce1f");

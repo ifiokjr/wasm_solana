@@ -1,7 +1,8 @@
-use std::str::FromStr;
-
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::address_lookup_table::state::AddressLookupTable;
 use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::instruction::InstructionError;
@@ -46,45 +47,37 @@ impl LookupTableAccountType {
 			LookupTableAccountType::LookupTable(table) => {
 				Some(AddressLookupTableAccount {
 					key: *pubkey,
-					addresses: table
-						.addresses
-						.iter()
-						.filter_map(|address| Pubkey::from_str(address).ok())
-						.collect(),
+					addresses: table.addresses.clone(),
 				})
 			}
 		}
 	}
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiLookupTable {
-	pub deactivation_slot: String,
-	pub last_extended_slot: String,
+	pub deactivation_slot: u64,
+	pub last_extended_slot: u64,
 	pub last_extended_slot_start_index: u8,
-	#[serde(skip_serializing_if = "Option::is_none")]
-	pub authority: Option<String>,
-	pub addresses: Vec<String>,
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
+	#[serde_as(as = "Vec<DisplayFromStr>")]
+	pub addresses: Vec<Pubkey>,
 }
 
 impl<'a> From<AddressLookupTable<'a>> for UiLookupTable {
 	fn from(address_lookup_table: AddressLookupTable) -> Self {
 		Self {
-			deactivation_slot: address_lookup_table.meta.deactivation_slot.to_string(),
-			last_extended_slot: address_lookup_table.meta.last_extended_slot.to_string(),
+			deactivation_slot: address_lookup_table.meta.deactivation_slot,
+			last_extended_slot: address_lookup_table.meta.last_extended_slot,
 			last_extended_slot_start_index: address_lookup_table
 				.meta
 				.last_extended_slot_start_index,
-			authority: address_lookup_table
-				.meta
-				.authority
-				.map(|authority| authority.to_string()),
-			addresses: address_lookup_table
-				.addresses
-				.iter()
-				.map(ToString::to_string)
-				.collect(),
+			authority: address_lookup_table.meta.authority,
+			addresses: address_lookup_table.addresses.iter().copied().collect(),
 		}
 	}
 }
@@ -123,19 +116,13 @@ mod test {
 
 		let parsing_result = parse_address_lookup_table(&lookup_table_data).unwrap();
 		if let LookupTableAccountType::LookupTable(ui_lookup_table) = parsing_result {
-			assert_eq!(
-				ui_lookup_table.deactivation_slot,
-				deactivation_slot.to_string()
-			);
-			assert_eq!(
-				ui_lookup_table.last_extended_slot,
-				last_extended_slot.to_string()
-			);
+			assert_eq!(ui_lookup_table.deactivation_slot, deactivation_slot);
+			assert_eq!(ui_lookup_table.last_extended_slot, last_extended_slot);
 			assert_eq!(
 				ui_lookup_table.last_extended_slot_start_index,
 				last_extended_slot_start_index
 			);
-			assert_eq!(ui_lookup_table.authority, Some(authority.to_string()));
+			assert_eq!(ui_lookup_table.authority, Some(authority));
 			assert_eq!(ui_lookup_table.addresses.len(), num_addresses);
 		}
 

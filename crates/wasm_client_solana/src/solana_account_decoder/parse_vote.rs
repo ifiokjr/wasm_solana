@@ -1,5 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::serde_as;
+use serde_with::DisplayFromStr;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
 use solana_sdk::pubkey::Pubkey;
@@ -39,7 +41,7 @@ pub fn parse_vote(data: &[u8]) -> Result<VoteAccountType, ParseAccountError> {
 		.map(|(epoch, authorized_voter)| {
 			UiAuthorizedVoters {
 				epoch: *epoch,
-				authorized_voter: authorized_voter.to_string(),
+				authorized_voter: *authorized_voter,
 			}
 		})
 		.collect();
@@ -51,7 +53,7 @@ pub fn parse_vote(data: &[u8]) -> Result<VoteAccountType, ParseAccountError> {
 		.map(
 			|(authorized_pubkey, epoch_of_last_authorized_switch, target_epoch)| {
 				UiPriorVoters {
-					authorized_pubkey: authorized_pubkey.to_string(),
+					authorized_pubkey: *authorized_pubkey,
 					epoch_of_last_authorized_switch: *epoch_of_last_authorized_switch,
 					target_epoch: *target_epoch,
 				}
@@ -59,8 +61,8 @@ pub fn parse_vote(data: &[u8]) -> Result<VoteAccountType, ParseAccountError> {
 		)
 		.collect();
 	Ok(VoteAccountType::Vote(UiVoteState {
-		node_pubkey: vote_state.node_pubkey.to_string(),
-		authorized_withdrawer: vote_state.authorized_withdrawer.to_string(),
+		node_pubkey: vote_state.node_pubkey,
+		authorized_withdrawer: vote_state.authorized_withdrawer,
 		commission: vote_state.commission,
 		votes,
 		root_slot: vote_state.root_slot,
@@ -79,11 +81,14 @@ pub enum VoteAccountType {
 }
 
 /// A duplicate representation of `VoteState` for pretty JSON serialization
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiVoteState {
-	node_pubkey: String,
-	authorized_withdrawer: String,
+	#[serde_as(as = "DisplayFromStr")]
+	node_pubkey: Pubkey,
+	#[serde_as(as = "DisplayFromStr")]
+	authorized_withdrawer: Pubkey,
 	commission: u8,
 	votes: Vec<UiLockout>,
 	root_slot: Option<Slot>,
@@ -109,17 +114,21 @@ impl From<&Lockout> for UiLockout {
 	}
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 struct UiAuthorizedVoters {
 	epoch: Epoch,
-	authorized_voter: String,
+	#[serde_as(as = "DisplayFromStr")]
+	authorized_voter: Pubkey,
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 struct UiPriorVoters {
-	authorized_pubkey: String,
+	#[serde_as(as = "DisplayFromStr")]
+	authorized_pubkey: Pubkey,
 	epoch_of_last_authorized_switch: Epoch,
 	target_epoch: Epoch,
 }
@@ -145,8 +154,8 @@ mod test {
 		let versioned = VoteStateVersions::new_current(vote_state);
 		VoteState::serialize(&versioned, &mut vote_account_data).unwrap();
 		let expected_vote_state = UiVoteState {
-			node_pubkey: Pubkey::default().to_string(),
-			authorized_withdrawer: Pubkey::default().to_string(),
+			node_pubkey: Pubkey::default(),
+			authorized_withdrawer: Pubkey::default(),
 			..UiVoteState::default()
 		};
 		assert_eq!(
