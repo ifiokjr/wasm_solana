@@ -202,7 +202,7 @@ impl Signer for MemoryWallet {
 }
 
 impl MemoryWallet {
-	pub fn new(client: SolanaRpcClient, accounts: &[Keypair]) -> Self {
+	pub fn new(rpc: SolanaRpcClient, accounts: &[Keypair]) -> Self {
 		let accounts = accounts
 			.iter()
 			.map(Into::into)
@@ -213,7 +213,7 @@ impl MemoryWallet {
 		Self {
 			wallet,
 			account,
-			rpc: client,
+			rpc,
 		}
 	}
 
