@@ -1,27 +1,30 @@
 { pkgs, lib, ... }:
 
 {
-  packages = [
-    pkgs.act
-    pkgs.binaryen
-    pkgs.cargo-binstall
-    pkgs.cargo-run-bin
-    pkgs.coreutils
-    pkgs.curl
-    pkgs.dprint
-    pkgs.fnm
-    pkgs.jq
-    pkgs.libiconv
-    pkgs.nixfmt-rfc-style
-    pkgs.protobuf # needed for `solana-test-validator` in tests
-    pkgs.rustup
-    pkgs.shfmt
-  ] ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk; [
-    frameworks.CoreFoundation
-    frameworks.Security
-    frameworks.System
-    frameworks.SystemConfiguration
-  ]);
+  packages =
+    [
+      pkgs.act
+      pkgs.binaryen
+      pkgs.cargo-binstall
+      pkgs.cargo-run-bin
+      pkgs.coreutils
+      pkgs.curl
+      pkgs.deno
+      pkgs.dprint
+      pkgs.jq
+      pkgs.libiconv
+      pkgs.protobuf # needed for `solana-test-validator` in tests
+      pkgs.rustup
+    ]
+    ++ lib.optionals pkgs.stdenv.isDarwin (
+      with pkgs.darwin.apple_sdk;
+      [
+        frameworks.CoreFoundation
+        frameworks.Security
+        frameworks.System
+        frameworks.SystemConfiguration
+      ]
+    );
 
   # disable dotenv since it breaks the variable interpolation supported by `direnv`
   dotenv.disableHint = true;
@@ -33,7 +36,7 @@
     '';
     description = "The `anchor` executable";
   };
-  scripts."release-plz"= {
+  scripts."release-plz" = {
     exec = ''
       set -e
       cargo bin release-plz $@
@@ -66,10 +69,8 @@
   scripts."copy:js" = {
     exec = ''
       set -e
-      pnpm esbuild --format=esm --target=es2021 --bundle "$DEVENV_ROOT/node_modules/@wallet-standard/app/src/index.ts" --outfile="$DEVENV_ROOT/crates/wallet_standard_browser/js/app.js"
-      pnpm esbuild --format=esm --target=es2021 --bundle "$DEVENV_ROOT/node_modules/@wallet-standard/wallet/src/index.ts" --outfile="$DEVENV_ROOT/crates/wallet_standard_browser/js/wallet.js"
-      fix:es
-      fix:format
+      curl https://esm.sh/v135/@wallet-standard/app@1/es2022/app.bundle.mjs -o $DEVENV_ROOT/crates/wallet_standard_browser/js/app.js
+      curl https://esm.sh/v135/@wallet-standard/wallet@1/es2022/wallet.mjs -o "$DEVENV_ROOT/crates/wallet_standard_browser/js/wallet.js"
     '';
     description = "Copy the JS needed for the `wallet_standard_browser`.";
   };
@@ -104,84 +105,28 @@
   scripts."test:all" = {
     exec = ''
       set -e
-      test:wallet_standard_wallets
-      test:wasm_client_solana
+      cargo test_wallet_standard_wallets_ssr
+      cargo test_wallet_standard_wallets_docs
+      cargo test_wasm_client_solana_ssr
+      cargo test_wasm_client_solana_docs
     '';
     description = "Run all tests across the crates";
-  };
-  scripts."test:wallet_standard_wallets" = {
-    exec = ''
-      set -e
-      test:wallet_standard_wallets:ssr
-      test:wallet_standard_wallets:docs
-    '';
-    description = "Run tests for the `wallet_standard_wallets` crate.";
-  };
-  scripts."test:wallet_standard_wallets:ssr" = {
-    exec = ''
-      set -e
-      cargo nextest run --package wallet_standard_wallets --features="ssr"
-    '';
-    description = "Run tests for the `wallet_standard_wallets` crate with the `ssr` feature.";
-  };
-  scripts."test:wallet_standard_wallets:docs" = {
-    exec = ''
-      set -e
-      cargo test --package wallet_standard_wallets --doc --features="ssr"
-    '';
-    description = "Run doctests for the `wallet_standard_wallets` crate with the `ssr` feature.";
-  };
-  scripts."test:wasm_client_solana" = {
-    exec = ''
-      set -e
-      test:wasm_client_solana:ssr
-      test:wasm_client_solana:docs
-    '';
-    description = "Run tests for the `wasm_client_solana` crate.";
-  };
-  scripts."test:wasm_client_solana:ssr" = {
-    exec = ''
-      set -e
-      cargo nextest run --package wasm_client_solana --features="ssr"
-    '';
-    description = "Run tests for the `wasm_client_solana` crate with the `ssr` feature.";
-  };
-  scripts."test:wasm_client_solana:docs" = {
-    exec = ''
-      set -e
-      cargo test --package wasm_client_solana --doc --features="ssr"
-    '';
-    description = "Run doctests for the `wasm_client_solana` crate with the `ssr` feature.";
   };
   scripts."coverage:all" = {
     exec = ''
       set -e
-      coverage:wallet_standard_wallets
-      cargo llvm-cov report --doctests --codecov --output-path codecov.json
+      cargo coverage_wallet_standard_wallets_ssr
+      cargo coverage_wallet_standard_wallets_docs
+      cargo coverage_wasm_client_solana_ssr
+      cargo coverage_wasm_client_solana_docs
+      cargo coverage_codecov_report
     '';
     description = "Run coverage across the crates";
-  };
-  scripts."coverage:wallet_standard_wallets" = {
-    exec = ''
-      set -e
-      cargo llvm-cov --no-report --package wallet_standard_wallets --features="ssr"
-      cargo llvm-cov --no-report --package wallet_standard_wallets --doc --features="ssr"
-    '';
-    description = "Run coverage for the `wallet_standard_wallets` crate.";
-  };
-  scripts."coverage:wasm_client_solana" = {
-    exec = ''
-      set -e
-      cargo llvm-cov --no-report --package wasm_client_solana --features="ssr"
-      cargo llvm-cov --no-report --package wasm_client_solana --doc --features="ssr"
-    '';
-    description = "Run coverage for the `wasm_client_solana` crate.";
   };
   scripts."fix:all" = {
     exec = ''
       set -e
       fix:clippy
-      fix:es
       fix:format
     '';
     description = "Fix all autofixable problems.";
@@ -200,18 +145,10 @@
     '';
     description = "Fix clippy lints for rust.";
   };
-  scripts."fix:es" = {
-    exec = ''
-      set -e
-      pnpm eslint --fix .
-    '';
-    description = "Fix lints for JS / TS.";
-  };
   scripts."lint:all" = {
     exec = ''
       set -e
       lint:clippy
-      lint:es
       lint:format
     '';
     description = "Run all checks.";
@@ -229,13 +166,6 @@
       cargo clippy --all-features
     '';
     description = "Check that all rust lints are passing.";
-  };
-  scripts."lint:es" = {
-    exec = ''
-      set -e
-      pnpm eslint .
-    '';
-    description = "Check lints for all JS / TS files.";
   };
   scripts."setup:vscode" = {
     exec = ''
@@ -278,21 +208,6 @@
       echo "DEVENV_PROFILE=$DEVENV_PROFILE" >> $GITHUB_ENV
       echo "DEVENV_ROOT=$DEVENV_ROOT" >> $GITHUB_ENV
       echo "DEVENV_STATE=$DEVENV_STATE" >> $GITHUB_ENV
-
-      fnm_env=$(fnm env --json)
-
-      # Parse the JSON file contents
-      PARSED_FNM_ENV=$(jq -r '.' <<< "$fnm_env")
-      FNM_MULTISHELL_PATH=$(jq -r '.FNM_MULTISHELL_PATH' <<< "$PARSED_FNM_ENV")
-
-      # Add fnm to the path
-      echo "$FNM_MULTISHELL_PATH/bin" >> $GITHUB_PATH
-
-      # add fnm environment variables
-      for key in $(jq -r 'keys[]' <<< "$PARSED_FNM_ENV"); do
-        value=$(jq -r ".$key" <<< "$PARSED_FNM_ENV")
-        echo "$key=$value" >> $GITHUB_ENV
-      done
     '';
     description = "Setup devenv for GitHub Actions";
   };
@@ -301,7 +216,6 @@
       set -e
       # update path
       echo "export PATH=$DEVENV_PROFILE/bin:\$PATH" >> /etc/profile
-      echo "export PATH=$DEVENV_ROOT/node_modules/.bin:\$PATH" >> /etc/profile
       echo "export PATH=$DEVENV_ROOT/.local-cache/solana-release/bin:\$PATH" >> /etc/profile
 
       echo "export DEVENV_PROFILE=$DEVENV_PROFILE" >> /etc/profile
@@ -316,21 +230,6 @@
       echo "export DEVENV_PROFILE=$DEVENV_PROFILE" >> /etc/profile
       echo "export DEVENV_ROOT=$DEVENV_ROOT" >> /etc/profile
       echo "export DEVENV_STATE=$DEVENV_STATE" >> /etc/profile
-
-      fnm_env=$(fnm env --json)
-
-      # Parse the JSON file contents
-      PARSED_FNM_ENV=$(jq -r '.' <<< "$fnm_env")
-      FNM_MULTISHELL_PATH=$(jq -r '.FNM_MULTISHELL_PATH' <<< "$PARSED_FNM_ENV")
-
-      # add fnm to the path
-      echo "export PATH=$FNM_MULTISHELL_PATH/bin:\$PATH" >> /etc/profile
-
-      # add fnm environment variables
-      for key in $(jq -r 'keys[]' <<< "$PARSED_FNM_ENV"); do
-        value=$(jq -r ".$key" <<< "$PARSED_FNM_ENV")
-        echo "export $key=$value" >> /etc/profile
-      done
     '';
     description = "Setup devenv shell for docker.";
   };

@@ -11,17 +11,6 @@ inputs:
 runs:
   using: composite
   steps:
-    # fnm isn't working on the ci server open an issue later
-    - name: setup node
-      uses: actions/setup-node@v4
-      with:
-        node-version-file: ".node-version"
-
-    - name: setup pnpm
-      uses: pnpm/action-setup@v3
-      with:
-        run_install: false
-
     - name: cache nix store
       uses: actions/cache@v4
       id: nix-cache

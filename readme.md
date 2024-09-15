@@ -39,8 +39,6 @@ See the individual crates for more information.
 - `build:docs`: Build documentation site.
 - `copy:js`: Copy the JS needed for the `wallet_standard_browser`.
 - `coverage:all`: Run coverage across the crates
-- `coverage:wallet_standard_wallets`: Run coverage for the `wallet_standard_wallets` crate.
-- `coverage:wasm_client_solana`: Run coverage for the `wasm_client_solana` crate.
 - `fix:all`: Fix all autofixable problems.
 - `fix:clippy`: Fix clippy lints for rust.
 - `fix:es`: Fix lints for JS / TS.
@@ -53,18 +51,12 @@ See the individual crates for more information.
 - `lint:clippy`: Check that all rust lints are passing.
 - `lint:es`: Check lints for all JS / TS files.
 - `lint:format`: Check that all files are formatted.
-- release-`plz`: The `release-plz` executable
+- `release-plz`: The `release-plz` executable
 - `setup:ci`: Setup devenv for GitHub Actions
 - `setup:docker`: Setup devenv shell for docker.
 - `setup:helix`: Setup for the helix editor.
 - `setup:vscode`: Setup the environment for vscode.
 - `test:all`: Run all tests across the crates
-- `test:wallet_standard_wallets`: Run tests for the `wallet_standard_wallets` crate.
-- `test:wallet_standard_wallets:docs`: Run doctests for the `wallet_standard_wallets` crate with the `ssr` feature.
-- `test:wallet_standard_wallets:ssr`: Run tests for the `wallet_standard_wallets` crate with the `ssr` feature.
-- `test:wasm_client_solana`: Run tests for the `wasm_client_solana` crate.
-- `test:wasm_client_solana:docs`: Run doctests for the `wasm_client_solana` crate with the `ssr` feature.
-- `test:wasm_client_solana:ssr`: Run tests for the `wasm_client_solana` crate with the `ssr` feature.
 - `update:deps`: Update dependencies.
 
 ## Contributing

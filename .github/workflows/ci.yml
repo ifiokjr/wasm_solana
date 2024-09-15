@@ -76,19 +76,19 @@ jobs:
           nix-cache: /tmp/nixcache
 
       - name: test `wallet_standard_wallets` with `ssr`
-        run: test:wallet_standard_wallets:ssr
+        run: cargo test_wallet_standard_wallets_ssr
         shell: bash
 
       - name: test `wallet_standard_wallets` with `docs`
-        run: test:wallet_standard_wallets:docs
+        run: cargo test_wallet_standard_wallets_docs
         shell: bash
 
       - name: test `wasm_client_solana` with `ssr`
-        run: test:wasm_client_solana:ssr
+        run: cargo test_wasm_client_solana_ssr
         shell: bash
 
       - name: test `wasm_client_solana` with `docs`
-        run: test:wasm_client_solana:docs
+        run: cargo test_wasm_client_solana_docs
         shell: bash
 
   coverage:
