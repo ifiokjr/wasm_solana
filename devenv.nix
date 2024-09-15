@@ -46,7 +46,6 @@
   scripts."install:all" = {
     exec = ''
       set -e
-      pnpm install
       install:cargo:bin
       install:solana
     '';
@@ -78,7 +77,6 @@
     exec = ''
       set -e
       cargo update
-      pnpm update --latest --recursive -i
       copy:js
     '';
     description = "Update dependencies.";

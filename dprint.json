@@ -42,7 +42,6 @@
 	],
 	"excludes": [
 		"crates/wallet_standard/js/*.js",
-		"pnpm-lock.yaml",
 		"**/dist",
 		".devenv/**",
 		"**/fixtures",
