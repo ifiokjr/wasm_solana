@@ -9,12 +9,13 @@
       pkgs.cargo-run-bin
       pkgs.coreutils
       pkgs.curl
-      pkgs.deno
       pkgs.dprint
       pkgs.jq
       pkgs.libiconv
+      pkgs.nixfmt-rfc-style
       pkgs.protobuf # needed for `solana-test-validator` in tests
       pkgs.rustup
+      pkgs.shfmt
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin (
       with pkgs.darwin.apple_sdk;
