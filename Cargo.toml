@@ -3,7 +3,6 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.1"
 authors = ["Ifiok Jr. <ifiokotung@gmail.com>"]
 edition = "2021"
 homepage = "https://github.com/ifiokjr/wasm_solana"
@@ -105,7 +104,7 @@ zstd = { version = "0.13", default-features = false }
 
 # crates
 test_utils = { path = "./crates/test_utils" }
-test_utils_solana = { path = "./crates/test_utils_solana", version = "0.1.1" }
+test_utils_solana = { path = "./crates/test_utils_solana" }
 wallet_standard = { path = "./crates/wallet_standard", version = "0.1.1" }
 wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.1.1" }
 wallet_standard_wallets = { path = "./crates/wallet_standard_wallets", version = "0.1.1" }
@@ -117,8 +116,6 @@ anchor-cli = { version = "0.30.1", bins = ["anchor"] }
 cargo-insta = { version = "1.40.0" }
 cargo-llvm-cov = { version = "0.6.10" }
 cargo-nextest = { version = "0.9.72" }
-release-plz = { version = "0.3.87", bins = ["release-plz"] }
-cargo-semver-checks = { version = "0.35.0" }
 
 [workspace.lints.rust]
 # Group lints
