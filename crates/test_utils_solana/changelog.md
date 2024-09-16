@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.1.1...test_utils_solana@v0.2.0) - 2024-09-16
+
+### <!-- 0 -->🎉 Added
+
+- add new fields to `TestValidatorRunnerProps`
+- add `BanksClient` assertion macros
+- [**breaking**] rename `BanksClientAnchorRequestMethods`
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- make crate versioning independent
+
 ## [0.1.0](https://github.com/ifiokjr/wasm_solana/releases/tag/test_utils_solana@v0.1.0) - 2024-09-12
 
 ### <!-- 0 -->🎉 Added

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.1.1...wasm_client_anchor@v0.1.2) - 2024-09-16
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- make crate versioning independent
+
 ## [0.1.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.1.0...wasm_client_anchor@v0.1.1) - 2024-09-13
 
 ### <!-- 0 -->🎉 Added

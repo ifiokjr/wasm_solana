@@ -105,11 +105,11 @@ zstd = { version = "0.13", default-features = false }
 # crates
 test_utils = { path = "./crates/test_utils" }
 test_utils_solana = { path = "./crates/test_utils_solana" }
-wallet_standard = { path = "./crates/wallet_standard", version = "0.1.1" }
-wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.1.1" }
-wallet_standard_wallets = { path = "./crates/wallet_standard_wallets", version = "0.1.1" }
-wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.1.1" }
-wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.1.0" }
+wallet_standard = { path = "./crates/wallet_standard", version = "0.1.2" }
+wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.1.2" }
+wallet_standard_wallets = { path = "./crates/wallet_standard_wallets", version = "0.1.2" }
+wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.1.2" }
+wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.2.0" }
 
 [workspace.metadata.bin]
 anchor-cli = { version = "0.30.1", bins = ["anchor"] }
