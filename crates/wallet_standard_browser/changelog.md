@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_browser@v0.1.1...wallet_standard_browser@v0.1.2) - 2024-09-16
+
+### <!-- 0 -->🎉 Added
+
+- use `esm.sh` instead of node
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- `copy:js` command for `app.js` and `wallet.js` wasm binding
+
+### <!-- 2 -->🚜 Refactor
+
+- remove unnecessary export
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- make crate versioning independent
+
 ## [0.1.1](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_browser@v0.1.0...wallet_standard_browser@v0.1.1) - 2024-09-13
 
 ### <!-- 3 -->📚 Documentation
