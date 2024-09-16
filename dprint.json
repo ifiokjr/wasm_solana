@@ -41,7 +41,6 @@
 		"**/*.{ts,tsx,js,jsx,cjs,mjs,json,jsonc,md,toml,dockerfile,rs,yml,yaml,css,sql,sh,bash}"
 	],
 	"excludes": [
-		"crates/wallet_standard/js/*.js",
 		"**/dist",
 		".devenv/**",
 		"**/fixtures",

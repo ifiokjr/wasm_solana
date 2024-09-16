@@ -69,8 +69,9 @@
   scripts."copy:js" = {
     exec = ''
       set -e
-      curl https://esm.sh/v135/@wallet-standard/app@1/es2022/app.bundle.mjs -o $DEVENV_ROOT/crates/wallet_standard_browser/js/app.js
-      curl https://esm.sh/v135/@wallet-standard/wallet@1/es2022/wallet.mjs -o "$DEVENV_ROOT/crates/wallet_standard_browser/js/wallet.js"
+      curl -L https://esm.sh/v135/@wallet-standard/app@1/es2022/app.development.mjs -o $DEVENV_ROOT/crates/wallet_standard_browser/js/app.js
+      curl -L https://esm.sh/v135/@wallet-standard/wallet@1/es2022/wallet.development.mjs -o "$DEVENV_ROOT/crates/wallet_standard_browser/js/wallet.js"
+      dprint fmt "./crates/wallet_standard_browser/js/*.js"
     '';
     description = "Copy the JS needed for the `wallet_standard_browser`.";
   };
