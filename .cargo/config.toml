@@ -51,6 +51,7 @@ coverage_wallet_standard_wallets_ssr = [
 ]
 coverage_wallet_standard_wallets_docs = [
 	"llvm-cov",
+	"--no-report",
 	"--package",
 	"wallet_standard_wallets",
 	"--doc",
@@ -67,6 +68,7 @@ coverage_wasm_client_solana_ssr = [
 ]
 coverage_wasm_client_solana_docs = [
 	"llvm-cov",
+	"--no-report",
 	"--package",
 	"wallet_standard_wallets",
 	"--doc",
