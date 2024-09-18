@@ -2,7 +2,7 @@
 command = "nil"
 
 [language-server.nil.config]
-formatting = { command = "nixpkgs-fmt" }
+formatting = { command = ["nixfmt"] }
 
 [language-server.tailwindcss-ls]
 config = { userLanguages = { rust = "html", "*.rs" = "html" } }
@@ -17,12 +17,13 @@ features = "all"
 [[language]]
 name = "markdown"
 indent = { tab-width = 2, unit = "\t" }
+language-servers = ["marksman", "ltex-ls", "lsp-ai"]
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.md"] }
 auto-format = true
 
 [[language]]
 name = "rust"
-language-servers = ["rust-analyzer", "tailwindcss-ls"]
+language-servers = ["rust-analyzer", "tailwindcss-ls", "lsp-ai"]
 indent = { tab-width = 2, unit = "\t" }
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.rs"] }
 auto-format = true
@@ -36,99 +37,27 @@ auto-format = true
 [[language]]
 name = "toml"
 indent = { tab-width = 2, unit = "\t" }
-language-servers = ["taplo"]
+language-servers = ["taplo", "lsp-ai"]
 formatter = { command = "dprint", args = ["fmt", "--stdin", "Cargo.toml"] }
 auto-format = true
 
-# [[language]]
-# name = "cargotoml"
-# scope = "source.toml"
-# auto-format = true
-# injection-regex = "toml"
-# comment-token = "#"
-# file-types = [{ glob = "Cargo.toml" }]
-# formatter = { command = "dprint", args = ["fmt", "--stdin", "Cargo.toml"] }
-# language-servers = ["taplo", "cargotomllsp"]
-
-# [[grammar]]
-# name = "cargotoml"
-# source = { git = "https://github.com/ikatyang/tree-sitter-toml", rev = "7cff70bbcbbc62001b465603ca1ea88edd668704" }
+[[language]]
+name = "nix"
+indent = { tab-width = 2, unit = "\t" }
+language-servers = ["nil", "lsp-ai"]
+formatter = { command = "dprint", args = ["fmt", "--stdin", "file.nix"] }
+auto-format = true
 
 [[language]]
 name = "html"
-language-servers = ["tailwindcss-ls", "vscode-html-language-server"]
+language-servers = ["tailwindcss-ls", "vscode-html-language-server", "lsp-ai"]
 indent = { tab-width = 2, unit = "\t" }
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.html"] }
 auto-format = true
 
 [[language]]
 name = "css"
-language-servers = ["tailwindcss-ls", "vscode-css-language-server"]
+language-servers = ["tailwindcss-ls", "vscode-css-language-server", "lsp-ai"]
 indent = { tab-width = 2, unit = "\t" }
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.css"] }
-auto-format = true
-
-[[language]]
-name = "nix"
-language-servers = ["nil"]
-indent = { tab-width = 2, unit = "\t" }
-formatter = { command = "dprint", args = ["fmt", "--stdin", "file.nix"] }
-auto-format = true
-
-[language-server.eslint]
-args = ["--stdio"]
-command = "vscode-eslint-language-server"
-
-# Taken from https://github.com/Microsoft/vscode-eslint#settings-options
-[language-server.eslint.config]
-format = true
-quiet = false
-rulesCustomizations = []
-run = "onType"
-validate = "on"
-nodePath = ""
-onIgnoredFiles = "off"
-packageManager = "pnpm"
-
-[language-server.eslint.config.experimental]
-useFlatConfig = true
-
-[language-server.eslint.config.codeAction.disableRuleComment]
-enable = true
-location = "separateLine"
-
-[language-server.eslint.config.codeAction.showDocumentation]
-enable = true
-
-[language-server.eslint.config.codeActionsOnSave]
-mode = "all"
-
-[language-server.eslint.config.problems]
-shortenToSingleLine = false
-
-[language-server.typescript-language-server.config]
-documentFormatting = false
-
-[[language]]
-name = "typescript"
-language-servers = [{ except-features = ["format"], name = "typescript-language-server" }, "eslint"]
-roots = ["pnpm-lock.yaml", "tsconfig.json"]
-indent = { tab-width = 2, unit = "\t" }
-formatter = { command = "dprint", args = ["fmt", "--stdin", "file.ts"] }
-auto-format = true
-
-[[language]]
-name = "javascript"
-language-servers = [{ except-features = ["format"], name = "typescript-language-server" }, "eslint"]
-roots = ["pnpm-lock.yaml", "tsconfig.json", "package.json", "jsconfig.json"]
-indent = { tab-width = 2, unit = "\t" }
-formatter = { command = "dprint", args = ["fmt", "--stdin", "file.js"] }
-auto-format = true
-
-[[language]]
-name = "tsx"
-language-servers = [{ except-features = ["format"], name = "typescript-language-server" }, "eslint"]
-roots = ["pnpm-lock.yaml", "tsconfig.json"]
-indent = { tab-width = 2, unit = "\t" }
-formatter = { command = "dprint", args = ["fmt", "--stdin", "file.tsx"] }
 auto-format = true
