@@ -6,6 +6,7 @@ categories = ["wasm"]
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
+readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
 tags = ["solana", "wallet", "web3", "blockchain"]

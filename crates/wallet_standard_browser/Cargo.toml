@@ -8,6 +8,7 @@ homepage = { workspace = true }
 include = ["src/**/*", "Cargo.toml", "readme.md", "js/**/*"]
 license = { workspace = true }
 publish = true
+readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
 tags = ["solana", "wallet", "web3", "blockchain"]

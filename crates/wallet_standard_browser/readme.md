@@ -27,6 +27,20 @@ wallet_standard_browser = "0.1" # replace with the latest version
 
 The [Wallet Standard](https://github.com/wallet-standard/wallet-standard) is a set of traits and conventions designed to improve the user experience and developer experience of wallets and applications for any blockchain.
 
+This crate provides a Rust implementation of the Solana Wallet Standard, which aims to create a consistent interface for wallets and dApps to interact across different blockchain ecosystems. Here's a brief overview of how to use this crate to fetch
+
+```rust
+use wallet_standard_browser::get_wallets;
+use wallet_standard_browser::prelude::*;
+
+async fn run() -> anhow::Result<()> {
+	let wallet_getter = get_wallets().await?;
+	let wallets = wallet_getter.get();
+
+	Ok(())
+}
+```
+
 [crate-image]: https://img.shields.io/crates/v/wallet_standard_browser.svg
 [crate-link]: https://crates.io/crates/wallet_standard_browser
 [docs-image]: https://docs.rs/wallet_standard_browser/badge.svg

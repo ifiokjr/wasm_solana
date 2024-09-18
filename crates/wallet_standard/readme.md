@@ -34,6 +34,18 @@ wallet_standard = "0.1" # replace with the latest version
 
 The [Wallet Standard](https://github.com/wallet-standard/wallet-standard) is a set of traits and conventions designed to improve the user experience and developer experience of wallets and applications for any blockchain.
 
+This crate provides a Rust implementation of the Solana Wallet Standard, which aims to create a consistent interface for wallets and dApps to interact across different blockchain ecosystems. Here's a brief overview of how to use this crate:
+
+1. Basic Setup:
+
+All the traits can be imported using the prelude.
+
+```rust
+use wallet_standard::prelude::*;
+```
+
+A full example of how to use this crate can be found in the [wallet_standard_browser](https://github.com/ifiokjr/wasm_solana/tree/main/crates/wallet_standard_browser) crate and in the [wallet_standard_wallets](https://github.com/ifiokjr/wasm_solana/tree/main/crates/wallet_standard_wallets) crate.
+
 [crate-image]: https://img.shields.io/crates/v/wallet_standard.svg
 [crate-link]: https://crates.io/crates/wallet_standard
 [docs-image]: https://docs.rs/wallet_standard/badge.svg
