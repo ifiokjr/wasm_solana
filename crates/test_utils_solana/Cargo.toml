@@ -47,6 +47,16 @@ wallet_standard = { workspace = true, features = ["solana"] }
 wasm_client_anchor = { workspace = true }
 wasm_client_solana = { workspace = true }
 
+[dev-dependencies]
+anyhow = { workspace = true }
+assert2 = { workspace = true }
+insta = { workspace = true, features = ["redactions", "json"] }
+spl-pod = { workspace = true }
+test-log = { workspace = true, features = ["trace"] }
+test_utils = { workspace = true }
+tokio = { workspace = true, features = ["test-util", "time"] }
+wasm-bindgen-test = { workspace = true }
+
 [features]
 test_validator = ["dep:solana-faucet", "dep:solana-test-validator"]
 ssr = ["wasm_client_solana/ssr"]

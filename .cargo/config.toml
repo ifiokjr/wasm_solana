@@ -6,6 +6,14 @@ semver-checks = ["bin", "cargo-semver-checks"]
 
 # Tests
 
+test_streams = [
+	"nextest",
+	"run",
+	"--package",
+	"test_utils_solana",
+	"-F",
+	"ssr,test_validator",
+]
 test_wallet_standard_wallets_ssr = [
 	"nextest",
 	"run",
@@ -41,6 +49,14 @@ test_wasm_client_solana_docs = [
 
 # Coverage
 
+coverage_streams = [
+	"llvm-cov",
+	"--no-report",
+	"--package",
+	"test_utils_solana",
+	"-F",
+	"ssr,test_validator",
+]
 coverage_wallet_standard_wallets_ssr = [
 	"llvm-cov",
 	"--no-report",

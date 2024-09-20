@@ -109,6 +109,7 @@
       cargo test_wallet_standard_wallets_docs
       cargo test_wasm_client_solana_ssr
       cargo test_wasm_client_solana_docs
+      cargo test_streams
     '';
     description = "Run all tests across the crates";
   };
@@ -119,6 +120,7 @@
       cargo coverage_wallet_standard_wallets_docs
       cargo coverage_wasm_client_solana_ssr
       cargo coverage_wasm_client_solana_docs
+      cargo coverage_streams
       cargo coverage_codecov_report
     '';
     description = "Run coverage across the crates";
