@@ -23,7 +23,7 @@ auto-format = true
 
 [[language]]
 name = "rust"
-language-servers = ["rust-analyzer", "tailwindcss-ls", "lsp-ai"]
+language-servers = ["rust-analyzer", "lsp-ai"]
 indent = { tab-width = 2, unit = "\t" }
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.rs"] }
 auto-format = true
@@ -46,18 +46,4 @@ name = "nix"
 indent = { tab-width = 2, unit = "\t" }
 language-servers = ["nil", "lsp-ai"]
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.nix"] }
-auto-format = true
-
-[[language]]
-name = "html"
-language-servers = ["tailwindcss-ls", "vscode-html-language-server", "lsp-ai"]
-indent = { tab-width = 2, unit = "\t" }
-formatter = { command = "dprint", args = ["fmt", "--stdin", "file.html"] }
-auto-format = true
-
-[[language]]
-name = "css"
-language-servers = ["tailwindcss-ls", "vscode-css-language-server", "lsp-ai"]
-indent = { tab-width = 2, unit = "\t" }
-formatter = { command = "dprint", args = ["fmt", "--stdin", "file.css"] }
 auto-format = true
