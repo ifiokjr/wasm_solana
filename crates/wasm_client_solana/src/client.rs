@@ -26,14 +26,14 @@ impl ClientRequest {
 
 pub type SubscriptionId = u64;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SubscriptionResponse<T> {
 	pub jsonrpc: String,
 	pub method: String,
 	pub params: SubscriptionParams<T>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SubscriptionParams<T> {
 	pub result: T,
 	pub subscription: SubscriptionId,

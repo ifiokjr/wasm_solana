@@ -25,6 +25,12 @@ pub mod solana_transaction_status;
 mod utils;
 
 pub mod prelude {
+	pub use futures::FutureExt;
+	pub use futures::SinkExt;
+	pub use futures::StreamExt;
+	pub use futures::TryFutureExt;
+	pub use futures::TryStreamExt;
+
 	pub use crate::extensions::AsyncVersionedTransactionExtension;
 	pub use crate::extensions::VersionedMessageExtension;
 	pub use crate::extensions::VersionedTransactionExtension;

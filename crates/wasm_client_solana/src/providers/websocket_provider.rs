@@ -15,19 +15,16 @@ use futures::SinkExt;
 use futures::Stream;
 use futures::StreamExt;
 use pin_project::pin_project;
-use pin_project::pinned_drop;
 use send_wrapper::SendWrapper;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use typed_builder::TypedBuilder;
-use wasm_bindgen::UnwrapThrowExt;
 
 #[cfg(feature = "ssr")]
 use self::websocket_provider_reqwest::*;
 #[cfg(not(feature = "ssr"))]
 use self::websocket_provider_wasm::*;
 use crate::utils::get_ws_url;
-use crate::utils::spawn_local;
 use crate::ClientRequest;
 use crate::ClientWebSocketError;
 use crate::SubscriptionId;
@@ -98,6 +95,7 @@ impl WebSocketProvider {
 	) -> Result<SubscriptionId, ClientWebSocketError> {
 		let id = self.id;
 		self.id += 1;
+
 		let request = ClientRequest::builder()
 			.method(T::SUBSCRIBE)
 			.params(params)
@@ -132,7 +130,7 @@ impl WebSocketProvider {
 	}
 }
 
-#[pin_project(PinnedDrop)]
+#[pin_project]
 #[derive(Clone, TypedBuilder)]
 pub struct Subscription<T: DeserializeOwned + WebSocketNotification> {
 	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
@@ -141,8 +139,6 @@ pub struct Subscription<T: DeserializeOwned + WebSocketNotification> {
 	#[builder(default)]
 	pub(crate) latest: PhantomData<T>,
 	pub(crate) id: SubscriptionId,
-	#[builder(default)]
-	pub(crate) count: u64,
 }
 
 impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
@@ -170,33 +166,17 @@ impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
 
 		Ok(())
 	}
-}
 
-#[pinned_drop]
-impl<T: DeserializeOwned + WebSocketNotification> PinnedDrop for Subscription<T> {
-	fn drop(self: Pin<&mut Self>) {
-		let id = self.id;
-		let sender = self.sender.clone();
-
-		spawn_local(async move {
-			let request = ClientRequest::builder()
-				.method(T::UNSUBSCRIBE)
-				.params(serde_json::json!([id]))
-				.build()
-				.try_to_value()
-				.unwrap_throw();
-
-			sender.lock().await.send(request).await.unwrap_throw();
-		});
+	pub fn subscription_id(&self) -> SubscriptionId {
+		self.id
 	}
 }
 
 impl<T: DeserializeOwned + WebSocketNotification> Stream for Subscription<T> {
 	type Item = SubscriptionResponse<T>;
 
-	fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+	fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
 		let subscription_id = self.id;
-		self.count += 1;
 		let mut this = self.project();
 
 		let Some(result) = ready!(this.receiver.as_mut().poll_next(cx)) else {
@@ -335,15 +315,23 @@ mod websocket_provider_reqwest {
 	impl Sink<Value> for WebSocketStream {
 		type Error = ClientWebSocketError;
 
-		fn poll_ready(
-			mut self: Pin<&mut Self>,
-			cx: &mut Context<'_>,
-		) -> Poll<Result<(), Self::Error>> {
-			let Some(websocket) = self.websocket.as_mut() else {
-				return Poll::Pending;
-			};
+		fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+			let mut this = self.project();
 
-			websocket.poll_ready_unpin(cx).map_err(Into::into)
+			if let Some(mut websocket) = this.websocket.as_mut().as_pin_mut() {
+				return websocket.poll_ready_unpin(cx).map_err(Into::into);
+			}
+
+			let initiator = this.initiator.as_mut();
+			let result = ready!(initiator.poll(cx));
+
+			if let Ok(mut websocket) = result {
+				let poll_result = websocket.poll_ready_unpin(cx).map_err(Into::into);
+				this.websocket.set(Some(websocket));
+				return poll_result;
+			}
+
+			Poll::Ready(Err(ClientWebSocketError::ConnectionError))
 		}
 
 		fn start_send(mut self: Pin<&mut Self>, item: Value) -> Result<(), Self::Error> {

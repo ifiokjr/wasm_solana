@@ -555,7 +555,7 @@ pub struct GetConfirmedSignaturesForAddress2Config {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcTransactionLogsConfig {
 	#[serde(flatten)]
@@ -658,6 +658,7 @@ impl<'de> Deserialize<'de> for BlockSubscribeRequest {
 #[builder(field_defaults(setter(into)))]
 pub struct LogsSubscribeRequest {
 	pub filter: RpcTransactionLogsFilter,
+	#[builder(default)]
 	pub config: RpcTransactionLogsConfig,
 }
 
