@@ -255,7 +255,7 @@ pub fn handle_program_log<T: Event>(
 		};
 
 		let event = log_bytes
-			.starts_with(&T::DISCRIMINATOR)
+			.starts_with(T::DISCRIMINATOR)
 			.then(|| {
 				let mut data = &log_bytes[T::DISCRIMINATOR.len()..];
 				T::deserialize(&mut data).map_err(|e| AnchorClientError::LogParse(e.to_string()))

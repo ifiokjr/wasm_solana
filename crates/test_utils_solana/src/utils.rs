@@ -13,7 +13,6 @@ use chrono_humanize::Tense;
 use solana_banks_client::BanksClient;
 use solana_banks_client::BanksClientError;
 use solana_banks_interface::BanksTransactionResultWithSimulation;
-use solana_program_runtime::compute_budget_processor::DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT;
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::BanksTransactionResultWithMetadata;
 use solana_program_test::ProgramTest;
@@ -42,8 +41,6 @@ use wallet_standard::SolanaSignTransactionProps;
 use wallet_standard::prelude::*;
 use wasm_client_anchor::AnchorClientResult;
 use wasm_client_anchor::prelude::*;
-
-pub const MAX_COMPUTE_UNITS: u64 = DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT as u64;
 
 #[async_trait(?Send)]
 pub trait BanksClientAsyncExtension {
@@ -237,7 +234,7 @@ pub trait ProgramTestExtension {
 	/// The program is upgradeable if `Some` `program_authority` is provided.
 	fn add_bpf_program(
 		&mut self,
-		program_name: &str,
+		program_name: &'static str,
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
 		process_instruction: Option<BuiltinFunctionWithContext>,
@@ -249,7 +246,7 @@ pub trait ProgramTestExtension {
 	/// [`ProgramTestExtension::add_bpf_program`]
 	fn add_bpf_program_with_program_data(
 		&mut self,
-		program_name: &str,
+		program_name: &'static str,
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
 		program_data: Pubkey,
@@ -293,7 +290,7 @@ impl ProgramTestExtension for ProgramTest {
 		anchor_data: T,
 		executable: bool,
 	) {
-		let discriminator = &T::discriminator();
+		let discriminator = &T::DISCRIMINATOR;
 		let data = anchor_data
 			.try_to_vec()
 			.expect("Cannot serialize provided anchor account");
@@ -309,7 +306,7 @@ impl ProgramTestExtension for ProgramTest {
 		owner: Pubkey,
 		size: usize,
 	) {
-		let discriminator = &T::discriminator();
+		let discriminator = T::DISCRIMINATOR;
 		let data = vec![0_u8; size];
 		let mut v = Vec::new();
 		v.extend_from_slice(discriminator);
@@ -419,7 +416,7 @@ impl ProgramTestExtension for ProgramTest {
 
 	fn add_bpf_program(
 		&mut self,
-		program_name: &str,
+		program_name: &'static str,
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
 		process_instruction: Option<BuiltinFunctionWithContext>,
@@ -486,7 +483,7 @@ impl ProgramTestExtension for ProgramTest {
 
 	fn add_bpf_program_with_program_data(
 		&mut self,
-		program_name: &str,
+		program_name: &'static str,
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
 		program_data_pubkey: Pubkey,
@@ -706,10 +703,10 @@ pub trait FromAnchorData {
 impl FromAnchorData for AccountSharedData {
 	fn from_anchor_data<T: AnchorSerialize + Discriminator>(data: T, owner: Pubkey) -> Self {
 		let mut bytes = Vec::new();
-		let discriminator = T::discriminator();
+		let discriminator = T::DISCRIMINATOR;
 		let anchor_data = data.try_to_vec().expect("cannot serialize anchor data");
 
-		bytes.extend_from_slice(&discriminator);
+		bytes.extend_from_slice(discriminator);
 		bytes.extend_from_slice(&anchor_data);
 
 		let rent = Rent::default().minimum_balance(bytes.len());

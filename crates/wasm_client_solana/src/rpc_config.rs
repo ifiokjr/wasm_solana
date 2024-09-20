@@ -59,7 +59,7 @@ impl Source {
 					.await?;
 				Ok(blockhash)
 			}
-			Self::NonceAccount(ref pubkey) => {
+			Self::NonceAccount(pubkey) => {
 				#[allow(clippy::redundant_closure)]
 				let data = nonce_utils::get_account_with_commitment(rpc_client, pubkey, commitment_config)
 					.await
@@ -81,7 +81,7 @@ impl Source {
 					.is_blockhash_valid(blockhash, commitment_config)
 					.await?
 			}
-			Self::NonceAccount(ref pubkey) => {
+			Self::NonceAccount(pubkey) => {
 				#[allow(clippy::redundant_closure)]
 				let _ = nonce_utils::get_account_with_commitment(rpc_client, pubkey, commitment_config)
 					.await

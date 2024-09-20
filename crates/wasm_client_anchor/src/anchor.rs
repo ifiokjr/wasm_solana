@@ -5,9 +5,6 @@ use std::future::Future;
 use anchor_lang::AccountDeserialize;
 use anchor_lang::Event;
 use anchor_lang::Key;
-use anchor_lang::ZeroCopy;
-use anchor_lang::err;
-use anchor_lang::error::ErrorCode;
 use async_trait::async_trait;
 use serde::Serialize;
 use solana_sdk::address_lookup_table::AddressLookupTableAccount;
@@ -107,11 +104,6 @@ impl<W: WalletAnchor> AnchorProgram<W> {
 	/// Get the data stared by an anchor account.
 	pub async fn account<T: AccountDeserialize>(&self, address: &Pubkey) -> AnchorClientResult<T> {
 		self.rpc().get_anchor_account(address).await
-	}
-
-	/// Get the data stared by a zero copy anchor account.
-	pub async fn zero_copy_account<T: ZeroCopy>(&self, address: &Pubkey) -> AnchorClientResult<T> {
-		self.rpc().get_zero_copy_anchor_account(address).await
 	}
 
 	/// Get an anchor event subscription.
@@ -585,11 +577,6 @@ pub trait AnchorRpcClient {
 		&self,
 		address: &Pubkey,
 	) -> impl Future<Output = AnchorClientResult<T>>;
-	/// Get the account data for an zero copy anchor account on chain.
-	fn get_zero_copy_anchor_account<T: ZeroCopy>(
-		&self,
-		address: &Pubkey,
-	) -> impl Future<Output = AnchorClientResult<T>>;
 	/// Get an anchor events subscription.
 	fn get_anchor_subscription<T: Event>(
 		&self,
@@ -611,25 +598,6 @@ impl AnchorRpcClient for SolanaRpcClient {
 			let result = T::try_deserialize(&mut data)?;
 
 			Ok(result)
-		}
-	}
-
-	fn get_zero_copy_anchor_account<T: ZeroCopy>(
-		&self,
-		address: &Pubkey,
-	) -> impl Future<Output = AnchorClientResult<T>> {
-		async move {
-			let account = self
-				.get_account_with_commitment(address, self.commitment_config())
-				.await?
-				.ok_or(AnchorClientError::AccountNotFound(*address))?;
-			let data: &[u8] = &account.data;
-
-			if data[..8] != T::DISCRIMINATOR {
-				err!(ErrorCode::AccountDiscriminatorMismatch)?;
-			}
-
-			Ok(bytemuck::pod_read_unaligned(&data[8..]))
 		}
 	}
 

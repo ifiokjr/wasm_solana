@@ -23,7 +23,7 @@ pub trait FeatureFromJs: JsCast {
 }
 
 macro_rules! impl_feature_from_js {
-	($ident:ident, $name:expr) => {
+	($ident:ident, $name:expr_2021) => {
 		impl $crate::FeatureFromJs for $ident {
 			const NAME: &'static str = $name;
 		}

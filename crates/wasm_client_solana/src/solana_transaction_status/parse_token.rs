@@ -707,6 +707,7 @@ pub fn parse_token(
 					account_keys,
 				)
 			}
+			TokenInstruction::ConfidentialMintBurnExtension => todo!("not currently supported"),
 		}
 	} else if let Ok(token_group_instruction) = TokenGroupInstruction::unpack(&instruction.data) {
 		parse_token_group_instruction(
@@ -835,6 +836,7 @@ impl From<ExtensionType> for UiExtensionType {
 			ExtensionType::GroupMemberPointer => UiExtensionType::GroupMemberPointer,
 			ExtensionType::TokenGroup => UiExtensionType::TokenGroup,
 			ExtensionType::TokenGroupMember => UiExtensionType::TokenGroupMember,
+			ExtensionType::ConfidentialMintBurn => todo!("not currently supported"),
 		}
 	}
 }

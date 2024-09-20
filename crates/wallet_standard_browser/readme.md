@@ -1,4 +1,4 @@
-# wallet_standard_browser
+# `wallet_standard_browser`
 
 <br />
 

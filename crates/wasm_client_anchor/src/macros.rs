@@ -326,7 +326,7 @@ macro_rules! create_program_client_macro {
 /// ```
 #[macro_export]
 macro_rules! create_program_client {
-	($id:expr, $program_client_name:ident) => {
+	($id:expr_2021, $program_client_name:ident) => {
 		$crate::__private::paste::paste! {
 			pub trait [<Into $program_client_name>]<W: $crate::WalletAnchor> {
 				fn [<into_ $program_client_name:snake>](self) -> $program_client_name<W>;

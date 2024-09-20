@@ -1,5 +1,26 @@
-/* esm.sh - esbuild bundle(@wallet-standard/wallet@1.0.1) es2022 development */
-// ../esmd/npm/@wallet-standard/wallet@1.0.1/node_modules/.pnpm/@wallet-standard+wallet@1.0.1/node_modules/@wallet-standard/wallet/lib/esm/register.js
+/* esm.sh - esbuild bundle(@wallet-standard/wallet@1.1.0) es2022 development */
+// ../esmd/npm/@wallet-standard/wallet@1.1.0/node_modules/.pnpm/@wallet-standard+wallet@1.1.0/node_modules/@wallet-standard/wallet/lib/esm/register.js
+var __classPrivateFieldGet = function (receiver, state, kind, f) {
+	if (kind === "a" && !f) {
+		throw new TypeError("Private accessor was defined without a getter");
+	}
+	if (
+		typeof state === "function"
+			? receiver !== state || !f
+			: !state.has(receiver)
+	) {
+		throw new TypeError(
+			"Cannot read private member from an object whose class did not declare it",
+		);
+	}
+	return kind === "m"
+		? f
+		: kind === "a"
+		? f.call(receiver)
+		: f
+		? f.value
+		: state.get(receiver);
+};
 var __classPrivateFieldSet = function (receiver, state, value, kind, f) {
 	if (kind === "m") {
 		throw new TypeError("Private method is not writable");
@@ -22,27 +43,6 @@ var __classPrivateFieldSet = function (receiver, state, value, kind, f) {
 		? f.value = value
 		: state.set(receiver, value),
 		value;
-};
-var __classPrivateFieldGet = function (receiver, state, kind, f) {
-	if (kind === "a" && !f) {
-		throw new TypeError("Private accessor was defined without a getter");
-	}
-	if (
-		typeof state === "function"
-			? receiver !== state || !f
-			: !state.has(receiver)
-	) {
-		throw new TypeError(
-			"Cannot read private member from an object whose class did not declare it",
-		);
-	}
-	return kind === "m"
-		? f
-		: kind === "a"
-		? f.call(receiver)
-		: f
-		? f.value
-		: state.get(receiver);
 };
 var _RegisterWalletEvent_detail;
 function registerWallet(wallet) {
@@ -68,6 +68,12 @@ function registerWallet(wallet) {
 	}
 }
 var RegisterWalletEvent = class extends Event {
+	get detail() {
+		return __classPrivateFieldGet(this, _RegisterWalletEvent_detail, "f");
+	}
+	get type() {
+		return "wallet-standard:register-wallet";
+	}
 	constructor(callback) {
 		super("wallet-standard:register-wallet", {
 			bubbles: false,
@@ -76,12 +82,6 @@ var RegisterWalletEvent = class extends Event {
 		});
 		_RegisterWalletEvent_detail.set(this, void 0);
 		__classPrivateFieldSet(this, _RegisterWalletEvent_detail, callback, "f");
-	}
-	get detail() {
-		return __classPrivateFieldGet(this, _RegisterWalletEvent_detail, "f");
-	}
-	get type() {
-		return "wallet-standard:register-wallet";
 	}
 	/** @deprecated */
 	preventDefault() {
@@ -109,7 +109,28 @@ function DEPRECATED_registerWallet(wallet) {
 	}
 }
 
-// ../esmd/npm/@wallet-standard/wallet@1.0.1/node_modules/.pnpm/@wallet-standard+wallet@1.0.1/node_modules/@wallet-standard/wallet/lib/esm/util.js
+// ../esmd/npm/@wallet-standard/wallet@1.1.0/node_modules/.pnpm/@wallet-standard+wallet@1.1.0/node_modules/@wallet-standard/wallet/lib/esm/util.js
+var __classPrivateFieldGet2 = function (receiver, state, kind, f) {
+	if (kind === "a" && !f) {
+		throw new TypeError("Private accessor was defined without a getter");
+	}
+	if (
+		typeof state === "function"
+			? receiver !== state || !f
+			: !state.has(receiver)
+	) {
+		throw new TypeError(
+			"Cannot read private member from an object whose class did not declare it",
+		);
+	}
+	return kind === "m"
+		? f
+		: kind === "a"
+		? f.call(receiver)
+		: f
+		? f.value
+		: state.get(receiver);
+};
 var __classPrivateFieldSet2 = function (receiver, state, value, kind, f) {
 	if (kind === "m") {
 		throw new TypeError("Private method is not writable");
@@ -133,27 +154,6 @@ var __classPrivateFieldSet2 = function (receiver, state, value, kind, f) {
 		: state.set(receiver, value),
 		value;
 };
-var __classPrivateFieldGet2 = function (receiver, state, kind, f) {
-	if (kind === "a" && !f) {
-		throw new TypeError("Private accessor was defined without a getter");
-	}
-	if (
-		typeof state === "function"
-			? receiver !== state || !f
-			: !state.has(receiver)
-	) {
-		throw new TypeError(
-			"Cannot read private member from an object whose class did not declare it",
-		);
-	}
-	return kind === "m"
-		? f
-		: kind === "a"
-		? f.call(receiver)
-		: f
-		? f.value
-		: state.get(receiver);
-};
 var _ReadonlyWalletAccount_address;
 var _ReadonlyWalletAccount_publicKey;
 var _ReadonlyWalletAccount_chains;
@@ -161,6 +161,33 @@ var _ReadonlyWalletAccount_features;
 var _ReadonlyWalletAccount_label;
 var _ReadonlyWalletAccount_icon;
 var ReadonlyWalletAccount = class _ReadonlyWalletAccount {
+	/** Implementation of {@link "@wallet-standard/base".WalletAccount.address | WalletAccount::address} */
+	get address() {
+		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_address, "f");
+	}
+	/** Implementation of {@link "@wallet-standard/base".WalletAccount.publicKey | WalletAccount::publicKey} */
+	get publicKey() {
+		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_publicKey, "f")
+			.slice();
+	}
+	/** Implementation of {@link "@wallet-standard/base".WalletAccount.chains | WalletAccount::chains} */
+	get chains() {
+		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_chains, "f")
+			.slice();
+	}
+	/** Implementation of {@link "@wallet-standard/base".WalletAccount.features | WalletAccount::features} */
+	get features() {
+		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_features, "f")
+			.slice();
+	}
+	/** Implementation of {@link "@wallet-standard/base".WalletAccount.label | WalletAccount::label} */
+	get label() {
+		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_label, "f");
+	}
+	/** Implementation of {@link "@wallet-standard/base".WalletAccount.icon | WalletAccount::icon} */
+	get icon() {
+		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_icon, "f");
+	}
 	/**
 	 * Create and freeze a read-only account.
 	 *
@@ -212,33 +239,6 @@ var ReadonlyWalletAccount = class _ReadonlyWalletAccount {
 			account.icon,
 			"f",
 		);
-	}
-	/** Implementation of {@link "@wallet-standard/base".WalletAccount.address | WalletAccount::address} */
-	get address() {
-		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_address, "f");
-	}
-	/** Implementation of {@link "@wallet-standard/base".WalletAccount.publicKey | WalletAccount::publicKey} */
-	get publicKey() {
-		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_publicKey, "f")
-			.slice();
-	}
-	/** Implementation of {@link "@wallet-standard/base".WalletAccount.chains | WalletAccount::chains} */
-	get chains() {
-		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_chains, "f")
-			.slice();
-	}
-	/** Implementation of {@link "@wallet-standard/base".WalletAccount.features | WalletAccount::features} */
-	get features() {
-		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_features, "f")
-			.slice();
-	}
-	/** Implementation of {@link "@wallet-standard/base".WalletAccount.label | WalletAccount::label} */
-	get label() {
-		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_label, "f");
-	}
-	/** Implementation of {@link "@wallet-standard/base".WalletAccount.icon | WalletAccount::icon} */
-	get icon() {
-		return __classPrivateFieldGet2(this, _ReadonlyWalletAccount_icon, "f");
 	}
 };
 _ReadonlyWalletAccount_address = /* @__PURE__ */ new WeakMap(),

@@ -232,12 +232,13 @@ impl SolanaRpcClient {
 			)
 			.await?;
 
-		if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
-			Ok(response)
-		} else {
-			match serde_json::from_value::<RpcError>(result) {
-				Ok(error) => Err(error.into()),
-				Err(error) => Err(ClientError::Other(error.to_string())),
+		match serde_json::from_value::<R>(result.clone()) {
+			Ok(response) => Ok(response),
+			_ => {
+				match serde_json::from_value::<RpcError>(result) {
+					Ok(error) => Err(error.into()),
+					Err(error) => Err(ClientError::Other(error.to_string())),
+				}
 			}
 		}
 	}

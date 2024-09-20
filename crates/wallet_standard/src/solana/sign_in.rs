@@ -164,7 +164,7 @@ fn verify_output_text(
 
 	// Use macros for concise field appending
 	macro_rules! confirm_field_exists {
-		($field:expr, $name:literal) => {
+		($field:expr_2021, $name:literal) => {
 			if let Some(ref value) = $field {
 				let Some((_, remaining)) =
 					output_text.split_once(format!("{}: {}", $name, value).as_str())
@@ -237,7 +237,7 @@ pub fn create_sign_in_message_text(input: &SolanaSignInInput) -> WalletResult<St
 
 	// Use macros for concise field appending
 	macro_rules! push_field {
-		($field:expr, $name:literal) => {
+		($field:expr_2021, $name:literal) => {
 			if let Some(ref value) = $field {
 				fields.push(format!("{}: {}", $name, value));
 			}
