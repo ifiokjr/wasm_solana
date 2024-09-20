@@ -11,7 +11,6 @@ use spl_token_2022::extension::ExtensionType;
 use spl_token_2022::extension::StateWithExtensions;
 use spl_token_2022::extension::{self};
 use spl_token_2022::solana_program::pubkey::Pubkey;
-use spl_token_2022::solana_zk_token_sdk::zk_token_elgamal::pod::ElGamalPubkey;
 use spl_token_group_interface::state::TokenGroup;
 use spl_token_group_interface::state::TokenGroupMember;
 use spl_token_metadata_interface::state::TokenMetadata;
