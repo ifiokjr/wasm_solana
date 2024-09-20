@@ -1,6 +1,6 @@
 use std::future::Future;
 
-pub(crate) fn spawn_local<F>(fut: F)
+pub fn spawn_local<F>(fut: F)
 where
 	F: Future<Output = ()> + 'static,
 {

@@ -22,7 +22,7 @@ mod solana_client;
 pub mod solana_config_program;
 pub mod solana_rpc_client_api;
 pub mod solana_transaction_status;
-mod utils;
+pub mod utils;
 
 pub mod prelude {
 	pub use futures::FutureExt;
