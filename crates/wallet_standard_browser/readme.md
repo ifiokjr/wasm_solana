@@ -33,7 +33,7 @@ This crate provides a Rust implementation of the Solana Wallet Standard, which a
 use wallet_standard_browser::get_wallets;
 use wallet_standard_browser::prelude::*;
 
-async fn run() -> anhow::Result<()> {
+async fn run() -> anyhow::Result<()> {
 	let wallet_getter = get_wallets().await?;
 	let wallets = wallet_getter.get();
 
