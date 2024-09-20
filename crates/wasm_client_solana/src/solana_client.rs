@@ -1364,7 +1364,7 @@ impl SolanaRpcClient {
 	/// # }
 	/// ```
 	pub async fn account_subscribe(
-		&mut self,
+		&self,
 		request: impl Into<GetAccountInfoRequest>,
 	) -> ClientResult<Subscription<GetAccountInfoResponse>> {
 		let subscription_id = self.ws.create_subscription(request.into()).await?;
@@ -1387,7 +1387,7 @@ impl SolanaRpcClient {
 	///
 	/// [`blockSubscribe`]: https://docs.solana.com/api/websocket#blocksubscribe
 	pub async fn block_subscribe(
-		&mut self,
+		&self,
 		request: BlockSubscribeRequest,
 	) -> ClientResult<Subscription<BlockNotificationResponse>> {
 		let subscription_id = self.ws.create_subscription(request).await?;
@@ -1407,7 +1407,7 @@ impl SolanaRpcClient {
 	///
 	/// [`logsSubscribe`]: https://docs.solana.com/api/websocket#logssubscribe
 	pub async fn logs_subscribe(
-		&mut self,
+		&self,
 		request: LogsSubscribeRequest,
 	) -> ClientResult<Subscription<LogsNotificationResponse>> {
 		let subscription_id = self.ws.create_subscription(request).await?;
@@ -1427,7 +1427,7 @@ impl SolanaRpcClient {
 	///
 	/// [`programSubscribe`]: https://docs.solana.com/api/websocket#programsubscribe
 	pub async fn program_subscribe(
-		&mut self,
+		&self,
 		request: ProgramSubscribeRequest,
 	) -> ClientResult<Subscription<GetProgramAccountsResponse>> {
 		let subscription_id = self.ws.create_subscription(request).await?;

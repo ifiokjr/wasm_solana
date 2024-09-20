@@ -60,7 +60,7 @@ pub struct WebSocketProvider {
 	/// The websocket url.
 	url: String,
 	/// The client ID which identifies current client ID.
-	id: u32,
+	id: Arc<std::sync::Mutex<u32>>,
 	#[debug(skip)]
 	sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
 	#[debug(skip)]
@@ -77,7 +77,7 @@ impl WebSocketProvider {
 
 		Self {
 			url,
-			id: 0,
+			id: Arc::new(std::sync::Mutex::new(0)),
 			sender,
 			receiver,
 		}
@@ -90,11 +90,18 @@ impl WebSocketProvider {
 	/// Create a subscription and return the subscription id once a response
 	/// is received.
 	pub async fn create_subscription<T: WebSocketMethod>(
-		&mut self,
+		&self,
 		params: T,
 	) -> Result<SubscriptionId, ClientWebSocketError> {
-		let id = self.id;
-		self.id += 1;
+		let id = {
+			let mut id_guard = self
+				.id
+				.lock()
+				.map_err(|_| ClientWebSocketError::ConnectionError)?;
+			let current_id = *id_guard;
+			*id_guard += 1;
+			current_id
+		};
 
 		let request = ClientRequest::builder()
 			.method(T::SUBSCRIBE)
@@ -150,6 +157,9 @@ impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
 			.build()
 	}
 
+	/// This must be called to unsubscribe from the socket updates. It would be
+	/// nice if there was a way to automatically do this on `Drop`. However, I'm
+	/// not sure how to make async updates on drop. `spawn_local` was failing.
 	pub async fn unsubscribe(&self) -> Result<(), ClientWebSocketError> {
 		let request = ClientRequest::builder()
 			.method(T::UNSUBSCRIBE)
