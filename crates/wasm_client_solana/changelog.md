@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.2.1...wasm_client_solana@v0.3.0) - 2024-09-21
+
+### <!-- 0 -->🎉 Added
+
+- make `Context::slot` public
+- make `spawn_local` public
+- [**breaking**] remove `&mut` requirement for all `*_subscribe` methods
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- update builder methods for `LogsSubscribeRequest`
+- resolve broken support for streams
+
 ## [0.2.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.2.0...wasm_client_solana@v0.2.1) - 2024-09-18
 
 ### <!-- 3 -->📚 Documentation

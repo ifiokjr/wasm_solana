@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.1.3...wasm_client_anchor@v0.2.0) - 2024-09-21
+
+### <!-- 0 -->🎉 Added
+
+- support subscription to `emit!` anchor `Event`
+- [**breaking**] rename `external` module to `__private`
+
 ## [0.1.3](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.1.2...wasm_client_anchor@v0.1.3) - 2024-09-18
 
 ### <!-- 3 -->📚 Documentation
