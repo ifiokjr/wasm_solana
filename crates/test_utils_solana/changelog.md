@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.2.1...test_utils_solana@v0.3.0) - 2024-09-21
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] rename `external` module to `__private`
+
+### <!-- 3 -->📚 Documentation
+
+- fix typo
+
+### <!-- 6 -->🧪 Testing
+
+- `account_subscribe` and `logs_subscribe`
+
 ## [0.2.1](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.2.0...test_utils_solana@v0.2.1) - 2024-09-18
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
