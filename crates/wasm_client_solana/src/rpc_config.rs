@@ -655,10 +655,9 @@ impl<'de> Deserialize<'de> for BlockSubscribeRequest {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-#[builder(field_defaults(setter(into)))]
 pub struct LogsSubscribeRequest {
 	pub filter: RpcTransactionLogsFilter,
-	#[builder(default)]
+	#[builder(default, setter(into))]
 	pub config: RpcTransactionLogsConfig,
 }
 
