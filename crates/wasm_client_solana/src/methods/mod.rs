@@ -111,7 +111,7 @@ mod simulate_transaction;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct Context {
-	slot: Slot,
+	pub slot: Slot,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
