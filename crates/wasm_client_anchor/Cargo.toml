@@ -21,11 +21,17 @@ crate-type = ["cdylib", "lib"]
 [dependencies]
 anchor-lang = { workspace = true }
 async-trait = { workspace = true }
+base64 = { workspace = true }
+futures = { workspace = true }
+js-sys = { workspace = true }
 log = { workspace = true }
 paste = { workspace = true }
+pin-project = { workspace = true }
+regex = { workspace = true }
 retrier = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_with = { workspace = true }
 solana-program = { workspace = true }
 solana-sdk = { workspace = true }
 thiserror = { workspace = true }

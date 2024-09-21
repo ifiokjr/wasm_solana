@@ -1,6 +1,7 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/readme.md"))]
 
 pub use anchor::*;
+pub use events::*;
 
 mod anchor;
 mod events;

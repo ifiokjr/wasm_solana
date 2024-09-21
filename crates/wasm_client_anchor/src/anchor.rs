@@ -1,4 +1,5 @@
 use anchor_lang::AccountDeserialize;
+use anchor_lang::Event;
 use anchor_lang::Key;
 use async_trait::async_trait;
 use serde::Serialize;
@@ -10,6 +11,7 @@ use solana_sdk::message::v0;
 use solana_sdk::message::CompileError;
 use solana_sdk::message::VersionedMessage;
 use solana_sdk::program_error::ProgramError;
+use solana_sdk::pubkey::ParsePubkeyError;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
@@ -21,11 +23,16 @@ use wallet_standard::SolanaSignAndSendTransactionOptions;
 use wallet_standard::SolanaSignTransactionProps;
 use wallet_standard::WalletError;
 use wasm_client_solana::prelude::*;
+use wasm_client_solana::rpc_config::LogsSubscribeRequest;
 use wasm_client_solana::rpc_config::RpcSimulateTransactionConfig;
+use wasm_client_solana::rpc_config::RpcTransactionLogsFilter;
 use wasm_client_solana::ClientError;
+use wasm_client_solana::ClientWebSocketError;
 use wasm_client_solana::RpcError;
 use wasm_client_solana::SimulateTransactionResponse;
 use wasm_client_solana::SolanaRpcClient;
+
+use crate::EventSubscription;
 
 pub trait WalletAnchor: WalletSolana + std::fmt::Debug + Clone {}
 impl<T> WalletAnchor for T where T: WalletSolana + std::fmt::Debug + Clone {}
@@ -85,6 +92,11 @@ impl<W: WalletAnchor> AnchorProgram<W> {
 	/// Get the data stared by an anchor account.
 	pub async fn account<T: AccountDeserialize>(&self, address: &Pubkey) -> AnchorClientResult<T> {
 		get_anchor_account(&self.rpc, address).await
+	}
+
+	/// Get an anchor event subscription.
+	pub async fn subscribe<T: Event>(&self) -> AnchorClientResult<EventSubscription<T>> {
+		get_anchor_subscription(self.rpc(), &self.program_id).await
 	}
 }
 
@@ -304,10 +316,14 @@ pub enum AnchorClientError {
 	Rpc(#[from] RpcError),
 	#[error("{0}")]
 	Client(#[from] ClientError),
+	#[error("{0}")]
+	ClientWebsocket(#[from] ClientWebSocketError),
 	#[error("Unable to parse log: {0}")]
 	LogParse(String),
 	#[error(transparent)]
 	Wallet(#[from] WalletError),
+	#[error(transparent)]
+	Pubkey(#[from] ParsePubkeyError),
 }
 
 impl From<CompileError> for AnchorClientError {
@@ -330,11 +346,12 @@ impl From<anchor_lang::error::Error> for AnchorClientError {
 
 pub type AnchorClientResult<T> = Result<T, AnchorClientError>;
 
+/// Get an anchor account from the Solana blockchain.
 pub async fn get_anchor_account<T: AccountDeserialize>(
-	client: &SolanaRpcClient,
+	rpc: &SolanaRpcClient,
 	address: &Pubkey,
 ) -> AnchorClientResult<T> {
-	let account = client
+	let account = rpc
 		.get_account_with_commitment(address, CommitmentConfig::processed())
 		.await?
 		.ok_or(AnchorClientError::AccountNotFound(*address))?;
@@ -342,4 +359,23 @@ pub async fn get_anchor_account<T: AccountDeserialize>(
 	let result = T::try_deserialize(&mut data)?;
 
 	Ok(result)
+}
+
+/// Get an anchor events subscription.
+pub async fn get_anchor_subscription<T: Event>(
+	rpc: &SolanaRpcClient,
+	program_id: &Pubkey,
+) -> AnchorClientResult<EventSubscription<T>> {
+	let request = LogsSubscribeRequest::builder()
+		.filter(RpcTransactionLogsFilter::Mentions(vec![
+			program_id.to_string(),
+		]))
+		.build();
+	let subscription = rpc.logs_subscribe(request).await?;
+	let event_subscription = EventSubscription::builder()
+		.subscription(subscription)
+		.program_id(*program_id)
+		.build();
+
+	Ok(event_subscription)
 }
