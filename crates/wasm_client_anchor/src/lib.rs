@@ -3,6 +3,7 @@
 pub use anchor::*;
 
 mod anchor;
+mod events;
 pub mod macros;
 pub mod utils;
 
@@ -37,7 +38,8 @@ pub mod prelude {
 	pub use crate::AnchorRequestMethods;
 }
 
-pub mod external {
+#[doc(hidden)]
+pub mod __private {
 	pub use anchor_lang;
 	pub use paste;
 	pub use solana_sdk;

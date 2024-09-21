@@ -17,7 +17,7 @@ macro_rules! anchor_processor {
 			$program::entry(program_id, accounts, instruction_data)
 		}
 
-		$crate::external::processor!(entry)
+		$crate::__private::processor!(entry)
 	}};
 }
 
@@ -28,11 +28,11 @@ macro_rules! assert_banks_client_simulated_error {
 	($result:ident, $expected_error:path) => {{
 		let error_name = $expected_error.name();
 
-		$crate::external::check!(
+		$crate::__private::check!(
 			$result.result.unwrap().is_err(),
 			"the simulation was expected to error"
 		);
-		$crate::external::check!(
+		$crate::__private::check!(
 			$result
 				.simulation_details
 				.unwrap()
@@ -51,11 +51,11 @@ macro_rules! assert_banks_client_metadata_error {
 	($result:ident, $expected_error:path) => {{
 		let error_name = $expected_error.name();
 
-		$crate::external::check!(
+		$crate::__private::check!(
 			$result.result.is_err(),
 			"the simulation was expected to error"
 		);
-		$crate::external::check!(
+		$crate::__private::check!(
 			$result
 				.metadata
 				.unwrap()

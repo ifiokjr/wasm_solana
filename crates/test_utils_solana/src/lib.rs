@@ -32,7 +32,8 @@ pub mod prelude {
 	pub use super::TestValidatorGenesisExtensions;
 }
 
-pub mod external {
+#[doc(hidden)]
+pub mod __private {
 	pub use assert2::check;
 	pub use solana_program_test::processor;
 }
