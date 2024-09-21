@@ -79,6 +79,7 @@
     exec = ''
       set -e
       cargo update
+      devenv update
       copy:js
     '';
     description = "Update dependencies.";

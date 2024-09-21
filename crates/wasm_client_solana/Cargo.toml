@@ -30,7 +30,6 @@ fork_stream = { workspace = true }
 futures = { workspace = true }
 futures-timer = { workspace = true }
 gloo-net = { workspace = true }
-gloo-timers = { workspace = true, features = ["futures"] }
 heck = { workspace = true }
 js-sys = { workspace = true }
 lazy_static = { workspace = true }
@@ -38,7 +37,6 @@ log = { workspace = true }
 pin-project = { workspace = true }
 reqwest = { workspace = true, optional = true, features = ["json"] }
 reqwest-websocket = { workspace = true, optional = true, features = ["json"] }
-retrier = { workspace = true }
 semver = { workspace = true }
 send_wrapper = { workspace = true, features = ["futures"] }
 serde = { workspace = true, features = ["derive"] }
@@ -56,7 +54,6 @@ spl-token = { workspace = true, features = ["no-entrypoint"] }
 spl-token-2022 = { workspace = true, features = ["no-entrypoint"] }
 spl-token-group-interface = { workspace = true }
 spl-token-metadata-interface = { workspace = true }
-strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt"], optional = true }
 typed-builder = { workspace = true }
@@ -73,9 +70,8 @@ insta = { workspace = true, features = ["redactions", "json"] }
 spl-pod = { workspace = true }
 test-log = { workspace = true, features = ["trace"] }
 tokio = { workspace = true, features = ["test-util"] }
-wasm-bindgen-test = { workspace = true }
 
 [features]
-js = ["retrier/wasm-bindgen", "futures-timer/wasm-bindgen"]
+js = ["futures-timer/wasm-bindgen"]
 ssr = ["dep:reqwest", "dep:reqwest-websocket", "dep:tokio"]
 zstd = ["ssr", "dep:zstd"]

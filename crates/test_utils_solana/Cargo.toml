@@ -24,7 +24,6 @@ borsh = { workspace = true, features = ["derive"] }
 chrono-humanize = { workspace = true }
 crossbeam-channel = { workspace = true }
 futures = { workspace = true }
-futures-timer = { workspace = true }
 lazy_static = { workspace = true }
 log = { workspace = true }
 port_check = { workspace = true }
@@ -55,7 +54,6 @@ spl-pod = { workspace = true }
 test-log = { workspace = true, features = ["trace"] }
 test_utils = { workspace = true }
 tokio = { workspace = true, features = ["test-util", "time"] }
-wasm-bindgen-test = { workspace = true }
 
 [features]
 test_validator = ["dep:solana-faucet", "dep:solana-test-validator"]

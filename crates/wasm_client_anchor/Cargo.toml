@@ -28,7 +28,6 @@ log = { workspace = true }
 paste = { workspace = true }
 pin-project = { workspace = true }
 regex = { workspace = true }
-retrier = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_with = { workspace = true }
@@ -47,5 +46,5 @@ test-log = { workspace = true, features = ["trace"] }
 tokio = { workspace = true, features = ["test-util"] }
 
 [features]
-js = ["retrier/wasm-bindgen", "wasm_client_solana/js"]
+js = ["wasm_client_solana/js"]
 ssr = ["wasm_client_solana/ssr"]

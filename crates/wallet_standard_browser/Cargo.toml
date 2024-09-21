@@ -27,7 +27,6 @@ serde = { workspace = true, features = ["derive"] }
 serde-wasm-bindgen = { workspace = true }
 serde_bytes = { workspace = true }
 solana-sdk = { workspace = true, optional = true }
-strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt"] }
 typed-builder = { workspace = true }

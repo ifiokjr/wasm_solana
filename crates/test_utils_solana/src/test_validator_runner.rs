@@ -226,7 +226,6 @@ impl TestValidatorRunner {
 		// waiting for fees to stablize doesn't seem to work, so here waiting for this
 		// random airdrop to succeed seems to work. An alternative is a 15 second daily.
 		// The validator to be warmed up.
-		// futures_timer::Delay::new(std::time::Duration::from_secs(15)).await;
 		rpc.request_airdrop(&mint_keypair.pubkey(), sol_to_lamports(500.0))
 			.await?;
 
