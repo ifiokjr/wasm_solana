@@ -12,6 +12,24 @@ git_release_enable = false
 git_tag_enable = false
 
 [[package]]
+name = "example_program"
+semver_check = false
+changelog_update = false
+publish = false
+release = false
+git_release_enable = false
+git_tag_enable = false
+
+[[package]]
+name = "example_client"
+semver_check = false
+changelog_update = false
+publish = false
+release = false
+git_release_enable = false
+git_tag_enable = false
+
+[[package]]
 name = "test_utils_solana"
 changelog_path = "crates/test_utils_solana/changelog.md"
 
