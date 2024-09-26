@@ -17,13 +17,13 @@ features = "all"
 [[language]]
 name = "markdown"
 indent = { tab-width = 2, unit = "\t" }
-language-servers = ["marksman", "ltex-ls", "lsp-ai"]
+language-servers = ["marksman", "ltex-ls"]
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.md"] }
 auto-format = true
 
 [[language]]
 name = "rust"
-language-servers = ["rust-analyzer", "lsp-ai"]
+language-servers = ["rust-analyzer"]
 indent = { tab-width = 2, unit = "\t" }
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.rs"] }
 auto-format = true
@@ -37,13 +37,13 @@ auto-format = true
 [[language]]
 name = "toml"
 indent = { tab-width = 2, unit = "\t" }
-language-servers = ["taplo", "lsp-ai"]
+language-servers = ["taplo"]
 formatter = { command = "dprint", args = ["fmt", "--stdin", "Cargo.toml"] }
 auto-format = true
 
 [[language]]
 name = "nix"
 indent = { tab-width = 2, unit = "\t" }
-language-servers = ["nil", "lsp-ai"]
+language-servers = ["nil"]
 formatter = { command = "dprint", args = ["fmt", "--stdin", "file.nix"] }
 auto-format = true

@@ -7,6 +7,7 @@
       pkgs.binaryen
       pkgs.cargo-binstall
       pkgs.cargo-run-bin
+      pkgs.chromedriver
       pkgs.coreutils
       pkgs.curl
       pkgs.dprint
@@ -211,6 +212,8 @@
       echo "DEVENV_PROFILE=$DEVENV_PROFILE" >> $GITHUB_ENV
       echo "DEVENV_ROOT=$DEVENV_ROOT" >> $GITHUB_ENV
       echo "DEVENV_STATE=$DEVENV_STATE" >> $GITHUB_ENV
+
+      echo "CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver" >> $GITHUB_ENV
     '';
     description = "Setup devenv for GitHub Actions";
   };
@@ -233,6 +236,8 @@
       echo "export DEVENV_PROFILE=$DEVENV_PROFILE" >> /etc/profile
       echo "export DEVENV_ROOT=$DEVENV_ROOT" >> /etc/profile
       echo "export DEVENV_STATE=$DEVENV_STATE" >> /etc/profile
+
+      echo "export CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver" >> /etc/profile
     '';
     description = "Setup devenv shell for docker.";
   };
