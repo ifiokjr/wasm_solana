@@ -71,7 +71,7 @@ To automatically load the environment you should [install direnv](https://devenv
 direnv allow .
 ```
 
-At this point you should see the `nix` commands available in your terminal.
+At this point you should see the `nix` commands available in your terminal. Any changes made to the `.envrc` file will require you to run the above command again.
 
 Run the following commands to install all the required dependencies.
 
