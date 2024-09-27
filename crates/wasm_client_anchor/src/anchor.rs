@@ -100,6 +100,12 @@ impl<W: WalletAnchor> AnchorProgram<W> {
 	}
 }
 
+/// Create a partially typed `AnchorProgramBuilder` with the `program_id`
+/// defined.
+pub type AnchorProgramPartialBuilder<W> = AnchorProgramBuilder<W, ((Pubkey,), (), ())>;
+
+/// Create a partially typed `AnchorRequestBuilder` with the `rpc`, `program_id`
+/// and `wallet` defined.
 pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 	'a,
 	W,
@@ -248,7 +254,7 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 			.wallet()
 			.sign_transaction(props)
 			.await?
-			.signed_versioned_transaction()?;
+			.signed_transaction()?;
 
 		Ok(signed_transaction)
 	}
