@@ -206,3 +206,67 @@ macro_rules! create_program_client_macro {
 		}
 	};
 }
+
+/// Create a program client struct with the provided name.
+///
+/// ```rust
+/// use wasm_client_anchor::create_program_client!(example_program, ExampleProgramClient);
+/// use wasm_client_solana::SolanaRpcClient;
+/// use wasm_client_solana::DEVNET;
+/// use wallet_standard_wallets::MemoryWallet;
+///
+/// let rpc = SolanaRpcClient::new(DEVNET);
+/// let wallet = MemoryWallet::new(rpc.clone(), accounts: &[Keypair::new()]);
+/// let example_program_client = ExampleProgramClient::builder().rpc(rpc).wallet(wallet).build();
+/// ```
+#[macro_export]
+macro_rules! create_program_client {
+	($id:expr, $program_client_name:ident) => {
+		#[derive(::std::fmt::Debug, ::core::clone::Clone)]
+		pub struct $program_client_name<W: $crate::WalletAnchor>($crate::AnchorProgram<W>);
+
+		impl<W: $crate::WalletAnchor> core::ops::Deref for $program_client_name<W> {
+			type Target = $crate::AnchorProgram<W>;
+
+			fn deref(&self) -> &Self::Target {
+				&self.0
+			}
+		}
+
+		impl<W: $crate::WalletAnchor> From<$crate::AnchorProgram<W>> for $program_client_name<W> {
+			fn from(program: $crate::AnchorProgram<W>) -> Self {
+				$program_client_name(program)
+			}
+		}
+
+		impl<W: $crate::WalletAnchor> $program_client_name<W> {
+			/// Start the `AnchorProgram` builder with the `program_id` already set to
+			/// the default.
+			pub fn builder() -> $crate::AnchorProgramPartialBuilder<W> {
+				$crate::AnchorProgram::builder().program_id($id)
+			}
+
+			/// Start the `AnchorProgram` builder with a custom `program_id`.
+			pub fn builder_with_program(
+				program_id: &$crate::__private::solana_sdk::pubkey::Pubkey,
+			) -> $crate::AnchorProgramPartialBuilder<W> {
+				$crate::AnchorProgram::builder().program_id(*program_id)
+			}
+
+			/// Get the program
+			pub fn program(&self) -> &$crate::AnchorProgram<W> {
+				self
+			}
+
+			/// Request an airdrop to the payer account
+			pub async fn request_airdrop(
+				&self,
+				pubkey: &$crate::__private::solana_sdk::pubkey::Pubkey,
+				lamports: u64,
+			) -> $crate::AnchorClientResult<$crate::__private::solana_sdk::signature::Signature> {
+				let signature = self.rpc().request_airdrop(pubkey, lamports).await?;
+				Ok(signature)
+			}
+		}
+	};
+}
