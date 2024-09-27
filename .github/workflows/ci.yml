@@ -91,6 +91,10 @@ jobs:
         run: cargo test_streams
         shell: bash
 
+      - name: test `example_client`
+        run: cargo test_example_client
+        shell: bash
+
   coverage:
     timeout-minutes: 25
     runs-on: ubuntu-24.04
@@ -134,7 +138,7 @@ jobs:
           nix-cache: /tmp/nixcache
 
       - name: build
-        run: cargo build
+        run: cargo build --locked
         shell: bash
 
       - name: build all features

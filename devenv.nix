@@ -113,6 +113,7 @@
       cargo test_wasm_client_solana_ssr
       cargo test_wasm_client_solana_docs
       cargo test_streams
+      cargo test_example_client
     '';
     description = "Run all tests across the crates";
   };
@@ -124,6 +125,7 @@
       cargo coverage_wasm_client_solana_ssr
       cargo coverage_wasm_client_solana_docs
       cargo coverage_streams
+      cargo coverage_example_client
       cargo coverage_codecov_report
     '';
     description = "Run coverage across the crates";

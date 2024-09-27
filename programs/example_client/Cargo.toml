@@ -18,8 +18,8 @@ solana-program = { workspace = true }
 solana-sdk = { workspace = true }
 typed-builder = { workspace = true }
 wallet_standard = { workspace = true, features = ["solana"] }
-wasm_client_anchor = { workspace = true }
-wasm_client_solana = { workspace = true }
+wasm_client_anchor = { workspace = true, features = ["ssr"] }
+wasm_client_solana = { workspace = true, features = ["ssr"] }
 
 [dev-dependencies]
 anyhow = { workspace = true }
