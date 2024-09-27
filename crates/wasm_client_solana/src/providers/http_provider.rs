@@ -105,7 +105,6 @@ mod wasm_http_provider {
 	use futures::Future;
 	use gloo_net::http::Request;
 	use gloo_net::http::Response;
-	use gloo_net::Error;
 	use pin_project::pin_project;
 	use pin_project::pinned_drop;
 	use wasm_bindgen::prelude::*;
@@ -115,30 +114,47 @@ mod wasm_http_provider {
 	use crate::ClientError;
 
 	#[pin_project(PinnedDrop)]
-	struct WrappedSend<F: Future<Output = Result<Response, Error>>> {
+	struct WrappedSend<F: Future<Output = Result<Response, gloo_net::Error>>> {
 		#[pin]
 		fut: F,
 		controller: AbortController,
+		pending: bool,
 	}
 
-	impl<F: Future<Output = Result<Response, Error>>> WrappedSend<F> {
+	impl<F: Future<Output = Result<Response, gloo_net::Error>>> WrappedSend<F> {
 		fn new(fut: F, controller: AbortController) -> Self {
-			Self { fut, controller }
+			Self {
+				fut,
+				controller,
+				pending: true,
+			}
 		}
 	}
 
-	impl<F: Future<Output = Result<Response, Error>>> Future for WrappedSend<F> {
-		type Output = Result<Response, Error>;
+	impl<F: Future<Output = Result<Response, gloo_net::Error>>> Future for WrappedSend<F> {
+		type Output = Result<Response, gloo_net::Error>;
 
 		fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-			self.project().fut.as_mut().poll(cx)
+			let mut this = self.project();
+
+			match this.fut.as_mut().poll(cx) {
+				Poll::Ready(value) => {
+					*this.pending = false;
+					Poll::Ready(value)
+				}
+
+				Poll::Pending => Poll::Pending,
+			}
 		}
 	}
 
 	#[pinned_drop]
-	impl<F: Future<Output = Result<Response, Error>>> PinnedDrop for WrappedSend<F> {
+	impl<F: Future<Output = Result<Response, gloo_net::Error>>> PinnedDrop for WrappedSend<F> {
 		fn drop(self: Pin<&mut Self>) {
-			self.controller.abort();
+			if self.pending {
+				// only abort the fetch if it is still pending.
+				self.controller.abort();
+			}
 		}
 	}
 
