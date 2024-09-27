@@ -43,8 +43,8 @@ spl-token-2022 = { workspace = true }
 tarpc = { workspace = true }
 typed-builder = { workspace = true }
 wallet_standard = { workspace = true, features = ["solana"] }
-wasm_client_anchor = { workspace = true }
-wasm_client_solana = { workspace = true }
+wasm_client_anchor = { workspace = true, features = ["ssr"] }
+wasm_client_solana = { workspace = true, features = ["ssr"] }
 
 [dev-dependencies]
 anyhow = { workspace = true }
@@ -57,5 +57,3 @@ tokio = { workspace = true, features = ["test-util", "time"] }
 
 [features]
 test_validator = ["dep:solana-faucet", "dep:solana-test-validator"]
-ssr = ["wasm_client_solana/ssr"]
-js = ["wasm_client_solana/js", "wasm_client_anchor/js"]
