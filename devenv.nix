@@ -200,6 +200,7 @@
     exec = ''
       set -e
       # update github ci path
+      echo "$DEVENV_PROFILE/bin" >> $GITHUB_PATH
       echo "$GITHUB_WORKSPACE/.local-cache/solana-release/bin" >> $GITHUB_PATH
 
       # update github ci environment
