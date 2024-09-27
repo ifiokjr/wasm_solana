@@ -25,12 +25,16 @@ test_wallet_standard_wallets_ssr = [
 	"run",
 	"--package",
 	"wallet_standard_wallets",
+	"-F",
+	"ssr",
 ]
 test_wallet_standard_wallets_docs = [
 	"test",
 	"--package",
 	"wallet_standard_wallets",
 	"--doc",
+	"-F",
+	"ssr",
 ]
 test_wasm_client_solana_ssr = [
 	"nextest",
@@ -70,6 +74,8 @@ coverage_wallet_standard_wallets_ssr = [
 	"--no-report",
 	"--package",
 	"wallet_standard_wallets",
+	"-F",
+	"ssr",
 ]
 coverage_wallet_standard_wallets_docs = [
 	"llvm-cov",
@@ -77,6 +83,8 @@ coverage_wallet_standard_wallets_docs = [
 	"--package",
 	"wallet_standard_wallets",
 	"--doc",
+	"-F",
+	"ssr",
 ]
 coverage_wasm_client_solana_ssr = [
 	"llvm-cov",
