@@ -10,6 +10,7 @@
       pkgs.chromedriver
       pkgs.coreutils
       pkgs.curl
+      pkgs.deno
       pkgs.dprint
       pkgs.jq
       pkgs.libiconv
@@ -171,6 +172,12 @@
     '';
     description = "Check that all rust lints are passing.";
   };
+  scripts."validator:run" = {
+    exec = ''
+      set -e
+      solana-test-validator --warp-slot 1000
+    '';
+  };
   scripts."setup:vscode" = {
     exec = ''
       set -e
@@ -191,8 +198,6 @@
     exec = ''
       set -e
       # update github ci path
-      echo "$DEVENV_PROFILE/bin" >> $GITHUB_PATH
-      echo "$GITHUB_WORKSPACE/node_modules/.bin" >> $GITHUB_PATH
       echo "$GITHUB_WORKSPACE/.local-cache/solana-release/bin" >> $GITHUB_PATH
 
       # update github ci environment
