@@ -222,6 +222,8 @@
       echo "DEVENV_STATE=$DEVENV_STATE" >> $GITHUB_ENV
 
       echo "CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver" >> $GITHUB_ENV
+      # Temporary fix for a bug in anchor@0.30.1 https://github.com/coral-xyz/anchor/issues/3042
+      echo "ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> $GITHUB_ENV
     '';
     description = "Setup devenv for GitHub Actions";
   };
@@ -246,6 +248,8 @@
       echo "export DEVENV_STATE=$DEVENV_STATE" >> /etc/profile
 
       echo "export CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver" >> /etc/profile
+      # Temporary fix for a bug in anchor@0.30.1 https://github.com/coral-xyz/anchor/issues/3042
+      echo "export ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> /etc/profile
     '';
     description = "Setup devenv shell for docker.";
   };
