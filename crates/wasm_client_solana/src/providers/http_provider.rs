@@ -98,10 +98,49 @@ mod ssr_http_provider {
 
 #[cfg(not(feature = "ssr"))]
 mod wasm_http_provider {
+	use std::pin::Pin;
+	use std::task::Context;
+	use std::task::Poll;
+
+	use futures::Future;
 	use gloo_net::http::Request;
+	use gloo_net::http::Response;
+	use gloo_net::Error;
+	use pin_project::pin_project;
+	use pin_project::pinned_drop;
+	use wasm_bindgen::prelude::*;
+	use web_sys::AbortController;
 
 	use super::*;
 	use crate::ClientError;
+
+	#[pin_project(PinnedDrop)]
+	struct WrappedSend<F: Future<Output = Result<Response, Error>>> {
+		#[pin]
+		fut: F,
+		controller: AbortController,
+	}
+
+	impl<F: Future<Output = Result<Response, Error>>> WrappedSend<F> {
+		fn new(fut: F, controller: AbortController) -> Self {
+			Self { fut, controller }
+		}
+	}
+
+	impl<F: Future<Output = Result<Response, Error>>> Future for WrappedSend<F> {
+		type Output = Result<Response, Error>;
+
+		fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+			self.project().fut.as_mut().poll(cx)
+		}
+	}
+
+	#[pinned_drop]
+	impl<F: Future<Output = Result<Response, Error>>> PinnedDrop for WrappedSend<F> {
+		fn drop(self: Pin<&mut Self>) {
+			self.controller.abort();
+		}
+	}
 
 	#[derive(Debug, Clone)]
 	pub struct HttpProvider(String);
@@ -119,17 +158,17 @@ mod wasm_http_provider {
 			&self,
 			request: &T,
 		) -> ClientResult<R> {
+			let controller = AbortController::new().unwrap_throw();
 			let client_request = ClientRequest::builder()
 				.method(T::NAME)
 				.id(0)
 				.params(request)
 				.build();
-			let result: Value = Request::post(&self.0)
-				.json(&client_request)?
-				.send()
-				.await?
-				.json()
-				.await?;
+			let request = Request::post(&self.0)
+				.abort_signal(Some(&controller.signal()))
+				.json(&client_request)?;
+			let response = WrappedSend::new(request.send(), controller).await?;
+			let result: Value = response.json().await?;
 
 			if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
 				Ok(response)

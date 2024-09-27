@@ -60,7 +60,7 @@ typed-builder = { workspace = true }
 wallet_standard = { workspace = true, features = ["solana"] }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
-web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window"] }
+web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window", "AbortController"] }
 zstd = { workspace = true, optional = true }
 
 [dev-dependencies]
