@@ -151,3 +151,58 @@ macro_rules! create_request_builder {
 		$crate::create_request_builder!($program, $program_struct, $name_prefix, $name_prefix, "required:args");
 	};
 }
+
+#[macro_export]
+macro_rules! create_program_client_macro {
+	($program_crate:path, $program_client_struct:ident) => {
+		$crate::__private::paste::paste! {
+			macro_rules! [<$program_client_struct:snake _request_builder>] {
+				($name_prefix: ident,$accounts: ident,"optional:args") => {
+					$crate::create_request_builder!(
+						$program_crate,
+						$program_client_struct,
+						$name_prefix,
+						$accounts,
+						"optional:args"
+					);
+				};
+				($name_prefix: ident,$accounts: ident,"required:args") => {
+					$crate::create_request_builder!(
+						$program_crate,
+						$program_client_struct,
+						$name_prefix,
+						$accounts,
+						"required:args"
+					);
+				};
+				($name_prefix: ident,$accounts: ident) => {
+					$crate::create_request_builder!(
+						$program_crate,
+						$program_client_struct,
+						$name_prefix,
+						$accounts,
+						"required:args"
+					);
+				};
+				($name_prefix: ident,"optional:args") => {
+					$crate::create_request_builder!(
+						$program_crate,
+						$program_client_struct,
+						$name_prefix,
+						$name_prefix,
+						"optional:args"
+					);
+				};
+				($name_prefix: ident) => {
+					$crate::create_request_builder!(
+						$program_crate,
+						$program_client_struct,
+						$name_prefix,
+						$name_prefix,
+						"required:args"
+					);
+				};
+			}
+		}
+	};
+}
