@@ -52,7 +52,7 @@ macro_rules! base_create_request_builder {
 
 			impl<'a, W: $crate::WalletAnchor + 'a> [<$name_prefix Request>]<'a, W> {}
 
-			#[::async_trait::async_trait(?Send)]
+			#[$crate::__private::async_trait::async_trait(?Send)]
 			impl<'a, W: $crate::WalletAnchor + 'a> $crate::AnchorRequestMethods<'a, W>
 				for [<$name_prefix Request>]<'a, W>
 			{

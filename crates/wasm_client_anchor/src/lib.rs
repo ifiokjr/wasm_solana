@@ -43,6 +43,7 @@ pub mod prelude {
 #[doc(hidden)]
 pub mod __private {
 	pub use anchor_lang;
+	pub use async_trait;
 	pub use paste;
 	pub use solana_sdk;
 	pub use typed_builder;
