@@ -91,6 +91,7 @@ async fn create_runner() -> TestValidatorRunner {
 		.run()
 		.await
 }
-pub fn get_wallet_keypair() -> Keypair {
+
+fn get_wallet_keypair() -> Keypair {
 	Keypair::from_bytes(&SECRET_KEY_WALLET).unwrap()
 }

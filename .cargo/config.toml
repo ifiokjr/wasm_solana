@@ -1,3 +1,6 @@
+[target.wasm32-unknown-unknown]
+runner = 'wasm-bindgen-test-runner'
+
 [alias]
 insta = ["bin", "cargo-insta"]
 llvm-cov = ["bin", "cargo-llvm-cov"]
@@ -6,6 +9,15 @@ semver-checks = ["bin", "cargo-semver-checks"]
 
 # Tests
 
+test_wasm_client_solana = [
+	"test",
+	"--target",
+	"wasm32-unknown-unknown",
+	"--package",
+	"wasm_client_solana",
+	"-F",
+	"js",
+]
 test_streams = [
 	"nextest",
 	"run",

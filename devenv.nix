@@ -15,6 +15,7 @@
       pkgs.jq
       pkgs.libiconv
       pkgs.nixfmt-rfc-style
+      pkgs.nodejs_22
       pkgs.protobuf # needed for `solana-test-validator` in tests
       pkgs.rustup
       pkgs.shfmt
@@ -39,12 +40,12 @@
     '';
     description = "The `anchor` executable";
   };
-  scripts."release-plz" = {
+  scripts."wasm-bindgen-test-runner" = {
     exec = ''
       set -e
-      cargo bin release-plz $@
+      cargo bin wasm-bindgen-test-runner $@
     '';
-    description = "The `release-plz` executable";
+    description = "The `wasm-bindgen-test-runner` executable";
   };
   scripts."install:all" = {
     exec = ''
@@ -114,8 +115,19 @@
       cargo test_wasm_client_solana_docs
       cargo test_streams
       cargo test_example_client
+      test:validator
     '';
     description = "Run all tests across the crates";
+  };
+  scripts."test:validator" = {
+    exec = ''
+      set -e
+      validator:bg
+      cargo bin wait-for-them -t 30000 127.0.0.1:8899
+      cargo test_wasm_client_solana
+      validator:kill
+    '';
+    description = "Run tests with a validator in the background.";
   };
   scripts."coverage:all" = {
     exec = ''
@@ -177,8 +189,23 @@
   scripts."validator:run" = {
     exec = ''
       set -e
-      solana-test-validator --warp-slot 1000
+      solana-test-validator --warp-slot 1000 --reset --quiet
     '';
+    description = "Run the solana validator.";
+  };
+  scripts."validator:bg" = {
+    exec = ''
+      set -e
+      validator:kill
+      validator:run &
+    '';
+    description = "Run the solana validator in the background";
+  };
+  scripts."validator:kill" = {
+    exec = ''
+      kill $(lsof -i :8899 -t) || true
+    '';
+    description = "Kill any running validator";
   };
   scripts."setup:vscode" = {
     exec = ''

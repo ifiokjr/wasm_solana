@@ -70,6 +70,7 @@ insta = { workspace = true, features = ["redactions", "json"] }
 spl-pod = { workspace = true }
 test-log = { workspace = true, features = ["trace"] }
 tokio = { workspace = true, features = ["test-util"] }
+wasm-bindgen-test = { workspace = true }
 
 [features]
 js = ["futures-timer/wasm-bindgen"]
