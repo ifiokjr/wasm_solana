@@ -54,18 +54,23 @@ extern "C" {
 }
 
 impl SolanaSignTransactionOutput for BrowserSolanaSignTransactionOutput {
-	fn signed_transaction(&self) -> Vec<u8> {
+	fn signed_transaction_bytes(&self) -> Vec<u8> {
 		self._signed_transaction()
 	}
 
-	fn signed_versioned_transaction(&self) -> WalletResult<VersionedTransaction> {
-		bincode::deserialize(&self.signed_transaction())
-			.map_err(|_| WalletError::WalletSignTransaction)
-	}
+	fn signed_transaction(&self) -> WalletResult<VersionedTransaction> {
+		let bytes = self.signed_transaction_bytes();
 
-	fn signed_legacy_transaction(&self) -> WalletResult<Transaction> {
-		bincode::deserialize(&self.signed_transaction())
-			.map_err(|_| WalletError::WalletSignTransaction)
+		if let Ok(value) = bincode::deserialize(&bytes) {
+			Ok(value)
+		} else {
+			// check if the wallet returns a legacy transaction and convert to a versioned
+			// transaction.
+			let transaction: Transaction = bincode::deserialize::<Transaction>(&bytes)
+				.map_err(|_| WalletError::WalletSignTransaction)?;
+
+			Ok(transaction.into())
+		}
 	}
 }
 

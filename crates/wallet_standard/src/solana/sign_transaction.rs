@@ -6,7 +6,6 @@ use solana_sdk::transaction::Transaction;
 use solana_sdk::transaction::VersionedTransaction;
 use typed_builder::TypedBuilder;
 
-use crate::WalletError;
 use crate::WalletResult;
 
 pub const SOLANA_SIGN_TRANSACTION: &str = "solana:signTransaction";
@@ -16,22 +15,28 @@ pub trait SolanaSignTransactionOutput {
 	/// Returning a transaction rather than signatures allows multisig wallets,
 	/// program wallets, and other wallets that use meta-transactions to return
 	/// a modified, signed transaction.
-	fn signed_transaction(&self) -> Vec<u8>;
-	fn signed_versioned_transaction(&self) -> WalletResult<VersionedTransaction>;
-	fn signed_legacy_transaction(&self) -> WalletResult<Transaction>;
+	fn signed_transaction_bytes(&self) -> Vec<u8>;
+	fn signed_transaction(&self) -> WalletResult<VersionedTransaction>;
 }
 
 impl SolanaSignTransactionOutput for VersionedTransaction {
-	fn signed_transaction(&self) -> Vec<u8> {
+	fn signed_transaction_bytes(&self) -> Vec<u8> {
 		bincode::serialize(self).unwrap()
 	}
 
-	fn signed_versioned_transaction(&self) -> WalletResult<VersionedTransaction> {
+	fn signed_transaction(&self) -> WalletResult<VersionedTransaction> {
 		Ok(self.clone())
 	}
+}
 
-	fn signed_legacy_transaction(&self) -> WalletResult<Transaction> {
-		Err(WalletError::UnsupportedTransactionVersion)
+impl SolanaSignTransactionOutput for Transaction {
+	fn signed_transaction_bytes(&self) -> Vec<u8> {
+		let versioned_transaction = VersionedTransaction::from(self.clone());
+		bincode::serialize(&versioned_transaction).unwrap()
+	}
+
+	fn signed_transaction(&self) -> WalletResult<VersionedTransaction> {
+		Ok(self.clone().into())
 	}
 }
 
