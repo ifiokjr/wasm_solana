@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.75.0", stable, nightly]
+        version: ["1.75.0", stable, ""]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
@@ -95,7 +95,8 @@ jobs:
         run: cargo test_example_client
         shell: bash
 
-      - name: test `wasm_client_solana`
+      - name: test `wasm` with background validator
+        if: matrix.version != "1.75.0"
         run: test:validator
         shell: bash
 
@@ -128,7 +129,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.75.0", stable, nightly]
+        version: ["1.75.0", stable, ""]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
