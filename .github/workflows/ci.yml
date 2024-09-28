@@ -96,8 +96,9 @@ jobs:
         shell: bash
 
       - name: test `wasm` with background validator
-        if: matrix.version != "1.75.0"
-        run: test:validator
+        run: |
+          rustup target add wasm32-unknown-unknown
+          test:validator
         shell: bash
 
   coverage:
