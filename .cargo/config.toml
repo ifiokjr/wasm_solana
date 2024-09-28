@@ -9,7 +9,7 @@ semver-checks = ["bin", "cargo-semver-checks"]
 
 # Tests
 
-test_wasm_client_solana = [
+test_wasm = [
 	"test",
 	"--target",
 	"wasm32-unknown-unknown",

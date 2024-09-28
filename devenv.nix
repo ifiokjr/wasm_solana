@@ -12,6 +12,7 @@
       pkgs.curl
       pkgs.deno
       pkgs.dprint
+      pkgs.geckodriver
       pkgs.jq
       pkgs.libiconv
       pkgs.nixfmt-rfc-style
@@ -122,10 +123,20 @@
   scripts."test:validator" = {
     exec = ''
       set -e
-      validator:bg
-      cargo bin wait-for-them -t 30000 127.0.0.1:8899
-      cargo test_wasm_client_solana
-      validator:kill
+      validator:bg &
+      pid=$!
+      function cleanup {
+        validator:kill
+        kill -9 $pid
+      }
+      trap cleanup EXIT
+
+      cargo bin wait-for-them -t 10000 127.0.0.1:8899
+      sleep 5
+      echo "running tests in chrome..."
+      CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver cargo test_wasm
+      echo "running tests in firefox..."
+      GECKODRIVER=$DEVENV_DOTFILE/profile/bin/geckodriver cargo test_wasm
     '';
     description = "Run tests with a validator in the background.";
   };
@@ -197,13 +208,20 @@
     exec = ''
       set -e
       validator:kill
-      validator:run &
+      validator:run
     '';
     description = "Run the solana validator in the background";
   };
   scripts."validator:kill" = {
     exec = ''
-      kill $(lsof -i :8899 -t) || true
+      pids=$(lsof -i :8899 -t)
+
+      if [ -n "$pids" ]; then
+        kill $pids
+        echo "Killed processes listening on port $port: $pids"
+      else
+        echo "No processes found listening on port $port"
+      fi
     '';
     description = "Kill any running validator";
   };
@@ -248,7 +266,6 @@
       echo "DEVENV_ROOT=$DEVENV_ROOT" >> $GITHUB_ENV
       echo "DEVENV_STATE=$DEVENV_STATE" >> $GITHUB_ENV
 
-      echo "CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver" >> $GITHUB_ENV
       # Temporary fix for a bug in anchor@0.30.1 https://github.com/coral-xyz/anchor/issues/3042
       echo "ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> $GITHUB_ENV
     '';
@@ -274,7 +291,6 @@
       echo "export DEVENV_ROOT=$DEVENV_ROOT" >> /etc/profile
       echo "export DEVENV_STATE=$DEVENV_STATE" >> /etc/profile
 
-      echo "export CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver" >> /etc/profile
       # Temporary fix for a bug in anchor@0.30.1 https://github.com/coral-xyz/anchor/issues/3042
       echo "export ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> /etc/profile
     '';

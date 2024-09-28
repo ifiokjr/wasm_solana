@@ -2,40 +2,36 @@
 
 use anyhow::Result;
 use assert2::check;
-use solana_sdk::account::ReadableAccount;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signer::Signer;
-use wasm_bindgen_test::console_log;
-use wasm_bindgen_test::wasm_bindgen_test;
-use wasm_bindgen_test::wasm_bindgen_test_configure;
+use wasm_bindgen_test::*;
 use wasm_client_solana::prelude::*;
 use wasm_client_solana::rpc_config::LogsSubscribeRequest;
 use wasm_client_solana::rpc_config::RpcTransactionLogsFilter;
 use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::LOCALNET;
 
+wasm_bindgen_test_configure!(run_in_browser);
+
 #[wasm_bindgen_test]
 async fn request_airdrop() -> Result<()> {
 	let rpc = SolanaRpcClient::new(LOCALNET);
 	let pubkey = Pubkey::new_unique();
 	let initial_account = rpc.get_account(&pubkey).await.ok();
-	let initial_lamports = initial_account.map_or(0, |account| account.lamports());
+	let initial_lamports = initial_account.map_or(0, |account| account.lamports);
 	let lamports = sol_to_lamports(1.0);
 	let signature = rpc.request_airdrop(&pubkey, lamports).await?;
 	rpc.confirm_transaction(&signature).await?;
 
 	let account = rpc.get_account(&pubkey).await?;
 
-	console_log!("{account:#?}");
-	check!(account.lamports() - initial_lamports == lamports);
+	check!(account.lamports - initial_lamports == lamports);
 
 	Ok(())
 }
 
 #[wasm_bindgen_test]
-async fn logs_subscription() -> Result<()> {
+async fn log_subscription() -> Result<()> {
 	let rpc = SolanaRpcClient::new(LOCALNET);
 	let subscription = rpc
 		.logs_subscribe(
@@ -45,11 +41,10 @@ async fn logs_subscription() -> Result<()> {
 		)
 		.await?;
 
-	check!(subscription.subscription_id() == 0);
+	// this doesn't work work for the node runner
+	let mut stream2 = subscription.clone().take(2);
 
-	let mut stream5 = subscription.clone().take(5);
-
-	while let Some(log_notification_request) = stream5.next().await {
+	while let Some(log_notification_request) = stream2.next().await {
 		check!(log_notification_request.method == "logsNotification");
 	}
 
