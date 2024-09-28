@@ -3,20 +3,16 @@
 {
   packages =
     [
-      pkgs.act
       pkgs.binaryen
       pkgs.cargo-binstall
       pkgs.cargo-run-bin
       pkgs.chromedriver
-      pkgs.coreutils
       pkgs.curl
-      pkgs.deno
       pkgs.dprint
       pkgs.geckodriver
       pkgs.jq
       pkgs.libiconv
       pkgs.nixfmt-rfc-style
-      pkgs.nodejs_22
       pkgs.protobuf # needed for `solana-test-validator` in tests
       pkgs.rustup
       pkgs.shfmt
@@ -24,6 +20,7 @@
     ++ lib.optionals pkgs.stdenv.isDarwin (
       with pkgs.darwin.apple_sdk;
       [
+        pkgs.coreutils
         frameworks.CoreFoundation
         frameworks.Security
         frameworks.System
@@ -74,7 +71,7 @@
     exec = ''
       set -e
       curl -L https://esm.sh/v135/@wallet-standard/app@1/es2022/app.development.mjs -o $DEVENV_ROOT/crates/wallet_standard_browser/js/app.js
-      curl -L https://esm.sh/v135/@wallet-standard/wallet@1/es2022/wallet.development.mjs -o "$DEVENV_ROOT/crates/wallet_standard_browser/js/wallet.js"
+      curl -L https://esm.sh/v135/@wallet-standard/wallet@1/es2022/wallet.development.mjs -o $DEVENV_ROOT/crates/wallet_standard_browser/js/wallet.js
       dprint fmt "./crates/wallet_standard_browser/js/*.js"
     '';
     description = "Copy the JS needed for the `wallet_standard_browser`.";
