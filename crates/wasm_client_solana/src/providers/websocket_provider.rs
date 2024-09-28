@@ -64,7 +64,7 @@ pub struct WebSocketProvider {
 	#[debug(skip)]
 	sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
 	#[debug(skip)]
-	receiver: Forked<SendWrapper<SplitStream<WebSocketStream>>>,
+	receiver: SendWrapper<Forked<SplitStream<WebSocketStream>>>,
 }
 
 impl WebSocketProvider {
@@ -72,7 +72,7 @@ impl WebSocketProvider {
 		let url = get_ws_url(url);
 		let stream = WebSocketStream::new(&url);
 		let (sink, stream) = stream.split();
-		let receiver = SendWrapper::new(stream).fork();
+		let receiver = SendWrapper::new(stream.fork());
 		let sender = Arc::new(Mutex::new(SendWrapper::new(sink)));
 
 		Self {
@@ -142,7 +142,7 @@ impl WebSocketProvider {
 pub struct Subscription<T: DeserializeOwned + WebSocketNotification> {
 	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
 	#[pin]
-	pub(crate) receiver: Forked<SendWrapper<SplitStream<WebSocketStream>>>,
+	pub(crate) receiver: SendWrapper<Forked<SplitStream<WebSocketStream>>>,
 	#[builder(default)]
 	pub(crate) latest: PhantomData<T>,
 	pub(crate) id: SubscriptionId,
@@ -162,6 +162,7 @@ impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
 	/// not sure how to make async updates on drop. `spawn_local` was failing.
 	pub async fn unsubscribe(&self) -> Result<(), ClientWebSocketError> {
 		let request = ClientRequest::builder()
+			.id(self.id as u32)
 			.method(T::UNSUBSCRIBE)
 			.params(serde_json::json!([self.id]))
 			.build()
