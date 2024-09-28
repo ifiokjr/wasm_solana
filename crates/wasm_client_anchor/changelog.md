@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.2.0...wasm_client_anchor@v0.2.1) - 2024-09-28
+
+### <!-- 0 -->🎉 Added
+
+- add `create_program_client` macro and test usage
+- add `create_program_client_macro` for implementing request methods for anchor clients
+- include `WalletAnchor` in prelude
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- export and use internal `async_trait` in macros
+- rename `signed_versioned_transaction` to `signed_transaction`
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- remove unused deps
+
 ## [0.2.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.1.3...wasm_client_anchor@v0.2.0) - 2024-09-21
 
 ### <!-- 0 -->🎉 Added

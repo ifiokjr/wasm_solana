@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.0...wasm_client_solana@v0.3.1) - 2024-09-28
+
+### <!-- 0 -->🎉 Added
+
+- support browsers for subscriptions
+- automate `AbortController::abort` on wasm `Request` drop
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- websocket url generator
+- wasm `HttpProvider` only aborts if fetch is still pending
+
+### <!-- 6 -->🧪 Testing
+
+- make wasm tests work in browser
+- initial basic wasm tests
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- remove unused deps
+
 ## [0.3.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.2.1...wasm_client_solana@v0.3.0) - 2024-09-21
 
 ### <!-- 0 -->🎉 Added
