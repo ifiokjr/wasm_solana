@@ -16,12 +16,11 @@ where
 }
 
 pub(crate) fn get_ws_url(url: impl Into<String>) -> String {
-	let url: String = url.into();
+	let mut url: String = url.into();
 
 	if url.starts_with("http") {
-		// Replace to wss
 		let first_index = url.find(':').expect("Invalid URL");
-		let mut url = url.to_string();
+
 		url.replace_range(
 			..first_index,
 			if url.starts_with("https") {
