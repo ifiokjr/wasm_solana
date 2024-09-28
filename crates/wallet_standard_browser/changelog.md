@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_browser@v0.1.4...wallet_standard_browser@v0.2.0) - 2024-09-28
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] make `signed_transaction` return `VersionedTransaction`
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- remove unused deps
+
 ## [0.1.4](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_browser@v0.1.3...wallet_standard_browser@v0.1.4) - 2024-09-21
 
 ### <!-- 3 -->📚 Documentation
