@@ -1,4 +1,4 @@
-#![cfg(all(feature = "test_validator", feature = "ssr"))]
+#![cfg(feature = "test_validator")]
 
 //! Tests for the `solana_client_wasm` crate are placed here since this depends
 //! on `wasm_client_solana`.
