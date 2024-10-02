@@ -47,6 +47,7 @@ async fn account_stream_subscription() -> anyhow::Result<()> {
 	let new_account = Keypair::new();
 	let pubkey = new_account.pubkey();
 	let mut subscription = rpc.account_subscribe(pubkey).await?;
+	let unsubscription = subscription.get_unsubscription();
 	let next_update = subscription.next();
 
 	// Create a transaction to create an account with custom data
@@ -78,7 +79,7 @@ async fn account_stream_subscription() -> anyhow::Result<()> {
 	check!(account_info.method == "accountNotification");
 	check!(account_info.params.result.value.unwrap().space == Some(100));
 
-	subscription.unsubscribe().await?;
+	unsubscription.run().await?;
 
 	Ok(())
 }

@@ -47,6 +47,7 @@ pub struct ClientResponse<T> {
 }
 
 pub type SubscriptionResult = ClientResponse<SubscriptionId>;
+pub type UnsubscriptionResult = ClientResponse<bool>;
 
 pub const MAX_RETRIES: usize = 40;
 pub const SLEEP_MS: u64 = 250;

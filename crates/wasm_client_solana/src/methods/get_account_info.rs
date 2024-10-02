@@ -64,7 +64,7 @@ impl Serialize for GetAccountInfoRequest {
 impl_http_method!(GetAccountInfoRequest, "getAccountInfo");
 impl_websocket_method!(GetAccountInfoRequest, "account");
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetAccountInfoResponse {
 	pub context: Context,
 	pub value: Option<UiAccount>,

@@ -1,3 +1,4 @@
+use std::hash::Hash;
 use std::marker::PhantomData;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -30,6 +31,7 @@ use crate::ClientWebSocketError;
 use crate::SubscriptionId;
 use crate::SubscriptionResponse;
 use crate::SubscriptionResult;
+use crate::UnsubscriptionResult;
 use crate::WebSocketMethod;
 use crate::WebSocketNotification;
 
@@ -37,17 +39,13 @@ pub trait ToWebSocketValue {
 	fn to_websocket_value(&self) -> Result<Value, ClientWebSocketError>;
 }
 
-pub trait ToWebSocketResult {
-	fn to_websocket_result(&self) -> Result<Value, ClientWebSocketError>;
-}
-
-impl<T, E> ToWebSocketResult for Result<T, E>
+impl<T, E> ToWebSocketValue for Result<T, E>
 where
 	T: ToWebSocketValue,
 	E: Into<ClientWebSocketError>,
 	for<'a> &'a E: Into<ClientWebSocketError>,
 {
-	fn to_websocket_result(&self) -> Result<Value, ClientWebSocketError> {
+	fn to_websocket_value(&self) -> Result<Value, ClientWebSocketError> {
 		match self {
 			Ok(value) => Ok(value.to_websocket_value()?),
 			Err(err) => Err(err.into()),
@@ -77,7 +75,8 @@ impl WebSocketProvider {
 
 		Self {
 			url,
-			id: Arc::new(std::sync::Mutex::new(0)),
+			// start with 1000 since the default id used for http methods is 0
+			id: Arc::new(std::sync::Mutex::new(1000)),
 			sender,
 			receiver,
 		}
@@ -87,22 +86,13 @@ impl WebSocketProvider {
 		&self.url
 	}
 
-	/// Create a subscription and return the subscription id once a response
-	/// is received.
+	/// Create a subscription and return the `id` used to create the
+	/// subscription and `subscription_id` once a response is received.
 	pub async fn create_subscription<T: WebSocketMethod>(
 		&self,
 		params: T,
-	) -> Result<SubscriptionId, ClientWebSocketError> {
-		let id = {
-			let mut id_guard = self
-				.id
-				.lock()
-				.map_err(|_| ClientWebSocketError::ConnectionError)?;
-			let current_id = *id_guard;
-			*id_guard += 1;
-			current_id
-		};
-
+	) -> Result<(u32, SubscriptionId), ClientWebSocketError> {
+		let id = self.next_id()?;
 		let request = ClientRequest::builder()
 			.method(T::SUBSCRIBE)
 			.params(params)
@@ -110,12 +100,13 @@ impl WebSocketProvider {
 			.build()
 			.try_to_value()?;
 
-		self.sender
-			.lock()
-			.await
-			.send(request)
-			.await
-			.map_err(|_| ClientWebSocketError::MessageSendError)?;
+		// immediately drop the lock at the end of this block
+		{
+			let mut lock = self.sender.lock().await;
+			lock.send(request)
+				.await
+				.map_err(|_| ClientWebSocketError::MessageSendError)?;
+		}
 
 		let mut stream = self.receiver.clone().filter_map(|value| {
 			let Ok(value) = value else {
@@ -133,53 +124,181 @@ impl WebSocketProvider {
 			return Err(ClientWebSocketError::Subscription);
 		};
 
-		Ok(response.result)
+		Ok((id, response.result))
+	}
+
+	fn next_id(&self) -> Result<u32, ClientWebSocketError> {
+		let mut id_guard = self
+			.id
+			.lock()
+			.map_err(|_| ClientWebSocketError::ConnectionError)?;
+		let current_id = *id_guard;
+		*id_guard += 1;
+
+		Ok(current_id)
 	}
 }
 
-#[pin_project]
+/// Created from a [`Subscription`] to send a message to unsubscribe.
 #[derive(Clone, TypedBuilder)]
-pub struct Subscription<T: DeserializeOwned + WebSocketNotification> {
+pub struct Unsubscription {
+	/// The name of the method used to unsubscribe.
+	pub(crate) method: &'static str,
+	/// The shared sink for pushing messages into the websocket stream.
 	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
-	#[pin]
+	/// The shared receiver for websocket messages.
 	pub(crate) receiver: SendWrapper<Forked<SplitStream<WebSocketStream>>>,
-	#[builder(default)]
-	pub(crate) latest: PhantomData<T>,
-	pub(crate) id: SubscriptionId,
+	/// The `id` that was originally used to create the parent subscription.
+	pub(crate) id: u32,
+	/// The `subscription_id` used to unsubscribe.
+	pub(crate) subscription_id: SubscriptionId,
 }
 
-impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
-	pub fn new(ws: &WebSocketProvider, subscription_id: SubscriptionId) -> Self {
-		Self::builder()
-			.receiver(ws.receiver.clone())
-			.sender(ws.sender.clone())
-			.id(subscription_id)
-			.build()
+impl PartialEq for Unsubscription {
+	fn eq(&self, other: &Self) -> bool {
+		self.method.eq(other.method) && self.subscription_id.eq(&other.subscription_id)
 	}
+}
 
-	/// This must be called to unsubscribe from the socket updates. It would be
-	/// nice if there was a way to automatically do this on `Drop`. However, I'm
-	/// not sure how to make async updates on drop. `spawn_local` was failing.
-	pub async fn unsubscribe(&self) -> Result<(), ClientWebSocketError> {
+impl Eq for Unsubscription {}
+
+impl Hash for Unsubscription {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.method.hash(state);
+		self.subscription_id.hash(state);
+	}
+}
+
+impl Unsubscription {
+	pub async fn run(self) -> Result<(), ClientWebSocketError> {
 		let request = ClientRequest::builder()
-			.id(self.id as u32)
-			.method(T::UNSUBSCRIBE)
-			.params(serde_json::json!([self.id]))
+			.id(self.id)
+			.method(self.method)
+			.params(serde_json::json!([self.subscription_id]))
 			.build()
 			.try_to_value()?;
 
-		self.sender
-			.lock()
-			.await
-			.send(request)
-			.await
-			.map_err(|_| ClientWebSocketError::ConnectionError)?;
+		// drop the lock immediately after this block
+		{
+			let mut lock = self.sender.lock().await;
+			lock.send(request)
+				.await
+				.map_err(|_| ClientWebSocketError::ConnectionError)?;
+		}
+
+		let mut stream = self.receiver.filter_map(|value| {
+			let Ok(value) = value else {
+				return future::ready(None);
+			};
+
+			future::ready(
+				serde_json::from_value::<UnsubscriptionResult>(value)
+					.ok()
+					.filter(|value| value.id == self.id),
+			)
+		});
+
+		let Some(response) = stream.next().await else {
+			return Err(ClientWebSocketError::Unsubscription);
+		};
+
+		Ok(())
+	}
+}
+
+/// A [`Subscription`] is used to managed a solana websocket rpc method.
+#[pin_project]
+#[derive(Clone, TypedBuilder)]
+pub struct Subscription<T: DeserializeOwned + WebSocketNotification> {
+	/// The shared receiver for receiving messages.
+	#[pin]
+	pub(crate) receiver: SendWrapper<Forked<SplitStream<WebSocketStream>>>,
+	/// The shared sink for pushing messages into the websocket stream.
+	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
+	#[builder(default)]
+	pub(crate) latest: PhantomData<T>,
+	/// The `id` that was originally used to create the parent subscription.
+	pub(crate) id: u32,
+	/// The `subscription_id` used to unsubscribe.
+	pub(crate) subscription_id: SubscriptionId,
+	// pub(crate) unsubscription: Unsubscription,
+}
+
+impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
+	pub fn new(ws: &WebSocketProvider, id: u32, subscription_id: SubscriptionId) -> Self {
+		Self::builder()
+			.receiver(ws.receiver.clone())
+			.sender(ws.sender.clone())
+			.id(id)
+			.subscription_id(subscription_id)
+			.build()
+	}
+
+	/// Create a struct which will remove this subscription when the `run`
+	/// method is called. This is useful since most uses of the subscription
+	/// will consume the subscription. This can be invoked to store a way of
+	/// removing the subscription even after it has been consumed in rust. You
+	/// can also call [`Subscription::unsubscribe`].
+	///
+	/// ```
+	/// use solana_sdk::pubkey::Pubkey;
+	/// use wasm_client_solana::prelude::*;
+	/// use wasm_client_solana::LogsSubscribeRequest;
+	/// use wasm_client_solana::RpcTransactionLogsFilter;
+	/// use wasm_client_solana::SolanaRpcClient;
+	/// use wasm_client_solana::LOCALNET;
+	/// # use wasm_client_solana::ClientResult;
+	///
+	/// # async fn run() -> ClientResult<()> {
+	/// let rpc = SolanaRpcClient::new(LOCALNET);
+	/// let subscription = rpc
+	/// 	.logs_subscribe(
+	/// 		LogsSubscribeRequest::builder()
+	/// 			.filter(RpcTransactionLogsFilter::AllWithVotes)
+	/// 			.build(),
+	/// 	)
+	/// 	.await?;
+	/// let unsubscription = subscription.get_unsubscription();
+	/// let mut stream2 = subscription.clone().take(2);
+	///
+	/// while let Some(log_notification_request) = stream2.next().await {
+	/// 	log::info!("The log notification {log_notification_request:#?}");
+	/// }
+	///
+	/// // Can be called even though the `subscription` has been consumed.
+	/// unsubscription.run().await?;
+	/// # Ok(())
+	/// # }
+	/// ```
+	pub fn get_unsubscription(&self) -> Unsubscription {
+		Unsubscription::builder()
+			.method(T::UNSUBSCRIBE)
+			.sender(self.sender.clone())
+			.receiver(self.receiver.clone())
+			.id(self.id)
+			.subscription_id(self.subscription_id)
+			.build()
+	}
+
+	/// This must be called to unsubscribe from the websocket updates. It would
+	/// be nice if there was a way to automatically do this on `Drop`. However,
+	/// I'm not sure how to make async updates on drop. `spawn_local` was
+	/// failing.
+	pub async fn unsubscribe(&self) -> Result<(), ClientWebSocketError> {
+		self.get_unsubscription().run().await?;
 
 		Ok(())
 	}
 
-	pub fn subscription_id(&self) -> SubscriptionId {
+	/// The `id` originally used to create this subscription. It is also used to
+	/// uniquely identify the unsubscription call.
+	pub fn id(&self) -> u32 {
 		self.id
+	}
+
+	/// Get the `subscription_id` for this [`Subscription`].
+	pub fn subscription_id(&self) -> SubscriptionId {
+		self.subscription_id
 	}
 }
 
@@ -187,7 +306,7 @@ impl<T: DeserializeOwned + WebSocketNotification> Stream for Subscription<T> {
 	type Item = SubscriptionResponse<T>;
 
 	fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-		let subscription_id = self.id;
+		let subscription_id = self.get_unsubscription().subscription_id;
 		let mut this = self.project();
 
 		let Some(result) = ready!(this.receiver.as_mut().poll_next(cx)) else {
@@ -231,7 +350,6 @@ mod websocket_provider_reqwest {
 	use serde_json::Value;
 	use typed_builder::TypedBuilder;
 
-	use super::ToWebSocketResult;
 	use super::ToWebSocketValue;
 	use crate::ClientWebSocketError;
 
@@ -306,7 +424,7 @@ mod websocket_provider_reqwest {
 					return Poll::Ready(None);
 				};
 
-				return Poll::Ready(Some(next.to_websocket_result()));
+				return Poll::Ready(Some(next.to_websocket_value()));
 			}
 
 			let initiator = this.initiator.as_mut();
@@ -396,7 +514,6 @@ mod websocket_provider_wasm {
 	use typed_builder::TypedBuilder;
 	use wasm_bindgen::UnwrapThrowExt;
 
-	use super::ToWebSocketResult;
 	use super::ToWebSocketValue;
 	use crate::ClientWebSocketError;
 
@@ -428,7 +545,7 @@ mod websocket_provider_wasm {
 				return Poll::Ready(None);
 			};
 
-			Poll::Ready(Some(result.to_websocket_result()))
+			Poll::Ready(Some(result.to_websocket_value()))
 		}
 	}
 

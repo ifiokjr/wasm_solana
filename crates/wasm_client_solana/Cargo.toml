@@ -66,9 +66,11 @@ zstd = { workspace = true, optional = true }
 [dev-dependencies]
 anyhow = { workspace = true }
 assert2 = { workspace = true }
+futures-timeout = { workspace = true }
 insta = { workspace = true, features = ["redactions", "json"] }
 spl-pod = { workspace = true }
 test-log = { workspace = true, features = ["trace"] }
+test_utils = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 wasm-bindgen-test = { workspace = true }
 

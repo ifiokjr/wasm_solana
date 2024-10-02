@@ -101,6 +101,9 @@ pub enum ClientWebSocketError {
 	/// The message could not be subscribed
 	#[error("could not subscribe to message")]
 	Subscription,
+	/// The message could not be subscribed
+	#[error("could not unsubscribe from messages")]
+	Unsubscription,
 }
 
 impl From<gloo_net::websocket::WebSocketError> for ClientWebSocketError {

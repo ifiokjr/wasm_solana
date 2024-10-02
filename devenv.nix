@@ -128,6 +128,8 @@
       }
       trap cleanup EXIT
 
+      export WASM_BINDGEN_TEST_TIMEOUT=90
+
       cargo bin wait-for-them -t 10000 127.0.0.1:8899
       sleep 5
       echo "running tests in chrome..."

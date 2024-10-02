@@ -5,7 +5,9 @@ pub use crate::errors::*;
 pub use crate::extensions::*;
 pub use crate::methods::*;
 pub use crate::providers::*;
+pub use crate::rpc_config::*;
 pub use crate::solana_client::*;
+pub use crate::utils::spawn_local;
 
 mod client;
 mod errors;
