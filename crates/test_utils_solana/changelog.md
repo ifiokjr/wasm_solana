@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.0...test_utils_solana@v0.4.1) - 2024-10-03
+
+### <!-- 0 -->🎉 Added
+
+- new `Unsubscription` struct which unsubscribes from rpc websocket methods
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- update formatting
+
 ## [0.4.0](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.3.0...test_utils_solana@v0.4.0) - 2024-09-28
 
 ### <!-- 1 -->🐛 Bug Fixes
