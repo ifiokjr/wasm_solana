@@ -1,9 +1,9 @@
-use serde::ser::SerializeTuple;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::ser::SerializeTuple;
+use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::DisplayFromStr;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
 use solana_sdk::transaction::VersionedTransaction;
@@ -11,8 +11,8 @@ use typed_builder::TypedBuilder;
 
 use super::Context;
 use crate::impl_http_method;
-use crate::rpc_config::serialize_and_encode;
 use crate::rpc_config::RpcSimulateTransactionConfig;
+use crate::rpc_config::serialize_and_encode;
 use crate::solana_account_decoder::UiAccount;
 use crate::solana_transaction_status::UiTransactionEncoding;
 
@@ -111,14 +111,14 @@ pub struct SimulateTransactionResponse {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
+	use base64::prelude::BASE64_STANDARD;
 	use solana_sdk::pubkey;
 
 	use super::*;
-	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
+	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {

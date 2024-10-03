@@ -26,8 +26,8 @@ use solana_sdk::bpf_loader_upgradeable::{self};
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentLevel;
-use solana_sdk::message::v0;
 use solana_sdk::message::VersionedMessage;
+use solana_sdk::message::v0;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::program_option::COption;
 use solana_sdk::program_pack::Pack;
@@ -37,13 +37,13 @@ use solana_sdk::signature::Signer;
 use solana_sdk::sysvar::rent::Rent;
 use solana_sdk::transaction::VersionedTransaction;
 use spl_associated_token_account::get_associated_token_address;
-use wallet_standard::prelude::*;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
-use wasm_client_anchor::prelude::*;
+use wallet_standard::prelude::*;
 use wasm_client_anchor::AnchorClientError;
 use wasm_client_anchor::AnchorClientResult;
 use wasm_client_anchor::WalletAnchor;
+use wasm_client_anchor::prelude::*;
 
 pub const MAX_COMPUTE_UNITS: u64 = DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT as u64;
 
@@ -102,14 +102,11 @@ impl BanksClientAsyncExtension for BanksClient {
 		}: SolanaSignAndSendTransactionProps,
 	) -> WalletResult<BanksTransactionResultWithMetadata> {
 		let transaction = self
-			.wallet_sign_transaction(
-				wallet,
-				SolanaSignTransactionProps {
-					transaction,
-					chain,
-					options: options.map(Into::into),
-				},
-			)
+			.wallet_sign_transaction(wallet, SolanaSignTransactionProps {
+				transaction,
+				chain,
+				options: options.map(Into::into),
+			})
 			.await?;
 
 		let metadata = self
@@ -131,14 +128,11 @@ impl BanksClientAsyncExtension for BanksClient {
 		}: SolanaSignAndSendTransactionProps,
 	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
 		let transaction = self
-			.wallet_sign_transaction(
-				wallet,
-				SolanaSignTransactionProps {
-					transaction,
-					chain,
-					options: options.map(Into::into),
-				},
-			)
+			.wallet_sign_transaction(wallet, SolanaSignTransactionProps {
+				transaction,
+				chain,
+				options: options.map(Into::into),
+			})
 			.await?;
 
 		let result = self
@@ -333,16 +327,13 @@ impl ProgramTestExtension for ProgramTest {
 		data: &[u8],
 		executable: bool,
 	) {
-		self.add_account(
-			pubkey,
-			Account {
-				lamports: Rent::default().minimum_balance(data.len()),
-				data: data.to_vec(),
-				executable,
-				owner,
-				rent_epoch: 0,
-			},
-		);
+		self.add_account(pubkey, Account {
+			lamports: Rent::default().minimum_balance(data.len()),
+			data: data.to_vec(),
+			executable,
+			owner,
+			rent_epoch: 0,
+		});
 	}
 
 	fn add_account_with_anchor<T: AnchorSerialize + Discriminator>(
@@ -377,16 +368,13 @@ impl ProgramTestExtension for ProgramTest {
 	}
 
 	fn add_account_with_lamports(&mut self, pubkey: Pubkey, owner: Pubkey, lamports: u64) {
-		self.add_account(
-			pubkey,
-			Account {
-				lamports,
-				data: vec![],
-				executable: false,
-				owner,
-				rent_epoch: 0,
-			},
-		);
+		self.add_account(pubkey, Account {
+			lamports,
+			data: vec![],
+			executable: false,
+			owner,
+			rent_epoch: 0,
+		});
 	}
 
 	fn add_account_with_packable<P: Pack>(&mut self, pubkey: Pubkey, owner: Pubkey, data: P) {
@@ -418,17 +406,13 @@ impl ProgramTestExtension for ProgramTest {
 		decimals: u8,
 		freeze_authority: Option<Pubkey>,
 	) {
-		self.add_account_with_packable(
-			pubkey,
-			spl_token_2022::ID,
-			spl_token_2022::state::Mint {
-				mint_authority: COption::from(mint_authority),
-				supply,
-				decimals,
-				is_initialized: true,
-				freeze_authority: COption::from(freeze_authority),
-			},
-		);
+		self.add_account_with_packable(pubkey, spl_token_2022::ID, spl_token_2022::state::Mint {
+			mint_authority: COption::from(mint_authority),
+			supply,
+			decimals,
+			is_initialized: true,
+			freeze_authority: COption::from(freeze_authority),
+		});
 	}
 
 	fn add_token_account(
@@ -497,23 +481,17 @@ impl ProgramTestExtension for ProgramTest {
 			let program_data_pubkey = Pubkey::new_unique();
 			let mut program = Vec::<u8>::new();
 
-			bincode::serialize_into(
-				&mut program,
-				&UpgradeableLoaderState::Program {
-					programdata_address: program_data_pubkey,
-				},
-			)
+			bincode::serialize_into(&mut program, &UpgradeableLoaderState::Program {
+				programdata_address: program_data_pubkey,
+			})
 			.unwrap();
 
 			let mut program_data = Vec::<u8>::new();
 
-			bincode::serialize_into(
-				&mut program_data,
-				&UpgradeableLoaderState::ProgramData {
-					slot: 0,
-					upgrade_authority_address: Some(program_authority),
-				},
-			)
+			bincode::serialize_into(&mut program_data, &UpgradeableLoaderState::ProgramData {
+				slot: 0,
+				upgrade_authority_address: Some(program_authority),
+			})
 			.unwrap();
 
 			log::info!(
@@ -570,22 +548,16 @@ impl ProgramTestExtension for ProgramTest {
 			let program_bytes = solana_program_test::read_file(program_file.clone());
 
 			let mut program = Vec::<u8>::new();
-			bincode::serialize_into(
-				&mut program,
-				&UpgradeableLoaderState::Program {
-					programdata_address: program_data_pubkey,
-				},
-			)
+			bincode::serialize_into(&mut program, &UpgradeableLoaderState::Program {
+				programdata_address: program_data_pubkey,
+			})
 			.unwrap();
 
 			let mut program_data = Vec::<u8>::new();
-			bincode::serialize_into(
-				&mut program_data,
-				&UpgradeableLoaderState::ProgramData {
-					slot: 0,
-					upgrade_authority_address: Some(program_authority),
-				},
-			)
+			bincode::serialize_into(&mut program_data, &UpgradeableLoaderState::ProgramData {
+				slot: 0,
+				upgrade_authority_address: Some(program_authority),
+			})
 			.unwrap();
 
 			log::info!(

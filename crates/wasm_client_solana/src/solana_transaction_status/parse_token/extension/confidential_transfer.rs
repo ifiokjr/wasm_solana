@@ -1,5 +1,5 @@
-use spl_token_2022::extension::confidential_transfer::instruction::*;
 use spl_token_2022::extension::confidential_transfer::ConfidentialTransferMint;
+use spl_token_2022::extension::confidential_transfer::instruction::*;
 use spl_token_2022::instruction::decode_instruction_data;
 use spl_token_2022::instruction::decode_instruction_type;
 

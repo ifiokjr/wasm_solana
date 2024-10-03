@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::serde_as;
 use serde_with::DisplayFromStr;
+use serde_with::serde_as;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
 use solana_sdk::pubkey::Pubkey;
@@ -9,8 +9,8 @@ use solana_sdk::vote::state::BlockTimestamp;
 use solana_sdk::vote::state::Lockout;
 use solana_sdk::vote::state::VoteState;
 
-use super::parse_account_data::ParseAccountError;
 use super::StringAmount;
+use super::parse_account_data::ParseAccountError;
 
 pub fn parse_vote(data: &[u8]) -> Result<VoteAccountType, ParseAccountError> {
 	let mut vote_state = VoteState::deserialize(data).map_err(ParseAccountError::from)?;

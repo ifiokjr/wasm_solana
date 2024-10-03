@@ -10,11 +10,11 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use test_utils::SECRET_KEY_WALLET;
 use wasm_bindgen_test::*;
+use wasm_client_solana::LOCALNET;
+use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::prelude::*;
 use wasm_client_solana::rpc_config::LogsSubscribeRequest;
 use wasm_client_solana::rpc_config::RpcTransactionLogsFilter;
-use wasm_client_solana::SolanaRpcClient;
-use wasm_client_solana::LOCALNET;
 
 wasm_bindgen_test_configure!(run_in_browser);
 

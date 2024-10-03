@@ -1,6 +1,6 @@
-use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use solana_sdk::clock::Slot;
 
 pub use self::get_account_info::*;

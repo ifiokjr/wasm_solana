@@ -5,19 +5,19 @@ use js_sys::Array;
 use serde::Deserialize;
 use serde::Serialize;
 use typed_builder::TypedBuilder;
+use wallet_standard::EXPERIMENTAL_DECRYPT;
 use wallet_standard::ExperimentalDecryptOutput;
 use wallet_standard::ExperimentalDecryptProps;
 use wallet_standard::WalletError;
 use wallet_standard::WalletExperimentalDecrypt;
 use wallet_standard::WalletResult;
-use wallet_standard::EXPERIMENTAL_DECRYPT;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 
-use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
+use crate::impl_feature_from_js;
 
 #[wasm_bindgen]
 extern "C" {

@@ -1,10 +1,10 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::DisplayFromStr;
-use solana_sdk::message::v0::LoadedMessage;
 use solana_sdk::message::Message;
+use solana_sdk::message::v0::LoadedMessage;
 use solana_sdk::pubkey::Pubkey;
 
 #[serde_as]
@@ -64,9 +64,9 @@ pub fn parse_v0_message_accounts(message: &LoadedMessage) -> Vec<ParsedAccount> 
 
 #[cfg(test)]
 mod test {
+	use solana_sdk::message::MessageHeader;
 	use solana_sdk::message::v0;
 	use solana_sdk::message::v0::LoadedAddresses;
-	use solana_sdk::message::MessageHeader;
 	use solana_sdk::pubkey::Pubkey;
 
 	use super::*;
@@ -87,35 +87,32 @@ mod test {
 			..Message::default()
 		};
 
-		assert_eq!(
-			parse_legacy_message_accounts(&message),
-			vec![
-				ParsedAccount {
-					pubkey: pubkey0,
-					writable: true,
-					signer: true,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-				ParsedAccount {
-					pubkey: pubkey1,
-					writable: false,
-					signer: true,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-				ParsedAccount {
-					pubkey: pubkey2,
-					writable: true,
-					signer: false,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-				ParsedAccount {
-					pubkey: pubkey3,
-					writable: false,
-					signer: false,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-			]
-		);
+		assert_eq!(parse_legacy_message_accounts(&message), vec![
+			ParsedAccount {
+				pubkey: pubkey0,
+				writable: true,
+				signer: true,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+			ParsedAccount {
+				pubkey: pubkey1,
+				writable: false,
+				signer: true,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+			ParsedAccount {
+				pubkey: pubkey2,
+				writable: true,
+				signer: false,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+			ParsedAccount {
+				pubkey: pubkey3,
+				writable: false,
+				signer: false,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+		]);
 	}
 
 	#[test]
@@ -142,46 +139,43 @@ mod test {
 			},
 		);
 
-		assert_eq!(
-			parse_v0_message_accounts(&message),
-			vec![
-				ParsedAccount {
-					pubkey: pubkey0,
-					writable: true,
-					signer: true,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-				ParsedAccount {
-					pubkey: pubkey1,
-					writable: false,
-					signer: true,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-				ParsedAccount {
-					pubkey: pubkey2,
-					writable: true,
-					signer: false,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-				ParsedAccount {
-					pubkey: pubkey3,
-					writable: false,
-					signer: false,
-					source: Some(ParsedAccountSource::Transaction),
-				},
-				ParsedAccount {
-					pubkey: pubkey4,
-					writable: true,
-					signer: false,
-					source: Some(ParsedAccountSource::LookupTable),
-				},
-				ParsedAccount {
-					pubkey: pubkey5,
-					writable: false,
-					signer: false,
-					source: Some(ParsedAccountSource::LookupTable),
-				},
-			]
-		);
+		assert_eq!(parse_v0_message_accounts(&message), vec![
+			ParsedAccount {
+				pubkey: pubkey0,
+				writable: true,
+				signer: true,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+			ParsedAccount {
+				pubkey: pubkey1,
+				writable: false,
+				signer: true,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+			ParsedAccount {
+				pubkey: pubkey2,
+				writable: true,
+				signer: false,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+			ParsedAccount {
+				pubkey: pubkey3,
+				writable: false,
+				signer: false,
+				source: Some(ParsedAccountSource::Transaction),
+			},
+			ParsedAccount {
+				pubkey: pubkey4,
+				writable: true,
+				signer: false,
+				source: Some(ParsedAccountSource::LookupTable),
+			},
+			ParsedAccount {
+				pubkey: pubkey5,
+				writable: false,
+				signer: false,
+				source: Some(ParsedAccountSource::LookupTable),
+			},
+		]);
 	}
 }

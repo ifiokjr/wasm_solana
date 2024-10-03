@@ -1,5 +1,5 @@
-use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use bincode::deserialize;
 use serde_json::json;
 use solana_sdk::instruction::CompiledInstruction;
@@ -7,10 +7,10 @@ use solana_sdk::loader_instruction::LoaderInstruction;
 use solana_sdk::loader_upgradeable_instruction::UpgradeableLoaderInstruction;
 use solana_sdk::message::AccountKeys;
 
-use super::parse_instruction::check_num_accounts;
 use super::parse_instruction::ParsableProgram;
 use super::parse_instruction::ParseInstructionError;
 use super::parse_instruction::ParsedInstructionEnum;
+use super::parse_instruction::check_num_accounts;
 
 pub fn parse_bpf_loader(
 	instruction: &CompiledInstruction,

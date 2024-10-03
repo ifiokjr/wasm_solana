@@ -2,26 +2,26 @@
 
 use std::fmt;
 
-use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::DisplayFromStr;
 use solana_sdk::clock::Slot;
 use solana_sdk::clock::UnixTimestamp;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::CompiledInstruction;
-use solana_sdk::message::v0::LoadedAddresses;
-use solana_sdk::message::v0::LoadedMessage;
-use solana_sdk::message::v0::MessageAddressTableLookup;
-use solana_sdk::message::v0::{self};
 use solana_sdk::message::AccountKeys;
 use solana_sdk::message::Message;
 use solana_sdk::message::MessageHeader;
 use solana_sdk::message::VersionedMessage;
+use solana_sdk::message::v0::LoadedAddresses;
+use solana_sdk::message::v0::LoadedMessage;
+use solana_sdk::message::v0::MessageAddressTableLookup;
+use solana_sdk::message::v0::{self};
 use solana_sdk::pubkey::Pubkey;
 pub use solana_sdk::reward_type::RewardType;
 use solana_sdk::signature::Signature;
@@ -34,11 +34,11 @@ use solana_sdk::transaction_context::TransactionReturnData;
 use thiserror::Error;
 
 pub use self::extract_memos::extract_and_fmt_memos;
+use self::parse_accounts::ParsedAccount;
 use self::parse_accounts::parse_legacy_message_accounts;
 use self::parse_accounts::parse_v0_message_accounts;
-use self::parse_accounts::ParsedAccount;
-use self::parse_instruction::parse;
 use self::parse_instruction::ParsedInstruction;
+use self::parse_instruction::parse;
 use crate::solana_account_decoder::parse_token::UiTokenAmount;
 
 pub mod extract_memos;

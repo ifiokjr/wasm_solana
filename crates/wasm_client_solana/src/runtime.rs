@@ -14,15 +14,11 @@ pub enum RewardType {
 
 impl fmt::Display for RewardType {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(
-			f,
-			"{}",
-			match self {
-				RewardType::Fee => "fee",
-				RewardType::Rent => "rent",
-				RewardType::Staking => "staking",
-				RewardType::Voting => "voting",
-			}
-		)
+		write!(f, "{}", match self {
+			RewardType::Fee => "fee",
+			RewardType::Rent => "rent",
+			RewardType::Staking => "staking",
+			RewardType::Voting => "voting",
+		})
 	}
 }

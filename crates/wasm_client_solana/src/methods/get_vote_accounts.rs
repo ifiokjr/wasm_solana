@@ -41,10 +41,10 @@ mod tests {
 	use solana_sdk::pubkey;
 
 	use super::*;
-	use crate::methods::HttpMethod;
-	use crate::rpc_response::RpcVoteAccountInfo;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
+	use crate::methods::HttpMethod;
+	use crate::rpc_response::RpcVoteAccountInfo;
 
 	#[test]
 	fn request() {

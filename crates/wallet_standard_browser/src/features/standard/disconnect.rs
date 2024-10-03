@@ -1,16 +1,16 @@
 #![allow(unsafe_code)]
 
 use async_trait::async_trait;
+use wallet_standard::STANDARD_DISCONNECT;
 use wallet_standard::Wallet;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
 use wallet_standard::WalletStandardDisconnect;
-use wallet_standard::STANDARD_DISCONNECT;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 
-use crate::impl_feature_from_js;
 use crate::BrowserWallet;
+use crate::impl_feature_from_js;
 
 #[wasm_bindgen]
 extern "C" {

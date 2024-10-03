@@ -1,13 +1,13 @@
-use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use bincode::serialize;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
+use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::DisplayFromStr;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -18,6 +18,9 @@ use solana_sdk::signature::Signature;
 use typed_builder::TypedBuilder;
 
 use super::rpc_filter::RpcFilterType;
+use crate::ClientResult;
+use crate::RpcError;
+use crate::SolanaRpcClient;
 use crate::impl_websocket_method;
 use crate::nonce_utils;
 use crate::solana_account_decoder::UiAccount;
@@ -25,9 +28,6 @@ use crate::solana_account_decoder::UiAccountEncoding;
 use crate::solana_account_decoder::UiDataSliceConfig;
 use crate::solana_transaction_status::TransactionDetails;
 use crate::solana_transaction_status::UiTransactionEncoding;
-use crate::ClientResult;
-use crate::RpcError;
-use crate::SolanaRpcClient;
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, TypedBuilder)]

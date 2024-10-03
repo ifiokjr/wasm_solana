@@ -1,14 +1,14 @@
-use serde::ser::SerializeTuple;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::serde_as;
+use serde::ser::SerializeTuple;
 use serde_with::DisplayFromStr;
+use serde_with::serde_as;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
 
 use crate::impl_http_method;
-use crate::rpc_config::serialize_and_encode;
 use crate::rpc_config::RpcSendTransactionConfig;
+use crate::rpc_config::serialize_and_encode;
 use crate::solana_transaction_status::UiTransactionEncoding;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -82,9 +82,9 @@ mod tests {
 	use solana_sdk::transaction::Transaction;
 
 	use super::*;
-	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
+	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {

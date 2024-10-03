@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde_tuple::Serialize_tuple;
-use serde_with::serde_as;
 use serde_with::DisplayFromStr;
+use serde_with::serde_as;
 use solana_sdk::pubkey::Pubkey;
 
 use super::Context;
@@ -55,13 +55,13 @@ mod tests {
 	use solana_sdk::pubkey;
 
 	use super::*;
+	use crate::ClientRequest;
+	use crate::ClientResponse;
 	use crate::methods::HttpMethod;
-	use crate::solana_account_decoder::parse_account_data::ParsedAccount;
 	use crate::solana_account_decoder::UiAccount;
 	use crate::solana_account_decoder::UiAccountData;
 	use crate::solana_account_decoder::UiAccountEncoding;
-	use crate::ClientRequest;
-	use crate::ClientResponse;
+	use crate::solana_account_decoder::parse_account_data::ParsedAccount;
 
 	#[test]
 	fn request() {

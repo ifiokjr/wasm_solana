@@ -39,9 +39,9 @@ mod tests {
 	use assert2::check;
 
 	use super::*;
-	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
+	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {

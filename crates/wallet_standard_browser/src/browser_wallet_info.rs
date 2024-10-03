@@ -11,9 +11,9 @@ use wallet_standard::WalletAccountInfo;
 use wallet_standard::WalletError;
 use wallet_standard::WalletInfo;
 use wallet_standard::WalletResult;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 
 use crate::FeatureFromJs;
 use crate::StandardConnectFeature;

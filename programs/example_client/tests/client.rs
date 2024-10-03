@@ -6,13 +6,13 @@ use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::signature::Keypair;
 use test_utils::SECRET_KEY_WALLET;
-use test_utils_solana::anchor_processor;
-use test_utils_solana::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::ProgramTestContext;
+use test_utils_solana::anchor_processor;
+use test_utils_solana::prelude::*;
 use wallet_standard_wallets::MemoryWallet;
-use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::LOCALNET;
+use wasm_client_solana::SolanaRpcClient;
 
 #[test_log::test(tokio::test)]
 async fn initialize() -> Result<()> {
@@ -50,13 +50,10 @@ async fn create_program_test() -> (ProgramTestContext, SolanaRpcClient) {
 	);
 	let rpc = SolanaRpcClient::new_with_commitment(LOCALNET, CommitmentConfig::finalized());
 
-	program_test.add_account(
-		pubkey,
-		Account {
-			lamports: sol_to_lamports(1.0),
-			..Account::default()
-		},
-	);
+	program_test.add_account(pubkey, Account {
+		lamports: sol_to_lamports(1.0),
+		..Account::default()
+	});
 
 	let ctx = program_test.start_with_context().await;
 

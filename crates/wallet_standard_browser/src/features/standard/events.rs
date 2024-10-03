@@ -3,15 +3,15 @@
 use js_sys::Function;
 use js_sys::Object;
 use wallet_standard::ConnectedWalletStandardEvents;
+use wallet_standard::STANDARD_EVENTS;
 use wallet_standard::StandardEventProperties;
 use wallet_standard::WalletResult;
-use wallet_standard::STANDARD_EVENTS;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::prelude::*;
 
-use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
+use crate::impl_feature_from_js;
 
 #[wasm_bindgen]
 extern "C" {

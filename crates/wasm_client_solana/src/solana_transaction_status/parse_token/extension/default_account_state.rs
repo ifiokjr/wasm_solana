@@ -1,5 +1,5 @@
-use spl_token_2022::extension::default_account_state::instruction::decode_instruction;
 use spl_token_2022::extension::default_account_state::instruction::DefaultAccountStateInstruction;
+use spl_token_2022::extension::default_account_state::instruction::decode_instruction;
 
 use super::*;
 
