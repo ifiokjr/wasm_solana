@@ -1,6 +1,6 @@
 [package]
 name = "wallet_standard_browser"
-version = "0.2.0"
+version = "0.2.1"
 authors = { workspace = true }
 categories = ["wasm", "web-programming"]
 edition = { workspace = true }
