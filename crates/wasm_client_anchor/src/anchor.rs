@@ -217,7 +217,7 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorReques
 pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	/// The additional options for signing and sending transactions.
 	fn options(&self) -> SolanaSignAndSendTransactionOptions;
-	/// The wallet that will pay for this transaction.
+	/// The solana wallet that will pay for this transaction.
 	fn wallet(&self) -> &'a W;
 	/// The solana client that is used to send rpc methods.
 	fn rpc(&self) -> &'a SolanaRpcClient;
@@ -235,14 +235,22 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 		Ok(VersionedMessage::V0(message))
 	}
 
-	/// Sign the transaction with the provided signers.
-	async fn sign_transaction(&self) -> AnchorClientResult<VersionedTransaction> {
+	/// Get the unsigned [`VersionedTransaction`].
+	async fn transaction(&self) -> AnchorClientResult<VersionedTransaction> {
 		let hash = self.rpc().get_latest_blockhash().await?;
+		let transaction = self.message(hash)?.into_versioned_transaction();
+
+		Ok(transaction)
+	}
+
+	/// Sign the transaction with the provided signers using the provided
+	/// [`AnchorRequestMethods::wallet`].
+	async fn sign_transaction(&self) -> AnchorClientResult<VersionedTransaction> {
 		let signers = self.signers();
-		let mut transaction = self.message(hash)?.into_versioned_transaction();
+		let mut transaction = self.transaction().await?;
 
 		// sign the transaction with local signers.
-		transaction.try_sign(&signers, Some(hash))?;
+		transaction.try_sign(&signers, None)?;
 
 		// sign the transaction in the wallet.
 		let props = SolanaSignTransactionProps::builder()
