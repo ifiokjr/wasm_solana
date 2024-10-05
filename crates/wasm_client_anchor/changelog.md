@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.2.3...wasm_client_anchor@v0.2.4) - 2024-10-05
+
+### <!-- 0 -->🎉 Added
+
+- add `transaction` method
+
 ## [0.2.3](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.2.2...wasm_client_anchor@v0.2.3) - 2024-10-04
 
 ### <!-- 0 -->🎉 Added

@@ -7779,7 +7779,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils_solana"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -8695,7 +8695,7 @@ dependencies = [
 
 [[package]]
 name = "wasm_client_anchor"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "anchor-lang",
  "anyhow",
