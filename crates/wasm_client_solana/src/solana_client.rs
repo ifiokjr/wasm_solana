@@ -136,6 +136,12 @@ impl<S: Into<String>> From<S> for SolanaRpcClient {
 	}
 }
 
+impl From<&SolanaRpcClient> for SolanaRpcClient {
+	fn from(value: &SolanaRpcClient) -> Self {
+		value.clone()
+	}
+}
+
 impl SolanaRpcClient {
 	/// Create an HTTP `SolanaRpcClient`.
 	///
