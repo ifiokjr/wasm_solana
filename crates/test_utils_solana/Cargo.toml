@@ -1,6 +1,6 @@
 [package]
 name = "test_utils_solana"
-version = "0.4.2"
+version = "0.4.3"
 authors = { workspace = true }
 edition = { workspace = true }
 homepage = { workspace = true }
