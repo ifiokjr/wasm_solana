@@ -67,6 +67,10 @@ pub trait BanksClientAsyncExtension {
 		wallet: &W,
 		props: SolanaSignAndSendTransactionProps,
 	) -> AnchorClientResult<BanksTransactionResultWithSimulation>;
+	async fn get_anchor_account<T: AccountDeserialize>(
+		&mut self,
+		address: &Pubkey,
+	) -> Result<T, BanksClientError>;
 }
 
 fn into_wallet_error<T: Display>(error: T) -> WalletError {
@@ -139,6 +143,25 @@ impl BanksClientAsyncExtension for BanksClient {
 			.simulate_transaction(transaction)
 			.await
 			.map_err(into_wallet_error)?;
+
+		Ok(result)
+	}
+
+	async fn get_anchor_account<T: AccountDeserialize>(
+		&mut self,
+		address: &Pubkey,
+	) -> Result<T, BanksClientError> {
+		let Some(account) = self
+			.get_account_with_commitment(*address, CommitmentLevel::Finalized)
+			.await?
+		else {
+			return Err(BanksClientError::ClientError("account not found"));
+		};
+
+		let mut data: &[u8] = &account.data;
+		let result = T::try_deserialize(&mut data).map_err(|_| {
+			BanksClientError::ClientError("could not deserialize account, invalid data")
+		})?;
 
 		Ok(result)
 	}
@@ -662,20 +685,7 @@ impl ProgramTestContextExtension for ProgramTestContext {
 		&mut self,
 		address: &Pubkey,
 	) -> Result<T, BanksClientError> {
-		let Some(account) = self
-			.banks_client
-			.get_account_with_commitment(*address, CommitmentLevel::Finalized)
-			.await?
-		else {
-			return Err(BanksClientError::ClientError("account not found"));
-		};
-
-		let mut data: &[u8] = &account.data;
-		let result = T::try_deserialize(&mut data).map_err(|_| {
-			BanksClientError::ClientError("could not deserialize account, invalid data")
-		})?;
-
-		Ok(result)
+		self.banks_client.get_anchor_account(address).await
 	}
 
 	async fn fund_account(
