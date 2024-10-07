@@ -35,7 +35,7 @@ async fn initialize() -> Result<()> {
 		.initialize()
 		.accounts(example_program::accounts::Initialize { unchecked: pubkey })
 		.build()
-		.sign_and_simulate_banks_client_transaction(&mut ctx.banks_client)
+		.simulate_banks_client_transaction(&mut ctx.banks_client)
 		.await?;
 
 	check!(simulation.result.unwrap().is_ok());
@@ -64,7 +64,7 @@ async fn composition() -> Result<()> {
 		.another()
 		.args(10)
 		.accounts(example_program::accounts::Another { signer })
-		.signers(vec![&signer_keypair])
+		.signer(&signer_keypair)
 		.build()
 		.compose()
 		.initialize()
@@ -72,7 +72,7 @@ async fn composition() -> Result<()> {
 		.build();
 
 	let simulation = request
-		.sign_and_simulate_banks_client_transaction(&mut ctx.banks_client)
+		.simulate_banks_client_transaction(&mut ctx.banks_client)
 		.await?;
 
 	check!(simulation.result.unwrap().is_ok());
