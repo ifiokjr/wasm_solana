@@ -1,9 +1,11 @@
 use anyhow::Result;
 use assert2::check;
 use example_client::ExampleProgramClient;
+use example_client::IntoExampleProgramClient;
 use solana_sdk::account::Account;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::native_token::sol_to_lamports;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use test_utils::SECRET_KEY_WALLET;
 use test_utils_solana::ProgramTest;
@@ -37,6 +39,47 @@ async fn initialize() -> Result<()> {
 		.await?;
 
 	check!(simulation.result.unwrap().is_ok());
+
+	Ok(())
+}
+
+#[test_log::test(tokio::test)]
+async fn composition() -> Result<()> {
+	let unchecked = Pubkey::new_unique();
+	let signer_keypair = Keypair::new();
+	let signer = signer_keypair.pubkey();
+	let keypair = get_wallet_keypair();
+	let (mut ctx, rpc) = create_program_test().await;
+	let mut wallet = MemoryWallet::new(rpc.clone(), &[keypair]);
+
+	wallet.connect().await?;
+
+	let program = ExampleProgramClient::builder()
+		.wallet(wallet.clone())
+		.rpc(rpc.clone())
+		.build()
+		.into_example_program_client();
+
+	let request = program
+		.another()
+		.args(10)
+		.accounts(example_program::accounts::Another { signer })
+		.signers(vec![&signer_keypair])
+		.build()
+		.compose()
+		.initialize()
+		.accounts(example_program::accounts::Initialize { unchecked })
+		.build();
+
+	let simulation = request
+		.sign_and_simulate_banks_client_transaction(&mut ctx.banks_client)
+		.await?;
+
+	check!(simulation.result.unwrap().is_ok());
+
+	request
+		.sign_and_process_banks_client_transaction(&mut ctx.banks_client)
+		.await?;
 
 	Ok(())
 }

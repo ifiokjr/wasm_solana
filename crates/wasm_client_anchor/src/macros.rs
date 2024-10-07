@@ -2,30 +2,29 @@
 macro_rules! base_create_request_builder {
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident) => {
 		$crate::__private::paste::paste! {
-			pub type [<$name_prefix RequestBuilderPartial>]<'a, W> =
-				[<$name_prefix RequestBuilder>]<
-					'a,
-					W,
-					(
-						(&'a $program_struct<W>,),
-						(&'a W,),
-						(),
-						(),
-						(),
-						(),
-						(),
-						(),
-						(),
-					),
-				>;
-
 			#[derive($crate::__private::typed_builder::TypedBuilder)]
+			#[builder(mutators(
+					/// Add signers to the request method. This can be added multiple times in the builder.
+			    pub fn signers(
+						&mut self,
+						mut signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>
+					) {
+						self._signers.append(&mut signers);
+			    }
+			    /// Add instructions to the request method. This can be added multiple times in the builder.
+			    pub fn instructions(
+						&mut self,
+						mut instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>
+					) {
+						self._instructions.append(&mut instructions);
+			    }
+			))]
 			pub struct [<$name_prefix Request>]<
 				'a,
 				W: $crate::WalletAnchor + 'a,
 			> {
-				/// This is the launchpad program.
-				pub launchpad: &'a $program_struct<W>,
+				/// This is the anchor client for interacting with this program.
+				pub program_client: &'a $program_struct<W>,
 				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::WalletAnchor`] to allow for async signing via wallets.
 				pub wallet: &'a W,
 				/// Provide the args to the anchor program endpoint. This will be transformed into the instruction data when processing the transaction.
@@ -37,11 +36,11 @@ macro_rules! base_create_request_builder {
 				#[builder(default)]
 				pub remaining_accounts: Vec<$crate::__private::solana_sdk::instruction::AccountMeta>,
 				/// Signers that can sign the data synchronously
-				#[builder(default)]
-				pub signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
-				#[builder(default)]
+				#[builder(via_mutators(init = vec![]))]
+				_signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
 				/// Instructions that are run before the anchor instruction.
-				pub instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				#[builder(via_mutators(init = vec![]))]
+				_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
 				#[builder(default)]
 				/// Instructions that are run after the anchor instruction is completed.
 				pub extra_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
@@ -49,8 +48,6 @@ macro_rules! base_create_request_builder {
 				#[builder(default)]
 				pub options: $crate::__private::wallet_standard::SolanaSignAndSendTransactionOptions,
 			}
-
-			impl<'a, W: $crate::WalletAnchor + 'a> [<$name_prefix Request>]<'a, W> {}
 
 			#[$crate::__private::async_trait::async_trait(?Send)]
 			impl<'a, W: $crate::WalletAnchor + 'a> $crate::AnchorRequestMethods<'a, W>
@@ -65,11 +62,11 @@ macro_rules! base_create_request_builder {
 				}
 
 				fn rpc(&self) -> &'a $crate::__private::wasm_client_solana::SolanaRpcClient {
-					self.launchpad.rpc()
+					self.program_client.rpc()
 				}
 
 				fn signers(&self) -> Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer> {
-					self.signers.clone()
+					self._signers.clone()
 				}
 
 				fn instructions(&self) -> Vec<$crate::__private::solana_sdk::instruction::Instruction> {
@@ -77,12 +74,12 @@ macro_rules! base_create_request_builder {
 					use $crate::__private::anchor_lang::ToAccountMetas;
 
 					let mut accounts = self.accounts.to_account_metas(None);
-					let mut instructions = self.instructions.clone();
+					let mut instructions = self._instructions.clone();
 
 					accounts.append(&mut self.remaining_accounts.clone());
 
 					instructions.push($crate::__private::solana_sdk::instruction::Instruction {
-						program_id: self.launchpad.id(),
+						program_id: self.program_client.id(),
 						accounts,
 						data: self.args.data(),
 					});
@@ -90,6 +87,20 @@ macro_rules! base_create_request_builder {
 					instructions.append(&mut self.extra_instructions.clone());
 
 					instructions
+				}
+			}
+
+			impl<'a, W: $crate::WalletAnchor + 'a> [<$name_prefix Request>]<'a, W> {
+				/// Compose multiple instructions from the current anchor program client.
+				pub fn compose(&self) -> [<$program_struct Composer>]<'a, W> {
+					use $crate::AnchorRequestMethods;
+
+					[<$program_struct Composer>] {
+						program_client: self.program_client,
+						wallet: self.wallet,
+						instructions: self.instructions(),
+						signers: self.signers(),
+					}
 				}
 			}
 		}
@@ -102,7 +113,7 @@ macro_rules! create_request_builder {
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident, "optional:args") => {
 		$crate::base_create_request_builder!($program, $program_struct, $name_prefix, $accounts);
 		$crate::__private::paste::paste! {
-			pub type [<$name_prefix RequestBuilderArgsPartial>]<'a, W> =
+			pub type [<$name_prefix RequestBuilderOptionalArgs>]<'a, W> =
 				[<$name_prefix RequestBuilder>]<
 					'a,
 					W,
@@ -112,41 +123,83 @@ macro_rules! create_request_builder {
 						(::$program::instruction::$name_prefix,),
 						(),
 						(),
-						(),
-						(),
+						(std::vec::Vec<&'a dyn $crate::prelude::Signer>,),
+						(std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,),
 						(),
 						(),
 					),
 				>;
 			impl<W: $crate::WalletAnchor> $program_struct<W> {
-				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderArgsPartial>]<'_, W> {
+				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderOptionalArgs>]<'_, W> {
 					[<$name_prefix Request>]::builder()
-						.launchpad(self)
+						.program_client(self)
 						.wallet(self.wallet())
 						.args(::$program::instruction::$name_prefix {})
 				}
 			}
-		}
-	};
-	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident, "required:args") => {
-		$crate::base_create_request_builder!($program, $program_struct, $name_prefix, $accounts);
-		$crate::__private::paste::paste! {
-			impl<W: $crate::WalletAnchor> $program_struct<W> {
-				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderPartial>]<'_, W> {
-					[<$name_prefix Request>]::builder()
-						.launchpad(self)
-						.wallet(self.wallet())
 
+			impl<'a, W: $crate::WalletAnchor + 'a> [<$program_struct Composer>]<'a, W> {
+				pub fn [<$name_prefix:snake>](self) -> [<$name_prefix RequestBuilderOptionalArgs>]<'a, W> {
+					[<$name_prefix Request>]::builder()
+						.program_client(self.program_client)
+						.wallet(self.wallet)
+						.args(::$program::instruction::$name_prefix {})
+						.instructions(self.instructions)
+						.signers(self.signers)
 				}
 			}
 		}
 	};
+
+	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident, "required:args") => {
+		$crate::base_create_request_builder!($program, $program_struct, $name_prefix, $accounts);
+		$crate::__private::paste::paste! {
+			pub type [<$name_prefix RequestBuilderRequiredArgs>]<'a, W> =
+				[<$name_prefix RequestBuilder>]<
+					'a,
+					W,
+					(
+						(&'a $program_struct<W>,),
+						(&'a W,),
+						(),
+						(),
+						(),
+						(std::vec::Vec<&'a dyn $crate::prelude::Signer>,),
+						(std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,),
+						(),
+						(),
+					),
+				>;
+
+			impl<W: $crate::WalletAnchor> $program_struct<W> {
+				pub fn [<$name_prefix:snake>](&self) -> [<$name_prefix RequestBuilderRequiredArgs>]<'_, W> {
+					[<$name_prefix Request>]::builder()
+						.program_client(self)
+						.wallet(self.wallet())
+
+				}
+			}
+
+			impl<'a, W: $crate::WalletAnchor + 'a> [<$program_struct Composer>]<'a, W> {
+				pub fn [<$name_prefix:snake>](self) -> [<$name_prefix RequestBuilderRequiredArgs>]<'a, W> {
+					[<$name_prefix Request>]::builder()
+						.program_client(self.program_client)
+						.wallet(self.wallet)
+						.instructions(self.instructions)
+						.signers(self.signers)
+				}
+			}
+		}
+	};
+
 	($program:path, $program_struct:path, $name_prefix:ident, $accounts:ident) => {
 		$crate::create_request_builder!($program, $program_struct, $name_prefix, $accounts, "required:args");
 	};
+
 	($program:path, $program_struct:path, $name_prefix:ident, "optional:args") => {
 		$crate::create_request_builder!($program, $program_struct, $name_prefix, $name_prefix, "optional:args");
 	};
+
 	($program:path, $program_struct:path, $name_prefix:ident) => {
 		$crate::create_request_builder!($program, $program_struct, $name_prefix, $name_prefix, "required:args");
 	};
@@ -278,6 +331,16 @@ macro_rules! create_program_client {
 					let signature = self.rpc().request_airdrop(pubkey, lamports).await?;
 					Ok(signature)
 				}
+			}
+
+			/// This struct is used to compose different request methods together.
+			pub struct [<$program_client_name Composer>]<'a, W: $crate::WalletAnchor + 'a> {
+				/// This is the anchor client for interacting with this program.
+				program_client: &'a $program_client_name<W>,
+				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::WalletAnchor`] to allow for async signing via wallets.
+				wallet: &'a W,
+				instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
 			}
 		}
 	};
