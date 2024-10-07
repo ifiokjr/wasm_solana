@@ -4,6 +4,7 @@ use anchor_lang::Key;
 use async_trait::async_trait;
 use serde::Serialize;
 use solana_sdk::commitment_config::CommitmentConfig;
+use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::Instruction;
@@ -287,10 +288,33 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	}
 
 	/// Sign and simulate the transaction on the provided rpc endpoint.
+	#[deprecated(
+		since = "0.3.0",
+		note = "Use [`AnchorRequestMethods::simulate_transaction`]"
+	)]
 	async fn sign_and_simulate_transaction(
 		&self,
 	) -> AnchorClientResult<SimulateTransactionResponse> {
 		let transaction = self.sign_transaction().await?;
+		let result = self.rpc().simulate_transaction(&transaction).await;
+
+		Ok(result?)
+	}
+
+	/// Simulate the transaction without signing.
+	async fn simulate_transaction(&self) -> AnchorClientResult<SimulateTransactionResponse> {
+		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
+		let payer = self.wallet().pubkey();
+		let mut instructions = self.instructions();
+		instructions.insert(0, compute_limit_instruction);
+
+		let transaction = VersionedMessage::V0(v0::Message::try_compile(
+			&payer,
+			&instructions,
+			&[],
+			Hash::default(),
+		)?)
+		.into_versioned_transaction();
 		let result = self.rpc().simulate_transaction(&transaction).await;
 
 		Ok(result?)
