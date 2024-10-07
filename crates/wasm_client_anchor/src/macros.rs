@@ -11,12 +11,26 @@ macro_rules! base_create_request_builder {
 					) {
 						self._signers.append(&mut signers);
 			    }
+					/// Add signers to the request method. This can be added multiple times in the builder.
+			    pub fn signer(
+						&mut self,
+						mut signer: &'a impl $crate::__private::solana_sdk::signer::Signer
+					) {
+						self._signers.push(signer);
+			    }
 			    /// Add instructions to the request method. This can be added multiple times in the builder.
 			    pub fn instructions(
 						&mut self,
 						mut instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>
 					) {
 						self._instructions.append(&mut instructions);
+			    }
+			    /// Add an instruction to the request method. This can be added multiple times in the builder.
+			    pub fn instruction(
+						&mut self,
+						instruction: $crate::__private::solana_sdk::instruction::Instruction
+					) {
+						self._instructions.push(instruction);
 			    }
 			))]
 			pub struct [<$name_prefix Request>]<
