@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.3...test_utils_solana@v0.4.4) - 2024-10-07
+
+### <!-- 0 -->🎉 Added
+
+- add `get_anchor_account` method to `BanksClient`
+
 ## [0.4.3](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.2...test_utils_solana@v0.4.3) - 2024-10-05
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks

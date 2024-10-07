@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.2.4...wasm_client_anchor@v0.3.0) - 2024-10-07
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] add `compose` method to anchor requests
+
 ## [0.2.4](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.2.3...wasm_client_anchor@v0.2.4) - 2024-10-05
 
 ### <!-- 0 -->🎉 Added

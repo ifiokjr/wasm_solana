@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.2...wasm_client_solana@v0.3.3) - 2024-10-07
+
+### <!-- 0 -->🎉 Added
+
+- implement `From<&SolanaRpcClient>` for `SolanaRpcClient`
+
 ## [0.3.2](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.1...wasm_client_solana@v0.3.2) - 2024-10-03
 
 ### <!-- 0 -->🎉 Added
