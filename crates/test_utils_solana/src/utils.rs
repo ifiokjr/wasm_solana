@@ -26,6 +26,8 @@ use solana_sdk::bpf_loader_upgradeable::{self};
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentLevel;
+use solana_sdk::compute_budget::ComputeBudgetInstruction;
+use solana_sdk::hash::Hash;
 use solana_sdk::message::VersionedMessage;
 use solana_sdk::message::v0;
 use solana_sdk::native_token::sol_to_lamports;
@@ -219,11 +221,41 @@ pub trait BanksClientAnchorRequestMethods<'a, W: WalletAnchor + Signer + 'a>:
 	}
 
 	/// Simulate the transaction.
+	#[deprecated(
+		since = "0.4.4",
+		note = "Use [`BanksClientAnchorRequestMethods::simulate_banks_client_transaction`]"
+	)]
 	async fn sign_and_simulate_banks_client_transaction(
 		&self,
 		client: &mut BanksClient,
 	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
 		let transaction = self.sign_banks_client_transaction(client).await?;
+		let result = client
+			.simulate_transaction_with_commitment(transaction, self.rpc().commitment())
+			.await
+			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
+
+		Ok(result)
+	}
+
+	/// Simulate the transaction without sigining.
+	async fn simulate_banks_client_transaction(
+		&self,
+		client: &mut BanksClient,
+	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
+		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
+		let payer = self.wallet().pubkey();
+		let mut instructions = self.instructions();
+		instructions.insert(0, compute_limit_instruction);
+
+		let transaction = VersionedMessage::V0(v0::Message::try_compile(
+			&payer,
+			&instructions,
+			&[],
+			Hash::default(),
+		)?)
+		.into_versioned_transaction();
+
 		let result = client
 			.simulate_transaction_with_commitment(transaction, self.rpc().commitment())
 			.await
