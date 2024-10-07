@@ -1117,6 +1117,7 @@ impl SolanaRpcClient {
 		Ok(response.result)
 	}
 
+	/// Simulate the transaction without needing a signature.
 	pub async fn simulate_transaction(
 		&self,
 		transaction: &VersionedTransaction,
