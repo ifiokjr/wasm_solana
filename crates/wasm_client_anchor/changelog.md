@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.3.0...wasm_client_anchor@v0.3.1) - 2024-10-08
+
+### <!-- 0 -->🎉 Added
+
+- add `signer` and `instruction` builder method
+- add `simulate_transaction` method with max compute units
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- use `get_latest_blockhash` in simulation
+
 ## [0.3.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.2.4...wasm_client_anchor@v0.3.0) - 2024-10-07
 
 ### <!-- 0 -->🎉 Added

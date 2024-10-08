@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.3...wasm_client_solana@v0.3.4) - 2024-10-08
+
+### <!-- 0 -->🎉 Added
+
+- add `new_with_provider` method to `SolanaRpcClient`
+- support deserialize `SimulateTransactionRequest`
+- support deserialize `SendTransactionRequest`
+- support deserialize `GetLatestBlockhashRequest`
+- support `RpcProvider` in wasm environment
+- support `ProgramTestContext` `RpcProvider`
+- add `RpcProvider` trait
+
+### <!-- 3 -->📚 Documentation
+
+- add comment to `simulate_transaction` method
+
 ## [0.3.3](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.2...wasm_client_solana@v0.3.3) - 2024-10-07
 
 ### <!-- 0 -->🎉 Added

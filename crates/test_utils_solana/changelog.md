@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.4...test_utils_solana@v0.4.5) - 2024-10-08
+
+### <!-- 0 -->🎉 Added
+
+- add new factory methods to `TestRpcProvider`
+- support `ProgramTestContext` `RpcProvider`
+- add `simulate_banks_client_transaction` method
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- use `get_latest_blockhash` in simulation
+
 ## [0.4.4](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.3...test_utils_solana@v0.4.4) - 2024-10-07
 
 ### <!-- 0 -->🎉 Added
