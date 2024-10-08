@@ -2292,6 +2292,8 @@ dependencies = [
  "http 1.1.0",
  "js-sys",
  "pin-project",
+ "serde",
+ "serde_json",
  "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -2317,6 +2319,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b5555354113b18c547c1d3a98fbf7fb32a9ff4f6fa112ce823a21641a0ba3aa"
 dependencies = [
  "js-sys",
+ "serde",
+ "serde_json",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -7786,6 +7790,7 @@ dependencies = [
  "borsh 1.5.1",
  "chrono-humanize",
  "crossbeam-channel",
+ "derive_more 1.0.0",
  "futures 0.3.30",
  "insta",
  "lazy_static",
@@ -7793,6 +7798,8 @@ dependencies = [
  "port_check",
  "rand 0.8.5",
  "send_wrapper 0.6.0",
+ "serde",
+ "serde_json",
  "solana-banks-client",
  "solana-banks-interface",
  "solana-faucet",

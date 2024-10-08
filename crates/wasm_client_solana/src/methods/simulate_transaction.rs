@@ -1,13 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
 use serde::ser::SerializeTuple;
-use serde_with::DisplayFromStr;
-use serde_with::serde_as;
-use serde_with::skip_serializing_none;
-use solana_sdk::pubkey::Pubkey;
+use serde_tuple::Deserialize_tuple;
 use solana_sdk::transaction::TransactionError;
 use solana_sdk::transaction::VersionedTransaction;
-use typed_builder::TypedBuilder;
 
 use super::Context;
 use crate::impl_http_method;
@@ -15,11 +11,11 @@ use crate::rpc_config::RpcSimulateTransactionConfig;
 use crate::rpc_config::serialize_and_encode;
 use crate::solana_account_decoder::UiAccount;
 use crate::solana_transaction_status::UiTransactionEncoding;
+use crate::solana_transaction_status::UiTransactionReturnData;
 
-#[derive(Debug, PartialEq, Eq, TypedBuilder)]
+#[derive(Debug, PartialEq, Eq, Deserialize_tuple)]
 pub struct SimulateTransactionRequest {
 	pub transaction: VersionedTransaction,
-	#[builder(default, setter(strip_option))]
 	pub config: Option<RpcSimulateTransactionConfig>,
 }
 
@@ -76,7 +72,7 @@ impl SimulateTransactionRequest {
 	}
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SimulateTransactionResponseValue {
 	pub err: Option<TransactionError>,
@@ -86,23 +82,7 @@ pub struct SimulateTransactionResponseValue {
 	pub return_data: Option<UiTransactionReturnData>,
 }
 
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct UiTransactionReturnData {
-	#[serde_as(as = "DisplayFromStr")]
-	pub program_id: Pubkey,
-	pub data: (String, UiReturnDataEncoding),
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub enum UiReturnDataEncoding {
-	Base64,
-}
-
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimulateTransactionResponse {
 	pub context: Context,
 	pub value: SimulateTransactionResponseValue,
@@ -119,6 +99,7 @@ mod tests {
 	use crate::ClientRequest;
 	use crate::ClientResponse;
 	use crate::methods::HttpMethod;
+	use crate::solana_transaction_status::UiReturnDataEncoding;
 
 	#[test]
 	fn request() {

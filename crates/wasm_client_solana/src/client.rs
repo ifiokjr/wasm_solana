@@ -39,7 +39,7 @@ pub struct SubscriptionParams<T> {
 	pub subscription: SubscriptionId,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ClientResponse<T> {
 	pub jsonrpc: String,
 	pub result: T,

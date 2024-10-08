@@ -23,12 +23,15 @@ bincode = { workspace = true }
 borsh = { workspace = true, features = ["derive"] }
 chrono-humanize = { workspace = true }
 crossbeam-channel = { workspace = true }
+derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 futures = { workspace = true }
 lazy_static = { workspace = true }
 log = { workspace = true }
 port_check = { workspace = true }
 rand = { workspace = true }
 send_wrapper = { workspace = true, features = ["futures"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 solana-banks-client = { workspace = true }
 solana-banks-interface = { workspace = true }
 solana-faucet = { workspace = true, optional = true }

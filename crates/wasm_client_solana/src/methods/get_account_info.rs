@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use serde::Deserializer;
 use serde::Serialize;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
@@ -58,6 +59,29 @@ impl Serialize for GetAccountInfoRequest {
 
 		let inner = Inner(&self.pubkey, &self.config);
 		Serialize::serialize(&inner, serde_tuple::Serializer(serializer))
+	}
+}
+
+impl<'de> Deserialize<'de> for GetAccountInfoRequest {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		#[derive(Deserialize)]
+		#[serde(rename = "GetAccountInfoRequest")]
+		#[derive(::serde_with::__private_consume_serde_as_attributes)]
+		struct Inner(
+			#[serde_as(as = "DisplayFromStr")]
+			#[serde(with = "::serde_with::As::<DisplayFromStr>")]
+			Pubkey,
+			RpcAccountInfoConfig,
+		);
+
+		let inner = Inner::deserialize(deserializer)?;
+		Ok(GetAccountInfoRequest::builder()
+			.pubkey(inner.0)
+			.config(inner.1)
+			.build())
 	}
 }
 

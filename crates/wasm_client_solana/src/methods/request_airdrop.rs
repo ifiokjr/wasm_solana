@@ -1,6 +1,8 @@
 use derive_more::derive::From;
 use derive_more::derive::Into;
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
@@ -13,7 +15,7 @@ use crate::impl_http_method;
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple)]
 pub struct RequestAirdropRequest {
 	#[serde_as(as = "DisplayFromStr")]
 	pub pubkey: Pubkey,
@@ -42,8 +44,8 @@ impl RequestAirdropRequest {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize, PartialEq, Eq, From, Into)]
-pub struct RequestAirdropResponse(#[serde_as(as = "DisplayFromStr")] Signature);
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, From, Into)]
+pub struct RequestAirdropResponse(#[serde_as(as = "DisplayFromStr")] pub Signature);
 
 #[cfg(test)]
 mod tests {

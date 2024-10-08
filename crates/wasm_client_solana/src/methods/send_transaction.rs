@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 use serde::ser::SerializeTuple;
+use serde_tuple::Deserialize_tuple;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use solana_sdk::signature::Signature;
@@ -11,10 +12,10 @@ use crate::rpc_config::RpcSendTransactionConfig;
 use crate::rpc_config::serialize_and_encode;
 use crate::solana_transaction_status::UiTransactionEncoding;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Deserialize_tuple)]
 pub struct SendTransactionRequest {
-	transaction: VersionedTransaction,
-	config: Option<RpcSendTransactionConfig>,
+	pub transaction: VersionedTransaction,
+	pub config: Option<RpcSendTransactionConfig>,
 }
 
 impl Serialize for SendTransactionRequest {
@@ -67,8 +68,8 @@ impl SendTransactionRequest {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize, PartialEq, Eq)]
-pub struct SendTransactionResponse(#[serde_as(as = "DisplayFromStr")] Signature);
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SendTransactionResponse(#[serde_as(as = "DisplayFromStr")] pub Signature);
 
 impl From<SendTransactionResponse> for Signature {
 	fn from(val: SendTransactionResponse) -> Self {
