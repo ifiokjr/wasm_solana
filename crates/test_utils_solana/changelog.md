@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.6](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.5...test_utils_solana@v0.4.6) - 2024-10-08
+
+### <!-- 0 -->🎉 Added
+
+- add `TestRpcProvider::to_rpc_client` method to create a `SolanaRpcClient`
+
 ## [0.4.5](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.4...test_utils_solana@v0.4.5) - 2024-10-08
 
 ### <!-- 0 -->🎉 Added
