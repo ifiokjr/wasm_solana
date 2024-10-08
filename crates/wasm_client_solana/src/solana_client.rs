@@ -195,6 +195,19 @@ impl SolanaRpcClient {
 		}
 	}
 
+	/// Create a new rpc from a custom provider.
+	pub fn new_with_provider(
+		provider: Arc<dyn RpcProvider + Send + Sync + 'static>,
+		commitment_config: CommitmentConfig,
+	) -> Self {
+		let endpoint = provider.url();
+		Self {
+			provider,
+			commitment_config,
+			ws: WebSocketProvider::new(endpoint),
+		}
+	}
+
 	/// Get the URL.
 	pub fn url(&self) -> String {
 		self.provider.url()
