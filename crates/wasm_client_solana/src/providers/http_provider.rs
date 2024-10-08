@@ -58,15 +58,6 @@ mod ssr_http_provider {
 				.await?;
 
 			Ok(result)
-
-			// if let Ok(response) = serde_json::from_value::<R>(result.clone())
-			// { 	Ok(response)
-			// } else {
-			// 	match serde_json::from_value::<RpcError>(result) {
-			// 		Ok(error) => Err(error.into()),
-			// 		Err(error) => Err(ClientError::Other(error.to_string())),
-			// 	}
-			// }
 		}
 	}
 
@@ -107,7 +98,6 @@ mod ssr_http_provider {
 
 #[cfg(not(feature = "ssr"))]
 mod wasm_http_provider {
-	#![allow(unsafe_code)]
 
 	use std::pin::Pin;
 	use std::task::Context;
@@ -118,36 +108,20 @@ mod wasm_http_provider {
 	use pin_project::pinned_drop;
 	use send_wrapper::SendWrapper;
 	use wasm_bindgen::prelude::*;
-	use wasm_bindgen_futures::JsFuture;
 	use web_sys::AbortController;
-	use web_sys::Headers;
-	use web_sys::Request;
-	use web_sys::RequestInit;
-	use web_sys::Response;
 
 	use super::*;
 	use crate::ClientError;
 
-	#[wasm_bindgen]
-	extern "C" {
-		// Create a separate binding for `fetch` as a global, rather than using the
-		// existing Window/WorkerGlobalScope bindings defined by web_sys, for
-		// greater efficiency.
-		//
-		// https://github.com/rustwasm/wasm-bindgen/discussions/3863
-		#[wasm_bindgen(js_name = "fetch")]
-		fn fetch_with_request(request: &Request) -> js_sys::Promise;
-	}
-
 	#[pin_project(PinnedDrop)]
-	struct AbortableRequest<F: Future<Output = Result<JsValue, JsValue>>> {
+	struct AbortableRequest<F: Future<Output = Result<gloo_net::http::Response, gloo_net::Error>>> {
 		#[pin]
 		fut: F,
 		controller: AbortController,
 		pending: bool,
 	}
 
-	impl<F: Future<Output = Result<JsValue, JsValue>>> AbortableRequest<F> {
+	impl<F: Future<Output = Result<gloo_net::http::Response, gloo_net::Error>>> AbortableRequest<F> {
 		fn new(fut: F, controller: AbortController) -> Self {
 			Self {
 				fut,
@@ -157,8 +131,10 @@ mod wasm_http_provider {
 		}
 	}
 
-	impl<F: Future<Output = Result<JsValue, JsValue>>> Future for AbortableRequest<F> {
-		type Output = Result<JsValue, JsValue>;
+	impl<F: Future<Output = Result<gloo_net::http::Response, gloo_net::Error>>> Future
+		for AbortableRequest<F>
+	{
+		type Output = Result<gloo_net::http::Response, gloo_net::Error>;
 
 		fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
 			let mut this = self.project();
@@ -175,7 +151,9 @@ mod wasm_http_provider {
 	}
 
 	#[pinned_drop]
-	impl<F: Future<Output = Result<JsValue, JsValue>>> PinnedDrop for AbortableRequest<F> {
+	impl<F: Future<Output = Result<gloo_net::http::Response, gloo_net::Error>>> PinnedDrop
+		for AbortableRequest<F>
+	{
 		fn drop(self: Pin<&mut Self>) {
 			if self.pending {
 				// only abort the fetch if it is still pending.
@@ -203,23 +181,12 @@ mod wasm_http_provider {
 			let future = async move {
 				let controller = AbortController::new().unwrap_throw();
 				let signal = controller.signal();
-				let headers = Headers::new()?;
-				let options = RequestInit::new();
-				let json = serde_json::to_string(&client_request).unwrap_throw();
+				let request = gloo_net::http::Request::post(&self.0)
+					.abort_signal(Some(&signal))
+					.json(&client_request)?;
+				let response = AbortableRequest::new(request.send(), controller).await?;
+				let value = response.json().await?;
 
-				headers.set("Content-Type", "application/json")?;
-				options.set_signal(Some(&signal));
-				options.set_headers(&headers.into());
-				options.set_body(&json.into());
-				let request = Request::new_with_str_and_init(&self.0, &options)?;
-				let fetch_promise = fetch_with_request(&request);
-				let response_value =
-					AbortableRequest::new(JsFuture::from(fetch_promise), controller).await?;
-				let response = response_value.dyn_into::<Response>()?;
-
-				let json_promise = response.json()?;
-				let json_value = JsFuture::from(json_promise).await?;
-				let value: Value = serde_wasm_bindgen::from_value(json_value)?;
 				Ok::<Value, ClientError>(value)
 			};
 
@@ -237,6 +204,11 @@ mod wasm_http_provider {
 
 	impl From<serde_wasm_bindgen::Error> for ClientError {
 		fn from(value: serde_wasm_bindgen::Error) -> Self {
+			Self::Other(value.to_string())
+		}
+	}
+	impl From<gloo_net::Error> for ClientError {
+		fn from(value: gloo_net::Error) -> Self {
 			Self::Other(value.to_string())
 		}
 	}
