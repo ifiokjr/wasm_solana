@@ -7779,7 +7779,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils_solana"
-version = "0.4.5"
+version = "0.4.6"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
