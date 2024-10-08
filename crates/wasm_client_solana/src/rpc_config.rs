@@ -5,6 +5,7 @@ use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
+use serde::de::DeserializeOwned;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
@@ -18,6 +19,7 @@ use solana_sdk::signature::Signature;
 use typed_builder::TypedBuilder;
 
 use super::rpc_filter::RpcFilterType;
+use crate::ClientError;
 use crate::ClientResult;
 use crate::RpcError;
 use crate::SolanaRpcClient;
@@ -154,6 +156,38 @@ where
 		}
 	};
 	Ok(encoded)
+}
+
+pub fn deserialize_and_decode<T: DeserializeOwned>(
+	content: &str,
+	encoding: UiTransactionEncoding,
+) -> ClientResult<T> {
+	let decoded = match encoding {
+		UiTransactionEncoding::Base64 => {
+			bincode::deserialize(
+				&BASE64_STANDARD
+					.decode(content)
+					.map_err(|e| ClientError::Other(e.to_string()))?,
+			)
+			.map_err(|e| ClientError::Other(e.to_string()))?
+		}
+		UiTransactionEncoding::Base58 => {
+			bincode::deserialize(
+				&bs58::decode(content)
+					.into_vec()
+					.map_err(|e| ClientError::Other(e.to_string()))?,
+			)
+			.map_err(|e| ClientError::Other(e.to_string()))?
+		}
+		_ => {
+			return Err(RpcError::new(format!(
+				"unsupported encoding: {encoding}. Supported encodings: base58, base64"
+			))
+			.into());
+		}
+	};
+
+	Ok(decoded)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

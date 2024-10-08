@@ -1,18 +1,19 @@
 use serde::Deserialize;
+use serde::Deserializer;
 use serde::Serialize;
 use serde::ser::SerializeTuple;
-use serde_tuple::Deserialize_tuple;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
 
+use crate::deserialize_and_decode;
 use crate::impl_http_method;
 use crate::rpc_config::RpcSendTransactionConfig;
 use crate::rpc_config::serialize_and_encode;
 use crate::solana_transaction_status::UiTransactionEncoding;
 
-#[derive(Debug, PartialEq, Eq, Deserialize_tuple)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct SendTransactionRequest {
 	pub transaction: VersionedTransaction,
 	pub config: Option<RpcSendTransactionConfig>,
@@ -43,6 +44,30 @@ impl Serialize for SendTransactionRequest {
 		};
 
 		tuple.end()
+	}
+}
+
+impl<'de> Deserialize<'de> for SendTransactionRequest {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		#[derive(Deserialize)]
+		#[serde(rename = "SendTransactionRequest")]
+		struct Inner(String, Option<RpcSendTransactionConfig>);
+
+		let inner = Inner::deserialize(deserializer)?;
+		let encoding = match inner.1 {
+			Some(ref config) => config.encoding.unwrap_or(UiTransactionEncoding::Base64),
+			None => UiTransactionEncoding::Base64,
+		};
+		let transaction =
+			deserialize_and_decode::<VersionedTransaction>(&inner.0, encoding).unwrap();
+
+		Ok(SendTransactionRequest {
+			transaction,
+			config: inner.1,
+		})
 	}
 }
 
