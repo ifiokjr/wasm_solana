@@ -303,18 +303,15 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 
 	/// Simulate the transaction without signing.
 	async fn simulate_transaction(&self) -> AnchorClientResult<SimulateTransactionResponse> {
+		let hash = self.rpc().get_latest_blockhash().await?;
 		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
 		let payer = self.wallet().pubkey();
 		let mut instructions = self.instructions();
 		instructions.insert(0, compute_limit_instruction);
 
-		let transaction = VersionedMessage::V0(v0::Message::try_compile(
-			&payer,
-			&instructions,
-			&[],
-			Hash::default(),
-		)?)
-		.into_versioned_transaction();
+		let transaction =
+			VersionedMessage::V0(v0::Message::try_compile(&payer, &instructions, &[], hash)?)
+				.into_versioned_transaction();
 		let result = self.rpc().simulate_transaction(&transaction).await;
 
 		Ok(result?)
