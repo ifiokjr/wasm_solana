@@ -14,6 +14,7 @@ use wasm_client_solana::ClientResult;
 use wasm_client_solana::Context;
 use wasm_client_solana::GetAccountInfoRequest;
 use wasm_client_solana::GetAccountInfoResponse;
+use wasm_client_solana::GetLatestBlockhashResponse;
 use wasm_client_solana::LOCALNET;
 use wasm_client_solana::RequestAirdropRequest;
 use wasm_client_solana::RequestAirdropResponse;
@@ -23,12 +24,27 @@ use wasm_client_solana::SendTransactionResponse;
 use wasm_client_solana::SimulateTransactionRequest;
 use wasm_client_solana::SimulateTransactionResponse;
 use wasm_client_solana::SimulateTransactionResponseValue;
+use wasm_client_solana::rpc_response::RpcBlockhash;
 use wasm_client_solana::solana_account_decoder::UiAccount;
 
 use crate::ProgramTestContextExtension;
 
 #[derive(Clone, Deref, DerefMut)]
-pub struct TestRpcProvider(Arc<Mutex<ProgramTestContext>>);
+pub struct TestRpcProvider(pub Arc<Mutex<ProgramTestContext>>);
+
+impl TestRpcProvider {
+	pub fn new(ctx: ProgramTestContext) -> Self {
+		ctx.into()
+	}
+
+	pub fn inner(&self) -> Arc<Mutex<ProgramTestContext>> {
+		self.0.clone()
+	}
+
+	pub fn arc(&self) -> Arc<Self> {
+		Arc::new(self.clone())
+	}
+}
 
 impl From<ProgramTestContext> for TestRpcProvider {
 	fn from(value: ProgramTestContext) -> Self {
@@ -71,6 +87,7 @@ impl RpcProvider for TestRpcProvider {
 						.first()
 						.copied()
 						.unwrap_or(Signature::default());
+					log::info!("transaction: {:#?}", request.transaction);
 					banks.send_transaction(request.transaction).await.unwrap();
 					let result: SendTransactionResponse = SendTransactionResponse(signature);
 					let response = ClientResponse {
@@ -82,8 +99,10 @@ impl RpcProvider for TestRpcProvider {
 					serde_json::to_value(response).unwrap()
 				}
 				"simulateTransaction" => {
+					log::info!("this is the request: {request:#?}");
 					let request: SimulateTransactionRequest =
 						serde_json::from_value(request).unwrap();
+					log::info!("transaction: {:#?}", request.transaction);
 					let simulation = banks
 						.simulate_transaction(request.transaction)
 						.await
@@ -126,6 +145,27 @@ impl RpcProvider for TestRpcProvider {
 							slot: client.get_slot().await.unwrap(),
 						},
 						value: account.map(|account| UiAccount::encode(&request.pubkey, &account, wasm_client_solana::solana_account_decoder::UiAccountEncoding::Base64, None, None)),
+					};
+					let response = ClientResponse {
+						jsonrpc: "2.0".into(),
+						id: 0,
+						result,
+					};
+
+					serde_json::to_value(response).unwrap()
+				}
+
+				"getLatestBlockhash" => {
+					let blockhash = banks.get_latest_blockhash().await.unwrap();
+					let last_valid_block_height = banks.get_root_block_height().await.unwrap();
+					let result = GetLatestBlockhashResponse {
+						context: Context {
+							slot: client.get_slot().await.unwrap(),
+						},
+						value: RpcBlockhash {
+							blockhash,
+							last_valid_block_height,
+						},
 					};
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
