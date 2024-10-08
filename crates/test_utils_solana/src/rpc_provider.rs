@@ -7,6 +7,7 @@ use futures::lock::Mutex;
 use send_wrapper::SendWrapper;
 use serde_json::Value;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::signature::Signature;
 use wasm_client_solana::ClientError;
 use wasm_client_solana::ClientResponse;
@@ -24,6 +25,7 @@ use wasm_client_solana::SendTransactionResponse;
 use wasm_client_solana::SimulateTransactionRequest;
 use wasm_client_solana::SimulateTransactionResponse;
 use wasm_client_solana::SimulateTransactionResponseValue;
+use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::rpc_response::RpcBlockhash;
 use wasm_client_solana::solana_account_decoder::UiAccount;
 
@@ -33,16 +35,24 @@ use crate::ProgramTestContextExtension;
 pub struct TestRpcProvider(pub Arc<Mutex<ProgramTestContext>>);
 
 impl TestRpcProvider {
+	/// Create a new [`TestRpcProvider`] from the [`ProgramTestContext`].
 	pub fn new(ctx: ProgramTestContext) -> Self {
 		ctx.into()
 	}
 
+	/// Get the wrapped inner [`ProgramTestContext`].
 	pub fn inner(&self) -> Arc<Mutex<ProgramTestContext>> {
 		self.0.clone()
 	}
 
+	/// Wrap the current `RpcProvider` in an `Arc` struct.
 	pub fn arc(&self) -> Arc<Self> {
 		Arc::new(self.clone())
+	}
+
+	/// Create a new instance of the [`SolanaRpcClient`].
+	pub fn to_rpc_client(&self) -> SolanaRpcClient {
+		SolanaRpcClient::new_with_provider(self.arc(), CommitmentConfig::finalized())
 	}
 }
 
