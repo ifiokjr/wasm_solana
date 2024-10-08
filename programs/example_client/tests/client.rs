@@ -3,7 +3,6 @@ use assert2::check;
 use example_client::ExampleProgramClient;
 use example_client::IntoExampleProgramClient;
 use solana_sdk::account::Account;
-use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -13,13 +12,13 @@ use test_utils_solana::TestRpcProvider;
 use test_utils_solana::anchor_processor;
 use test_utils_solana::prelude::*;
 use wallet_standard_wallets::MemoryWallet;
-use wasm_client_solana::SolanaRpcClient;
 
 #[test_log::test(tokio::test)]
 async fn initialize() -> Result<()> {
 	let keypair = get_wallet_keypair();
 	let pubkey = keypair.pubkey();
-	let (_, rpc) = create_program_test().await;
+	let provider = create_program_test().await;
+	let rpc = provider.to_rpc_client();
 	let mut wallet = MemoryWallet::new(rpc.clone(), &[keypair]);
 
 	wallet.connect().await?;
@@ -50,7 +49,8 @@ async fn composition() -> Result<()> {
 	let signer_keypair = Keypair::new();
 	let signer = signer_keypair.pubkey();
 	let keypair = get_wallet_keypair();
-	let (_, rpc) = create_program_test().await;
+	let provider = create_program_test().await;
+	let rpc = provider.to_rpc_client();
 	let mut wallet = MemoryWallet::new(rpc.clone(), &[keypair]);
 
 	wallet.connect().await?;
@@ -81,7 +81,7 @@ async fn composition() -> Result<()> {
 	Ok(())
 }
 
-async fn create_program_test() -> (TestRpcProvider, SolanaRpcClient) {
+async fn create_program_test() -> TestRpcProvider {
 	let pubkey = get_wallet_keypair().pubkey();
 	let mut program_test = ProgramTest::new(
 		"example_program",
@@ -95,11 +95,8 @@ async fn create_program_test() -> (TestRpcProvider, SolanaRpcClient) {
 	});
 
 	let ctx = program_test.start_with_context().await;
-	let test_rpc_provider = TestRpcProvider::new(ctx);
-	let rpc =
-		SolanaRpcClient::new_with_provider(test_rpc_provider.arc(), CommitmentConfig::finalized());
 
-	(test_rpc_provider, rpc)
+	TestRpcProvider::new(ctx)
 }
 
 pub fn get_wallet_keypair() -> Keypair {
