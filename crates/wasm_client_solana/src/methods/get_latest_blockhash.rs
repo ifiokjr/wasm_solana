@@ -1,4 +1,6 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::skip_serializing_none;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -8,7 +10,7 @@ use crate::impl_http_method;
 use crate::rpc_response::RpcBlockhash;
 
 #[skip_serializing_none]
-#[derive(Debug, Default, Serialize_tuple)]
+#[derive(Debug, Default, Serialize_tuple, Deserialize_tuple)]
 pub struct GetLatestBlockhashRequest {
 	pub config: Option<CommitmentConfig>,
 }
@@ -27,7 +29,7 @@ impl GetLatestBlockhashRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetLatestBlockhashResponse {
 	pub context: Context,
 	pub value: RpcBlockhash,
