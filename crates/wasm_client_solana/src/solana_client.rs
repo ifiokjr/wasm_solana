@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use futures_timer::Delay;
@@ -16,11 +17,13 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
 
+use crate::ClientError;
 use crate::ClientResponse;
 use crate::ClientResult;
 use crate::HttpProvider;
 use crate::MAX_RETRIES;
 use crate::RpcError;
+use crate::RpcProvider;
 use crate::SLEEP_MS;
 use crate::Subscription;
 use crate::WebSocketProvider;
@@ -123,10 +126,11 @@ use crate::solana_transaction_status::UiTransactionEncoding;
 /// return [`ClientResponse`].
 ///
 /// Requests may timeout, in which case they return a [`ClientError`].
-#[derive(Debug, Clone)]
+#[derive(derive_more::Debug, Clone)]
 pub struct SolanaRpcClient {
 	commitment_config: CommitmentConfig,
-	http: HttpProvider,
+	#[debug(skip)]
+	provider: Arc<dyn RpcProvider + Send + Sync + 'static>,
 	ws: WebSocketProvider,
 }
 
@@ -154,7 +158,7 @@ impl SolanaRpcClient {
 	/// [cl]: https://solana.com/docs/rpc#configuring-state-commitment
 	pub fn new(endpoint: &str) -> Self {
 		Self {
-			http: HttpProvider::new(endpoint),
+			provider: Arc::new(HttpProvider::new(endpoint)),
 			commitment_config: CommitmentConfig::confirmed(),
 			ws: WebSocketProvider::new(endpoint),
 		}
@@ -173,7 +177,7 @@ impl SolanaRpcClient {
 		println!("endpoint: {endpoint}");
 
 		Self {
-			http: HttpProvider::new(endpoint),
+			provider: Arc::new(HttpProvider::new(endpoint)),
 			commitment_config,
 			ws: WebSocketProvider::new(endpoint),
 		}
@@ -185,15 +189,15 @@ impl SolanaRpcClient {
 		commitment_config: CommitmentConfig,
 	) -> Self {
 		Self {
-			http: HttpProvider::new(http_endpoint),
+			provider: Arc::new(HttpProvider::new(http_endpoint)),
 			commitment_config,
 			ws: WebSocketProvider::new(ws_endpoint),
 		}
 	}
 
 	/// Get the URL.
-	pub fn url(&self) -> &str {
-		self.http.url()
+	pub fn url(&self) -> String {
+		self.provider.url()
 	}
 
 	pub fn commitment(&self) -> CommitmentLevel {
@@ -205,7 +209,23 @@ impl SolanaRpcClient {
 	}
 
 	async fn send<T: HttpMethod, R: DeserializeOwned>(&self, request: T) -> ClientResult<R> {
-		self.http.send::<T, R>(&request).await
+		let result = self
+			.provider
+			.send(
+				T::NAME,
+				serde_json::to_value(request)
+					.map_err(|error| ClientError::Other(error.to_string()))?,
+			)
+			.await?;
+
+		if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
+			Ok(response)
+		} else {
+			match serde_json::from_value::<RpcError>(result) {
+				Ok(error) => Err(error.into()),
+				Err(error) => Err(ClientError::Other(error.to_string())),
+			}
+		}
 	}
 
 	pub async fn get_account_with_config(

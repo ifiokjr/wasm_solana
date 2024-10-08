@@ -2292,8 +2292,6 @@ dependencies = [
  "http 1.1.0",
  "js-sys",
  "pin-project",
- "serde",
- "serde_json",
  "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -2319,8 +2317,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b5555354113b18c547c1d3a98fbf7fb32a9ff4f6fa112ce823a21641a0ba3aa"
 dependencies = [
  "js-sys",
- "serde",
- "serde_json",
  "wasm-bindgen",
  "web-sys",
 ]

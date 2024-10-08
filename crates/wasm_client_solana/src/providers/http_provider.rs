@@ -1,4 +1,4 @@
-use serde::de::DeserializeOwned;
+use async_trait::async_trait;
 use serde_json::Value;
 #[cfg(feature = "ssr")]
 pub use ssr_http_provider::HttpProvider;
@@ -8,9 +8,16 @@ pub use wasm_http_provider::HttpProvider;
 use crate::ClientRequest;
 use crate::ClientResult;
 use crate::DEFAULT_ERROR_CODE;
-use crate::HttpMethod;
 use crate::RpcError;
 use crate::RpcErrorDetails;
+
+#[async_trait]
+pub trait RpcProvider {
+	/// Send the request.
+	async fn send(&self, method: &'static str, request: Value) -> ClientResult<Value>;
+	/// Get the URL represented by this sender.
+	fn url(&self) -> String;
+}
 
 #[cfg(feature = "ssr")]
 mod ssr_http_provider {
@@ -28,30 +35,15 @@ mod ssr_http_provider {
 		url: String,
 	}
 
-	impl HttpProvider {
-		pub fn new(url: impl Into<String>) -> Self {
-			let client = Client::new();
-			let url = url.into();
-			let mut headers = HeaderMap::new();
-			headers.append(CONTENT_TYPE, "application/json".parse().unwrap());
-
-			Self {
-				client,
-				headers,
-				url,
-			}
+	#[async_trait]
+	impl RpcProvider for HttpProvider {
+		fn url(&self) -> String {
+			self.url.clone()
 		}
 
-		pub fn url(&self) -> &str {
-			&self.url
-		}
-
-		pub async fn send<T: HttpMethod, R: DeserializeOwned>(
-			&self,
-			request: &T,
-		) -> ClientResult<R> {
+		async fn send(&self, method: &'static str, request: Value) -> ClientResult<Value> {
 			let client_request = ClientRequest::builder()
-				.method(T::NAME)
+				.method(method)
 				.id(1)
 				.params(request)
 				.build();
@@ -65,13 +57,30 @@ mod ssr_http_provider {
 				.json()
 				.await?;
 
-			if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
-				Ok(response)
-			} else {
-				match serde_json::from_value::<RpcError>(result) {
-					Ok(error) => Err(error.into()),
-					Err(error) => Err(ClientError::Other(error.to_string())),
-				}
+			Ok(result)
+
+			// if let Ok(response) = serde_json::from_value::<R>(result.clone())
+			// { 	Ok(response)
+			// } else {
+			// 	match serde_json::from_value::<RpcError>(result) {
+			// 		Ok(error) => Err(error.into()),
+			// 		Err(error) => Err(ClientError::Other(error.to_string())),
+			// 	}
+			// }
+		}
+	}
+
+	impl HttpProvider {
+		pub fn new(url: impl Into<String>) -> Self {
+			let client = Client::new();
+			let url = url.into();
+			let mut headers = HeaderMap::new();
+			headers.append(CONTENT_TYPE, "application/json".parse().unwrap());
+
+			Self {
+				client,
+				headers,
+				url,
 			}
 		}
 	}
@@ -98,30 +107,47 @@ mod ssr_http_provider {
 
 #[cfg(not(feature = "ssr"))]
 mod wasm_http_provider {
+	#![allow(unsafe_code)]
+
 	use std::pin::Pin;
 	use std::task::Context;
 	use std::task::Poll;
 
 	use futures::Future;
-	use gloo_net::http::Request;
-	use gloo_net::http::Response;
 	use pin_project::pin_project;
 	use pin_project::pinned_drop;
+	use send_wrapper::SendWrapper;
 	use wasm_bindgen::prelude::*;
+	use wasm_bindgen_futures::JsFuture;
 	use web_sys::AbortController;
+	use web_sys::Headers;
+	use web_sys::Request;
+	use web_sys::RequestInit;
+	use web_sys::Response;
 
 	use super::*;
 	use crate::ClientError;
 
+	#[wasm_bindgen]
+	extern "C" {
+		// Create a separate binding for `fetch` as a global, rather than using the
+		// existing Window/WorkerGlobalScope bindings defined by web_sys, for
+		// greater efficiency.
+		//
+		// https://github.com/rustwasm/wasm-bindgen/discussions/3863
+		#[wasm_bindgen(js_name = "fetch")]
+		fn fetch_with_request(request: &Request) -> js_sys::Promise;
+	}
+
 	#[pin_project(PinnedDrop)]
-	struct WrappedSend<F: Future<Output = Result<Response, gloo_net::Error>>> {
+	struct AbortableRequest<F: Future<Output = Result<JsValue, JsValue>>> {
 		#[pin]
 		fut: F,
 		controller: AbortController,
 		pending: bool,
 	}
 
-	impl<F: Future<Output = Result<Response, gloo_net::Error>>> WrappedSend<F> {
+	impl<F: Future<Output = Result<JsValue, JsValue>>> AbortableRequest<F> {
 		fn new(fut: F, controller: AbortController) -> Self {
 			Self {
 				fut,
@@ -131,8 +157,8 @@ mod wasm_http_provider {
 		}
 	}
 
-	impl<F: Future<Output = Result<Response, gloo_net::Error>>> Future for WrappedSend<F> {
-		type Output = Result<Response, gloo_net::Error>;
+	impl<F: Future<Output = Result<JsValue, JsValue>>> Future for AbortableRequest<F> {
+		type Output = Result<JsValue, JsValue>;
 
 		fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
 			let mut this = self.project();
@@ -149,7 +175,7 @@ mod wasm_http_provider {
 	}
 
 	#[pinned_drop]
-	impl<F: Future<Output = Result<Response, gloo_net::Error>>> PinnedDrop for WrappedSend<F> {
+	impl<F: Future<Output = Result<JsValue, JsValue>>> PinnedDrop for AbortableRequest<F> {
 		fn drop(self: Pin<&mut Self>) {
 			if self.pending {
 				// only abort the fetch if it is still pending.
@@ -161,58 +187,67 @@ mod wasm_http_provider {
 	#[derive(Debug, Clone)]
 	pub struct HttpProvider(String);
 
+	#[async_trait]
+	impl RpcProvider for HttpProvider {
+		fn url(&self) -> String {
+			self.0.clone()
+		}
+
+		async fn send(&self, method: &'static str, request: Value) -> ClientResult<Value> {
+			let client_request = ClientRequest::builder()
+				.method(method)
+				.id(0)
+				.params(request)
+				.build();
+
+			let future = async move {
+				let controller = AbortController::new().unwrap_throw();
+				let signal = controller.signal();
+				let headers = Headers::new()?;
+				let options = RequestInit::new();
+				let json = serde_json::to_string(&client_request).unwrap_throw();
+
+				headers.set("Content-Type", "application/json")?;
+				options.set_signal(Some(&signal));
+				options.set_headers(&headers.into());
+				options.set_body(&json.into());
+				let request = Request::new_with_str_and_init(&self.0, &options)?;
+				let fetch_promise = fetch_with_request(&request);
+				let response_value =
+					AbortableRequest::new(JsFuture::from(fetch_promise), controller).await?;
+				let response = response_value.dyn_into::<Response>()?;
+
+				let json_promise = response.json()?;
+				let json_value = JsFuture::from(json_promise).await?;
+				let value: Value = serde_wasm_bindgen::from_value(json_value)?;
+				Ok::<Value, ClientError>(value)
+			};
+
+			let value = SendWrapper::new(future).await?;
+
+			Ok(value)
+		}
+	}
+
 	impl HttpProvider {
 		pub fn new(url: impl Into<String>) -> Self {
 			Self(url.into())
 		}
+	}
 
-		pub fn url(&self) -> &str {
-			&self.0
-		}
-
-		pub async fn send<T: HttpMethod, R: DeserializeOwned>(
-			&self,
-			request: &T,
-		) -> ClientResult<R> {
-			let controller = AbortController::new().unwrap_throw();
-			let client_request = ClientRequest::builder()
-				.method(T::NAME)
-				.id(0)
-				.params(request)
-				.build();
-			let request = Request::post(&self.0)
-				.abort_signal(Some(&controller.signal()))
-				.json(&client_request)?;
-			let response = WrappedSend::new(request.send(), controller).await?;
-			let result: Value = response.json().await?;
-
-			if let Ok(response) = serde_json::from_value::<R>(result.clone()) {
-				Ok(response)
-			} else {
-				match serde_json::from_value::<RpcError>(result) {
-					Ok(error) => Err(error.into()),
-					Err(error) => Err(ClientError::Other(error.to_string())),
-				}
-			}
+	impl From<serde_wasm_bindgen::Error> for ClientError {
+		fn from(value: serde_wasm_bindgen::Error) -> Self {
+			Self::Other(value.to_string())
 		}
 	}
 
-	impl From<gloo_net::Error> for RpcError {
-		fn from(error: gloo_net::Error) -> Self {
-			let message = error.to_string();
-			let code = i32::from(DEFAULT_ERROR_CODE);
-			let error = RpcErrorDetails { code, message };
-
-			RpcError {
-				error,
-				..Default::default()
-			}
-		}
-	}
-
-	impl From<gloo_net::Error> for ClientError {
-		fn from(value: gloo_net::Error) -> Self {
-			Self::Rpc(value.into())
+	impl From<JsValue> for ClientError {
+		fn from(error: JsValue) -> Self {
+			Self::Other(
+				error
+					.as_string()
+					.unwrap_or("An error occurred in the JavaScript.".to_string()),
+			)
 		}
 	}
 }

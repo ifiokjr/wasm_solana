@@ -18,6 +18,7 @@ mod providers;
 pub mod rpc_config;
 pub mod rpc_filter;
 pub mod rpc_response;
+mod rpc_sender;
 pub mod runtime;
 pub mod solana_account_decoder;
 mod solana_client;
@@ -33,6 +34,7 @@ pub mod prelude {
 	pub use futures::TryFutureExt;
 	pub use futures::TryStreamExt;
 
+	pub use crate::RpcProvider;
 	pub use crate::extensions::AsyncVersionedTransactionExtension;
 	pub use crate::extensions::VersionedMessageExtension;
 	pub use crate::extensions::VersionedTransactionExtension;
