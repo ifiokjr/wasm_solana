@@ -184,7 +184,7 @@ pub struct EmptyAnchorRequest<'a, W: WalletAnchor + 'a> {
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
 	#[builder(default)]
-	pub sync_signers: Vec<&'a dyn Signer>,
+	pub signers: Vec<&'a dyn Signer>,
 	#[builder(default)]
 	pub instructions: Vec<Instruction>,
 	#[builder(default)]
@@ -206,7 +206,7 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorReques
 	}
 
 	fn signers(&self) -> Vec<&'a dyn Signer> {
-		self.sync_signers.clone()
+		self.signers.clone()
 	}
 
 	fn instructions(&self) -> Vec<Instruction> {
