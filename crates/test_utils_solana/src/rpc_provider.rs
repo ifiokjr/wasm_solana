@@ -15,6 +15,8 @@ use wasm_client_solana::ClientResult;
 use wasm_client_solana::Context;
 use wasm_client_solana::GetAccountInfoRequest;
 use wasm_client_solana::GetAccountInfoResponse;
+use wasm_client_solana::GetBalanceRequest;
+use wasm_client_solana::GetBalanceResponse;
 use wasm_client_solana::GetLatestBlockhashResponse;
 use wasm_client_solana::GetSignatureStatusesRequest;
 use wasm_client_solana::GetSignatureStatusesResponse;
@@ -86,6 +88,23 @@ impl RpcProvider for TestRpcProvider {
 							slot: client.get_slot().await.unwrap(),
 						},
 						value: account.map(|account| UiAccount::encode(&request.pubkey, &account, wasm_client_solana::solana_account_decoder::UiAccountEncoding::Base64, None, None)),
+					};
+					let response = ClientResponse {
+						jsonrpc: "2.0".into(),
+						id: 0,
+						result,
+					};
+
+					serde_json::to_value(response).unwrap()
+				}
+				"getBalance" => {
+					let request: GetBalanceRequest = serde_json::from_value(request).unwrap();
+					let value = banks.get_balance(request.pubkey).await.unwrap();
+					let result = GetBalanceResponse {
+						context: Context {
+							slot: client.get_slot().await.unwrap(),
+						},
+						value,
 					};
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
