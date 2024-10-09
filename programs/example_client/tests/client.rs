@@ -6,6 +6,7 @@ use solana_sdk::account::Account;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
+use solana_sdk::signature::Signature;
 use test_utils::SECRET_KEY_WALLET;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::TestRpcProvider;
@@ -29,16 +30,17 @@ async fn initialize() -> Result<()> {
 		.build()
 		.into();
 
-	let simulation = program
+	let request = program
 		.initialize()
 		.accounts(example_program::accounts::Initialize { unchecked: pubkey })
-		.build()
-		.simulate_transaction()
-		.await?;
+		.build();
 
+	let simulation = request.simulate_transaction().await?;
 	log::info!("simulation: {simulation:#?}");
-
 	check!(simulation.value.err.is_none());
+
+	let signature = request.sign_and_send_transaction().await?;
+	check!(signature != Signature::default());
 
 	Ok(())
 }
@@ -73,10 +75,11 @@ async fn composition() -> Result<()> {
 		.build();
 
 	let simulation = request.simulate_transaction().await?;
-
+	log::info!("simulation: {simulation:#?}");
 	check!(simulation.value.err.is_none());
 
-	request.sign_transaction().await?;
+	let signature = request.sign_and_send_transaction().await?;
+	check!(signature != Signature::default());
 
 	Ok(())
 }
