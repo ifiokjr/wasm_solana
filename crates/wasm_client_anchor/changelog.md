@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.3.1...wasm_client_anchor@v0.3.2) - 2024-10-09
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- updated the following local packages: wasm_client_solana
+
 ## [0.3.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.3.0...wasm_client_anchor@v0.3.1) - 2024-10-08
 
 ### <!-- 0 -->🎉 Added

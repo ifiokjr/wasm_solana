@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.4...wasm_client_solana@v0.3.5) - 2024-10-09
+
+### <!-- 0 -->🎉 Added
+
+- support deserialize `GetSignatureStatusesRequest`
+
 ## [0.3.4](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.3...wasm_client_solana@v0.3.4) - 2024-10-08
 
 ### <!-- 0 -->🎉 Added
