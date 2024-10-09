@@ -72,6 +72,7 @@ use crate::solana_account_decoder::parse_token::UiTokenAccount;
 use crate::solana_account_decoder::parse_token::UiTokenAmount;
 use crate::solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use crate::solana_transaction_status::TransactionConfirmationStatus;
+use crate::solana_transaction_status::TransactionStatus;
 use crate::solana_transaction_status::UiConfirmedBlock;
 use crate::solana_transaction_status::UiTransactionEncoding;
 
@@ -311,7 +312,7 @@ impl SolanaRpcClient {
 	pub async fn get_signature_statuses(
 		&self,
 		signatures: &[Signature],
-	) -> ClientResult<Vec<Option<SignatureStatusesValue>>> {
+	) -> ClientResult<Vec<Option<TransactionStatus>>> {
 		let request = GetSignatureStatusesRequest::new(signatures.into());
 		let response: ClientResponse<GetSignatureStatusesResponse> = self.send(request).await?;
 

@@ -1,23 +1,62 @@
 use serde::Deserialize;
-use serde_tuple::Serialize_tuple;
+use serde::Deserializer;
+use serde::Serialize;
+use serde::Serializer;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
 use solana_sdk::signature::Signature;
-use solana_sdk::transaction::TransactionError;
 
 use super::Context;
 use crate::impl_http_method;
 use crate::rpc_config::RpcSignatureStatusConfig;
-use crate::solana_transaction_status::TransactionConfirmationStatus;
+use crate::solana_transaction_status::TransactionStatus;
 
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Debug, Serialize_tuple)]
+#[derive(Clone, Debug)]
 pub struct GetSignatureStatusesRequest {
-	#[serde_as(as = "Vec<DisplayFromStr>")]
 	pub signatures: Vec<Signature>,
 	pub config: Option<RpcSignatureStatusConfig>,
+}
+
+impl Serialize for GetSignatureStatusesRequest {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		#[serde_as]
+		#[skip_serializing_none]
+		#[derive(Serialize)]
+		#[serde(rename = "GetSignatureStatusesRequest")]
+		struct Inner<'a>(
+			#[serde_as(as = "Vec<DisplayFromStr>")] &'a Vec<Signature>,
+			&'a Option<RpcSignatureStatusConfig>,
+		);
+
+		let inner = Inner(&self.signatures, &self.config);
+		Serialize::serialize(&inner, serde_tuple::Serializer(serializer))
+	}
+}
+
+impl<'de> Deserialize<'de> for GetSignatureStatusesRequest {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		#[serde_as]
+		#[skip_serializing_none]
+		#[derive(Deserialize)]
+		#[serde(rename = "GetSignatureStatusesRequest")]
+		struct Inner(
+			#[serde_as(as = "Vec<DisplayFromStr>")] Vec<Signature>,
+			Option<RpcSignatureStatusConfig>,
+		);
+
+		let inner: Inner = Deserialize::deserialize(serde_tuple::Deserializer(deserializer))?;
+		Ok(GetSignatureStatusesRequest {
+			signatures: inner.0,
+			config: inner.1,
+		})
+	}
 }
 
 impl_http_method!(GetSignatureStatusesRequest, "getSignatureStatuses");
@@ -38,19 +77,10 @@ impl GetSignatureStatusesRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SignatureStatusesValue {
-	pub slot: u64,
-	pub confirmations: Option<u64>,
-	pub err: Option<TransactionError>,
-	pub confirmation_status: Option<TransactionConfirmationStatus>,
-}
-
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetSignatureStatusesResponse {
 	pub context: Context,
-	pub value: Vec<Option<SignatureStatusesValue>>,
+	pub value: Vec<Option<TransactionStatus>>,
 }
 
 #[cfg(test)]
@@ -63,6 +93,7 @@ mod tests {
 	use crate::ClientRequest;
 	use crate::ClientResponse;
 	use crate::methods::HttpMethod;
+	use crate::solana_transaction_status::TransactionConfirmationStatus;
 
 	#[test]
 	fn request() {
@@ -104,7 +135,7 @@ mod tests {
 		check!(
 			response.result.value
 				== vec![
-					Some(SignatureStatusesValue {
+					Some(TransactionStatus {
 						slot: 48,
 						err: None,
 						confirmation_status: Some(TransactionConfirmationStatus::Finalized),

@@ -53,6 +53,7 @@ pub mod parse_token;
 pub mod parse_vote;
 pub mod token_balances;
 
+#[derive(Clone, Copy, Serialize, PartialEq, Eq, Hash)]
 pub struct BlockEncodingOptions {
 	pub transaction_details: TransactionDetails,
 	pub show_rewards: bool,
@@ -494,12 +495,12 @@ pub enum TransactionConfirmationStatus {
 	Finalized,
 }
 
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionStatus {
 	pub slot: Slot,
-	pub confirmations: Option<usize>,  // None = rooted
-	pub status: TransactionResult<()>, // legacy field
+	pub confirmations: Option<u64>, // None = rooted
 	pub err: Option<TransactionError>,
 	pub confirmation_status: Option<TransactionConfirmationStatus>,
 }
@@ -1396,7 +1397,6 @@ mod test {
 		let status = TransactionStatus {
 			slot: 0,
 			confirmations: None,
-			status: Ok(()),
 			err: None,
 			confirmation_status: Some(TransactionConfirmationStatus::Finalized),
 		};
@@ -1408,7 +1408,6 @@ mod test {
 		let status = TransactionStatus {
 			slot: 0,
 			confirmations: Some(10),
-			status: Ok(()),
 			err: None,
 			confirmation_status: Some(TransactionConfirmationStatus::Confirmed),
 		};
@@ -1420,7 +1419,6 @@ mod test {
 		let status = TransactionStatus {
 			slot: 0,
 			confirmations: Some(1),
-			status: Ok(()),
 			err: None,
 			confirmation_status: Some(TransactionConfirmationStatus::Processed),
 		};
@@ -1432,7 +1430,6 @@ mod test {
 		let status = TransactionStatus {
 			slot: 0,
 			confirmations: Some(0),
-			status: Ok(()),
 			err: None,
 			confirmation_status: None,
 		};
@@ -1445,7 +1442,6 @@ mod test {
 		let status = TransactionStatus {
 			slot: 0,
 			confirmations: Some(1),
-			status: Ok(()),
 			err: None,
 			confirmation_status: None,
 		};
@@ -1454,7 +1450,6 @@ mod test {
 		let status = TransactionStatus {
 			slot: 0,
 			confirmations: Some(2),
-			status: Ok(()),
 			err: None,
 			confirmation_status: None,
 		};
@@ -1463,7 +1458,6 @@ mod test {
 		let status = TransactionStatus {
 			slot: 0,
 			confirmations: None,
-			status: Ok(()),
 			err: None,
 			confirmation_status: None,
 		};
