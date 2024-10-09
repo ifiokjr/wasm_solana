@@ -7775,7 +7775,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils_solana"
-version = "0.4.6"
+version = "0.4.7"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -8556,7 +8556,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard_wallets"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "assert2",
@@ -8694,7 +8694,7 @@ dependencies = [
 
 [[package]]
 name = "wasm_client_anchor"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "anchor-lang",
  "anyhow",
@@ -8723,7 +8723,7 @@ dependencies = [
 
 [[package]]
 name = "wasm_client_solana"
-version = "0.3.4"
+version = "0.3.5"
 dependencies = [
  "anyhow",
  "assert2",
