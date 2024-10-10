@@ -36,6 +36,7 @@ pub mod prelude {
 	pub use wallet_standard::AsyncSigner;
 	pub use wasm_client_solana::prelude::*;
 
+	pub use crate::AnchorProgramClient;
 	pub use crate::AnchorRequestMethods;
 	pub use crate::AnchorRpcClient;
 	pub use crate::WalletAnchor;

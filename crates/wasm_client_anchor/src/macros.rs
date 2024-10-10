@@ -316,36 +316,11 @@ macro_rules! create_program_client {
 				}
 			}
 
-			impl<W: $crate::WalletAnchor> $program_client_name<W> {
-				/// Start the `AnchorProgram` builder with the `program_id` already set to
-				/// the default.
-				pub fn builder() -> $crate::AnchorProgramPartialBuilder<W> {
+			impl<W: $crate::WalletAnchor> $crate::AnchorProgramClient<W> for $program_client_name<W> {
+				fn builder() -> $crate::AnchorProgramPartialBuilder<W> {
 					$crate::AnchorProgram::builder().program_id($id)
 				}
-
-				/// Start the `AnchorProgram` builder with a custom `program_id`.
-				pub fn builder_with_program(
-					program_id: &$crate::__private::solana_sdk::pubkey::Pubkey,
-				) -> $crate::AnchorProgramPartialBuilder<W> {
-					$crate::AnchorProgram::builder().program_id(*program_id)
-				}
-
-				/// Get the program
-				pub fn program(&self) -> &$crate::AnchorProgram<W> {
-					self
-				}
-
-				/// Request an airdrop to the payer account
-				pub async fn request_airdrop(
-					&self,
-					pubkey: &$crate::__private::solana_sdk::pubkey::Pubkey,
-					lamports: u64,
-				) -> $crate::AnchorClientResult<$crate::__private::solana_sdk::signature::Signature> {
-					let signature = self.rpc().request_airdrop(pubkey, lamports).await?;
-					Ok(signature)
-				}
 			}
-
 			/// This struct is used to compose different request methods together.
 			pub struct [<$program_client_name Composer>]<'a, W: $crate::WalletAnchor + 'a> {
 				/// This is the anchor client for interacting with this program.
