@@ -38,4 +38,5 @@ pub mod prelude {
 	pub use crate::extensions::AsyncVersionedTransactionExtension;
 	pub use crate::extensions::VersionedMessageExtension;
 	pub use crate::extensions::VersionedTransactionExtension;
+	pub use crate::solana_account_decoder::ToUiAccount;
 }

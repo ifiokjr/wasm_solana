@@ -191,6 +191,27 @@ impl UiAccount {
 	}
 }
 
+/// A trait for converting to a [`UiAccount`] more easily.
+pub trait ToUiAccount: ReadableAccount {
+	fn to_ui_account_with_options(
+		&self,
+		pubkey: &Pubkey,
+		encoding: UiAccountEncoding,
+		additional_data: Option<AccountAdditionalDataV2>,
+		data_slice_config: Option<UiDataSliceConfig>,
+	) -> UiAccount {
+		UiAccount::encode(pubkey, self, encoding, additional_data, data_slice_config)
+	}
+
+	/// Convert to a [`UiAccount`] without setting any configuration options.
+	/// Uses [`UiAccountEncoding::Base64`] by default.
+	fn to_ui_account(&self, pubkey: &Pubkey) -> UiAccount {
+		self.to_ui_account_with_options(pubkey, UiAccountEncoding::Base64, None, None)
+	}
+}
+
+impl<T: ReadableAccount> ToUiAccount for T {}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiFeeCalculator {
