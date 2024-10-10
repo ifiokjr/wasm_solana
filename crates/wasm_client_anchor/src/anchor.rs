@@ -1,3 +1,5 @@
+use std::future::Future;
+
 use anchor_lang::AccountDeserialize;
 use anchor_lang::Event;
 use anchor_lang::Key;
@@ -90,14 +92,37 @@ impl<W: WalletAnchor> AnchorProgram<W> {
 		&self.rpc
 	}
 
+	/// Request an airdrop to the payer account. This can be useful during
+	/// testing.
+	pub async fn airdrop(&self, lamports: u64) -> AnchorClientResult<Signature> {
+		let signature = self.rpc().request_airdrop(&self.payer(), lamports).await?;
+		Ok(signature)
+	}
+
 	/// Get the data stared by an anchor account.
 	pub async fn account<T: AccountDeserialize>(&self, address: &Pubkey) -> AnchorClientResult<T> {
-		get_anchor_account(&self.rpc, address).await
+		self.rpc().get_anchor_account(address).await
 	}
 
 	/// Get an anchor event subscription.
 	pub async fn subscribe<T: Event>(&self) -> AnchorClientResult<EventSubscription<T>> {
-		get_anchor_subscription(self.rpc(), &self.program_id).await
+		self.rpc().get_anchor_subscription(&self.program_id).await
+	}
+}
+
+pub trait AnchorProgramClient<W: WalletAnchor>:
+	core::ops::Deref<Target = AnchorProgram<W>>
+{
+	/// Start the `AnchorProgram` builder with the `program_id` already set to
+	/// the default.
+	fn builder() -> AnchorProgramPartialBuilder<W>;
+	/// Start the `AnchorProgram` builder with a custom `program_id`.
+	fn builder_with_program(program_id: &Pubkey) -> AnchorProgramPartialBuilder<W> {
+		AnchorProgram::builder().program_id(*program_id)
+	}
+	/// Get a ref to the anchor program
+	fn program(&self) -> &AnchorProgram<W> {
+		self
 	}
 }
 
@@ -301,6 +326,25 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 		Ok(result?)
 	}
 
+	/// Sign and simulate the transaction on the provided rpc endpoint with a
+	/// custom configuration.
+	#[deprecated(
+		since = "0.3.0",
+		note = "Use [`AnchorRequestMethods::simulate_transaction_with_config`]"
+	)]
+	async fn sign_and_simulate_transaction_with_config(
+		&self,
+		config: RpcSimulateTransactionConfig,
+	) -> AnchorClientResult<SimulateTransactionResponse> {
+		let transaction = self.sign_transaction().await?;
+		let result = self
+			.rpc()
+			.simulate_transaction_with_config(&transaction, config)
+			.await?;
+
+		Ok(result)
+	}
+
 	/// Simulate the transaction without signing.
 	async fn simulate_transaction(&self) -> AnchorClientResult<SimulateTransactionResponse> {
 		let hash = self.rpc().get_latest_blockhash().await?;
@@ -317,19 +361,26 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 		Ok(result?)
 	}
 
-	/// Sign and simulate the transaction on the provided rpc endpoint with a
-	/// custom configuration.
-	async fn sign_and_simulate_transaction_with_config(
+	/// Simulate the transaction.
+	async fn simulate_transaction_with_config(
 		&self,
 		config: RpcSimulateTransactionConfig,
 	) -> AnchorClientResult<SimulateTransactionResponse> {
-		let transaction = self.sign_transaction().await?;
+		let hash = self.rpc().get_latest_blockhash().await?;
+		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
+		let payer = self.wallet().pubkey();
+		let mut instructions = self.instructions();
+		instructions.insert(0, compute_limit_instruction);
+
+		let transaction =
+			VersionedMessage::V0(v0::Message::try_compile(&payer, &instructions, &[], hash)?)
+				.into_versioned_transaction();
 		let result = self
 			.rpc()
 			.simulate_transaction_with_config(&transaction, config)
-			.await?;
+			.await;
 
-		Ok(result)
+		Ok(result?)
 	}
 }
 
@@ -381,36 +432,53 @@ impl From<anchor_lang::error::Error> for AnchorClientError {
 
 pub type AnchorClientResult<T> = Result<T, AnchorClientError>;
 
-/// Get an anchor account from the Solana blockchain.
-pub async fn get_anchor_account<T: AccountDeserialize>(
-	rpc: &SolanaRpcClient,
-	address: &Pubkey,
-) -> AnchorClientResult<T> {
-	let account = rpc
-		.get_account_with_commitment(address, CommitmentConfig::processed())
-		.await?
-		.ok_or(AnchorClientError::AccountNotFound(*address))?;
-	let mut data: &[u8] = &account.data;
-	let result = T::try_deserialize(&mut data)?;
-
-	Ok(result)
+pub trait AnchorRpcClient {
+	/// Get the account data for an anchor account on chain.
+	fn get_anchor_account<T: AccountDeserialize>(
+		&self,
+		address: &Pubkey,
+	) -> impl Future<Output = AnchorClientResult<T>>;
+	/// Get an anchor events subscription.
+	fn get_anchor_subscription<T: Event>(
+		&self,
+		program_id: &Pubkey,
+	) -> impl Future<Output = AnchorClientResult<EventSubscription<T>>>;
 }
 
-/// Get an anchor events subscription.
-pub async fn get_anchor_subscription<T: Event>(
-	rpc: &SolanaRpcClient,
-	program_id: &Pubkey,
-) -> AnchorClientResult<EventSubscription<T>> {
-	let request = LogsSubscribeRequest::builder()
-		.filter(RpcTransactionLogsFilter::Mentions(vec![
-			program_id.to_string(),
-		]))
-		.build();
-	let subscription = rpc.logs_subscribe(request).await?;
-	let event_subscription = EventSubscription::builder()
-		.subscription(subscription)
-		.program_id(*program_id)
-		.build();
+impl AnchorRpcClient for SolanaRpcClient {
+	fn get_anchor_account<T: AccountDeserialize>(
+		&self,
+		address: &Pubkey,
+	) -> impl Future<Output = AnchorClientResult<T>> {
+		async move {
+			let account = self
+				.get_account_with_commitment(address, CommitmentConfig::processed())
+				.await?
+				.ok_or(AnchorClientError::AccountNotFound(*address))?;
+			let mut data: &[u8] = &account.data;
+			let result = T::try_deserialize(&mut data)?;
 
-	Ok(event_subscription)
+			Ok(result)
+		}
+	}
+
+	fn get_anchor_subscription<T: Event>(
+		&self,
+		program_id: &Pubkey,
+	) -> impl Future<Output = AnchorClientResult<EventSubscription<T>>> {
+		async move {
+			let request = LogsSubscribeRequest::builder()
+				.filter(RpcTransactionLogsFilter::Mentions(vec![
+					program_id.to_string(),
+				]))
+				.build();
+			let subscription = self.logs_subscribe(request).await?;
+			let event_subscription = EventSubscription::builder()
+				.subscription(subscription)
+				.program_id(*program_id)
+				.build();
+
+			Ok(event_subscription)
+		}
+	}
 }

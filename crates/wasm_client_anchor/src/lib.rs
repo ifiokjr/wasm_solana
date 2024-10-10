@@ -37,6 +37,7 @@ pub mod prelude {
 	pub use wasm_client_solana::prelude::*;
 
 	pub use crate::AnchorRequestMethods;
+	pub use crate::AnchorRpcClient;
 	pub use crate::WalletAnchor;
 }
 
