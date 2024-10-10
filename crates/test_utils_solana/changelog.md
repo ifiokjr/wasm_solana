@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.8](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.7...test_utils_solana@v0.4.8) - 2024-10-10
+
+### <!-- 0 -->🎉 Added
+
+- support `getBalance` rpc method in `TestRpcProvider`
+
 ## [0.4.7](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.4.6...test_utils_solana@v0.4.7) - 2024-10-09
 
 ### <!-- 0 -->🎉 Added
