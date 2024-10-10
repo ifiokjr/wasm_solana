@@ -9,28 +9,28 @@ macro_rules! base_create_request_builder {
 						&mut self,
 						mut signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>
 					) {
-						self._signers.append(&mut signers);
+						self.all_signers.append(&mut signers);
 			    }
 					/// Add signers to the request method. This can be added multiple times in the builder.
 			    pub fn signer(
 						&mut self,
 						mut signer: &'a impl $crate::__private::solana_sdk::signer::Signer
 					) {
-						self._signers.push(signer);
+						self.all_signers.push(signer);
 			    }
 			    /// Add instructions to the request method. This can be added multiple times in the builder.
 			    pub fn instructions(
 						&mut self,
 						mut instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>
 					) {
-						self._instructions.append(&mut instructions);
+						self.pre_instructions.append(&mut instructions);
 			    }
 			    /// Add an instruction to the request method. This can be added multiple times in the builder.
 			    pub fn instruction(
 						&mut self,
 						instruction: $crate::__private::solana_sdk::instruction::Instruction
 					) {
-						self._instructions.push(instruction);
+						self.pre_instructions.push(instruction);
 			    }
 			))]
 			pub struct [<$name_prefix Request>]<
@@ -51,13 +51,13 @@ macro_rules! base_create_request_builder {
 				pub remaining_accounts: Vec<$crate::__private::solana_sdk::instruction::AccountMeta>,
 				/// Signers that can sign the data synchronously
 				#[builder(via_mutators(init = vec![]))]
-				_signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
-				/// Instructions that are run before the anchor instruction.
+				pub all_signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
+				/// Instructions that are run prior to the current anchor program instruction.
 				#[builder(via_mutators(init = vec![]))]
-				_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				pub pre_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
 				#[builder(default)]
-				/// Instructions that are run after the anchor instruction is completed.
-				pub extra_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				/// Instructions that are run after the anchor program instruction.
+				pub post_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
 				/// Options to be passed into the transaction being signed or sent.
 				#[builder(default)]
 				pub options: $crate::__private::wallet_standard::SolanaSignAndSendTransactionOptions,
@@ -80,7 +80,7 @@ macro_rules! base_create_request_builder {
 				}
 
 				fn signers(&self) -> Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer> {
-					self._signers.clone()
+					self.all_signers.clone()
 				}
 
 				fn instructions(&self) -> Vec<$crate::__private::solana_sdk::instruction::Instruction> {
@@ -88,7 +88,7 @@ macro_rules! base_create_request_builder {
 					use $crate::__private::anchor_lang::ToAccountMetas;
 
 					let mut accounts = self.accounts.to_account_metas(None);
-					let mut instructions = self._instructions.clone();
+					let mut instructions = self.pre_instructions.clone();
 
 					accounts.append(&mut self.remaining_accounts.clone());
 
@@ -98,7 +98,7 @@ macro_rules! base_create_request_builder {
 						data: self.args.data(),
 					});
 
-					instructions.append(&mut self.extra_instructions.clone());
+					instructions.append(&mut self.post_instructions.clone());
 
 					instructions
 				}
@@ -111,7 +111,6 @@ macro_rules! base_create_request_builder {
 
 					[<$program_struct Composer>] {
 						program_client: self.program_client,
-						wallet: self.wallet,
 						instructions: self.instructions(),
 						signers: self.signers(),
 					}
@@ -156,7 +155,7 @@ macro_rules! create_request_builder {
 				pub fn [<$name_prefix:snake>](self) -> [<$name_prefix RequestBuilderOptionalArgs>]<'a, W> {
 					[<$name_prefix Request>]::builder()
 						.program_client(self.program_client)
-						.wallet(self.wallet)
+						.wallet(self.program_client.wallet())
 						.args(::$program::instruction::$name_prefix {})
 						.instructions(self.instructions)
 						.signers(self.signers)
@@ -198,7 +197,7 @@ macro_rules! create_request_builder {
 				pub fn [<$name_prefix:snake>](self) -> [<$name_prefix RequestBuilderRequiredArgs>]<'a, W> {
 					[<$name_prefix Request>]::builder()
 						.program_client(self.program_client)
-						.wallet(self.wallet)
+						.wallet(self.program_client.wallet())
 						.instructions(self.instructions)
 						.signers(self.signers)
 				}
@@ -351,10 +350,29 @@ macro_rules! create_program_client {
 			pub struct [<$program_client_name Composer>]<'a, W: $crate::WalletAnchor + 'a> {
 				/// This is the anchor client for interacting with this program.
 				program_client: &'a $program_client_name<W>,
-				/// This is the wallet / payer that will always sign the transaction. It should implement [`wasm_client_anchor::WalletAnchor`] to allow for async signing via wallets.
-				wallet: &'a W,
 				instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
 				signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
+			}
+
+			impl<'a, W: $crate::WalletAnchor + 'a> [<$program_client_name Composer>]<'a, W> {
+				/// Generate a custom anchor request for instruction that you want to
+				/// declare yourself.
+				pub fn request(&self) -> $crate::AnchorRequestBuilderPartial<'_, W> {
+					$crate::AnchorRequest::builder()
+						.rpc(self.program_client.rpc())
+						.program_id(self.program_client.id())
+						.wallet(self.program_client.wallet())
+				}
+
+				/// Sometimes you don't want to interact with the program directly, but just
+				/// need to send a transaction using the wallet.
+				pub fn empty_request(&self) -> $crate::EmptyAnchorRequestBuilderPartial<'_, W> {
+					$crate::EmptyAnchorRequest::builder()
+						.rpc(self.program_client.rpc())
+						.program_id(self.program_client.id())
+						.wallet(self.program_client.wallet())
+				}
+
 			}
 		}
 	};
