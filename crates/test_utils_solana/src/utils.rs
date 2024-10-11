@@ -26,7 +26,6 @@ use solana_sdk::bpf_loader_upgradeable::{self};
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentLevel;
-use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::message::VersionedMessage;
 use solana_sdk::message::v0;
 use solana_sdk::native_token::sol_to_lamports;
@@ -41,9 +40,7 @@ use spl_associated_token_account::get_associated_token_address;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
 use wallet_standard::prelude::*;
-use wasm_client_anchor::AnchorClientError;
 use wasm_client_anchor::AnchorClientResult;
-use wasm_client_anchor::WalletAnchor;
 use wasm_client_anchor::prelude::*;
 
 pub const MAX_COMPUTE_UNITS: u64 = DEFAULT_INSTRUCTION_COMPUTE_UNIT_LIMIT as u64;
@@ -166,107 +163,6 @@ impl BanksClientAsyncExtension for BanksClient {
 
 		Ok(result)
 	}
-}
-
-#[async_trait(?Send)]
-pub trait BanksClientAnchorRequestMethods<'a, W: WalletAnchor + Signer + 'a>:
-	AnchorRequestMethods<'a, W>
-{
-	async fn sign_banks_client_transaction(
-		&self,
-		client: &mut BanksClient,
-	) -> AnchorClientResult<VersionedTransaction> {
-		let hash = client
-			.get_latest_blockhash()
-			.await
-			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
-		let signers = self.signers();
-		let mut transaction = self.message(hash)?.into_versioned_transaction();
-		transaction
-			.try_sign(&signers, Some(hash))?
-			.try_sign(&[self.wallet()], None)?;
-
-		Ok(transaction)
-	}
-
-	/// Sign the transaction and propcess it via the provided banks client.
-	async fn sign_and_process_banks_client_transaction(
-		&self,
-		client: &mut BanksClient,
-	) -> AnchorClientResult<BanksTransactionResultWithMetadata> {
-		let transaction = self.sign_banks_client_transaction(client).await?;
-
-		let metadata = client
-			.process_transaction_with_metadata(transaction)
-			.await
-			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
-
-		Ok(metadata)
-	}
-
-	/// Sign the transaction and send it to the provided banks client.
-	async fn sign_and_send_banks_client_transaction(
-		&self,
-		client: &mut BanksClient,
-	) -> AnchorClientResult<()> {
-		let transaction = self.sign_banks_client_transaction(client).await?;
-
-		client
-			.process_transaction_with_commitment(transaction, CommitmentLevel::Finalized)
-			.await
-			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
-
-		Ok(())
-	}
-
-	/// Simulate the transaction.
-	#[deprecated(
-		since = "0.4.4",
-		note = "Use [`BanksClientAnchorRequestMethods::simulate_banks_client_transaction`]"
-	)]
-	async fn sign_and_simulate_banks_client_transaction(
-		&self,
-		client: &mut BanksClient,
-	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
-		let transaction = self.sign_banks_client_transaction(client).await?;
-		let result = client
-			.simulate_transaction_with_commitment(transaction, self.rpc().commitment())
-			.await
-			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
-
-		Ok(result)
-	}
-
-	/// Simulate the transaction without sigining.
-	async fn simulate_banks_client_transaction(
-		&self,
-		client: &mut BanksClient,
-	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
-		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
-		let payer = self.wallet().pubkey();
-		let mut instructions = self.instructions();
-		let hash = client
-			.get_latest_blockhash()
-			.await
-			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
-		instructions.insert(0, compute_limit_instruction);
-
-		let transaction =
-			VersionedMessage::V0(v0::Message::try_compile(&payer, &instructions, &[], hash)?)
-				.into_versioned_transaction();
-
-		let result = client
-			.simulate_transaction_with_commitment(transaction, self.rpc().commitment())
-			.await
-			.map_err(|e| AnchorClientError::Custom(e.to_string()))?;
-
-		Ok(result)
-	}
-}
-
-impl<'a, W: WalletAnchor + Signer + 'a, T> BanksClientAnchorRequestMethods<'a, W> for T where
-	T: AnchorRequestMethods<'a, W>
-{
 }
 
 pub trait ProgramTestExtension {

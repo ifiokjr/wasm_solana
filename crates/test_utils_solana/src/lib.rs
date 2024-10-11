@@ -24,7 +24,6 @@ pub mod prelude {
 	pub use wallet_standard::prelude::*;
 	pub use wasm_client_anchor::prelude::*;
 
-	pub use super::BanksClientAnchorRequestMethods;
 	pub use super::BanksClientAsyncExtension;
 	pub use super::FromAnchorData;
 	pub use super::ProgramTestBanksClientExt;
