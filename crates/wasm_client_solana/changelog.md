@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.5...wasm_client_solana@v0.3.6) - 2024-10-11
+
+### <!-- 0 -->🎉 Added
+
+- add `ToUiAccount` for converting from a `ReadableAccount` to a `UiAccount`
+- support deserialize for `GetBalanceRequest`
+
 ## [0.3.5](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.4...wasm_client_solana@v0.3.5) - 2024-10-09
 
 ### <!-- 0 -->🎉 Added

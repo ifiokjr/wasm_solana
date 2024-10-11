@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_wallets@v0.1.9...wallet_standard_wallets@v0.1.10) - 2024-10-11
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- updated the following local packages: wasm_client_solana
+
 ## [0.1.9](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_wallets@v0.1.8...wallet_standard_wallets@v0.1.9) - 2024-10-09
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
