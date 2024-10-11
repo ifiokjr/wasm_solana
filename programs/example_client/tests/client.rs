@@ -35,7 +35,7 @@ async fn initialize() -> Result<()> {
 		.accounts(example_program::accounts::Initialize { unchecked: pubkey })
 		.build();
 
-	let simulation = request.simulate_transaction().await?;
+	let simulation = request.simulate().await?;
 	log::info!("simulation: {simulation:#?}");
 	check!(simulation.value.err.is_none());
 
@@ -74,7 +74,7 @@ async fn composition() -> Result<()> {
 		.accounts(example_program::accounts::Initialize { unchecked })
 		.build();
 
-	let simulation = request.simulate_transaction().await?;
+	let simulation = request.simulate().await?;
 	log::info!("simulation: {simulation:#?}");
 	check!(simulation.value.err.is_none());
 

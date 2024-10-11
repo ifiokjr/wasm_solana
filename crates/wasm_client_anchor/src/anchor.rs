@@ -252,10 +252,20 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	/// Get the custom instructions with the program instruction appended to the
 	/// end.
 	fn instructions(&self) -> Vec<Instruction>;
+
 	/// Get the unsigned message with all the instructions and the current hash.
 	fn message(&self, hash: Hash) -> AnchorClientResult<VersionedMessage> {
+		self.message_with_instructions(hash, vec![])
+	}
+
+	/// Get the unsigned message with all the instructions and the current hash.
+	fn message_with_instructions(
+		&self,
+		hash: Hash,
+		mut instructions: Vec<Instruction>,
+	) -> AnchorClientResult<VersionedMessage> {
 		let payer = self.wallet().pubkey();
-		let instructions = self.instructions();
+		instructions.append(&mut self.instructions());
 		let message = v0::Message::try_compile(&payer, &instructions, &[], hash)?;
 
 		Ok(VersionedMessage::V0(message))
@@ -263,8 +273,19 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 
 	/// Get the unsigned [`VersionedTransaction`].
 	async fn transaction(&self) -> AnchorClientResult<VersionedTransaction> {
+		self.transaction_with_instructions(vec![]).await
+	}
+
+	/// Get the unsigned [`VersionedTransaction`] with additional instructions
+	/// inserted at the beginning.
+	async fn transaction_with_instructions(
+		&self,
+		instructions: Vec<Instruction>,
+	) -> AnchorClientResult<VersionedTransaction> {
 		let hash = self.rpc().get_latest_blockhash().await?;
-		let transaction = self.message(hash)?.into_versioned_transaction();
+		let transaction = self
+			.message_with_instructions(hash, instructions)?
+			.into_versioned_transaction();
 
 		Ok(transaction)
 	}
@@ -312,69 +333,33 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 		Ok(signature)
 	}
 
-	/// Sign and simulate the transaction on the provided rpc endpoint.
-	#[deprecated(
-		since = "0.3.0",
-		note = "Use [`AnchorRequestMethods::simulate_transaction`]"
-	)]
-	async fn sign_and_simulate_transaction(
-		&self,
-	) -> AnchorClientResult<SimulateTransactionResponse> {
-		let transaction = self.sign_transaction().await?;
-		let result = self.rpc().simulate_transaction(&transaction).await;
-
-		Ok(result?)
-	}
-
-	/// Sign and simulate the transaction on the provided rpc endpoint with a
-	/// custom configuration.
-	#[deprecated(
-		since = "0.3.0",
-		note = "Use [`AnchorRequestMethods::simulate_transaction_with_config`]"
-	)]
-	async fn sign_and_simulate_transaction_with_config(
-		&self,
-		config: RpcSimulateTransactionConfig,
-	) -> AnchorClientResult<SimulateTransactionResponse> {
-		let transaction = self.sign_transaction().await?;
-		let result = self
-			.rpc()
-			.simulate_transaction_with_config(&transaction, config)
-			.await?;
-
-		Ok(result)
-	}
-
 	/// Simulate the transaction without signing.
-	async fn simulate_transaction(&self) -> AnchorClientResult<SimulateTransactionResponse> {
-		let hash = self.rpc().get_latest_blockhash().await?;
-		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
-		let payer = self.wallet().pubkey();
-		let mut instructions = self.instructions();
-		instructions.insert(0, compute_limit_instruction);
-
-		let transaction =
-			VersionedMessage::V0(v0::Message::try_compile(&payer, &instructions, &[], hash)?)
-				.into_versioned_transaction();
+	async fn simulate(&self) -> AnchorClientResult<SimulateTransactionResponse> {
+		let transaction = self.transaction().await?;
 		let result = self.rpc().simulate_transaction(&transaction).await;
 
 		Ok(result?)
 	}
 
-	/// Simulate the transaction.
-	async fn simulate_transaction_with_config(
+	/// Simulate the transaction with the maximum compute units possible.
+	async fn simulate_with_max_compute_units(
+		&self,
+	) -> AnchorClientResult<SimulateTransactionResponse> {
+		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
+		let transaction = self
+			.transaction_with_instructions(vec![compute_limit_instruction])
+			.await?;
+		let result = self.rpc().simulate_transaction(&transaction).await;
+
+		Ok(result?)
+	}
+
+	/// Simulate the transaction with custom options.
+	async fn simulate_with_config(
 		&self,
 		config: RpcSimulateTransactionConfig,
 	) -> AnchorClientResult<SimulateTransactionResponse> {
-		let hash = self.rpc().get_latest_blockhash().await?;
-		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
-		let payer = self.wallet().pubkey();
-		let mut instructions = self.instructions();
-		instructions.insert(0, compute_limit_instruction);
-
-		let transaction =
-			VersionedMessage::V0(v0::Message::try_compile(&payer, &instructions, &[], hash)?)
-				.into_versioned_transaction();
+		let transaction = self.transaction().await?;
 		let result = self
 			.rpc()
 			.simulate_transaction_with_config(&transaction, config)
