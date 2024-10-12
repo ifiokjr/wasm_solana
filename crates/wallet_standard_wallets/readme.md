@@ -53,7 +53,8 @@ async fn run() -> Result<()> {
 	let instruction = system_instruction::transfer(&pubkey, &target_pubkey, sol_to_lamports(0.5));
 	let rpc = SolanaRpcClient::new(DEVNET);
 	let blockhash = rpc.get_latest_blockhash().await?;
-	let transaction = VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], blockhash)?;
+	let transaction =
+		VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], &[], blockhash)?;
 	let mut memory_wallet = MemoryWallet::new(rpc, &[keypair]);
 
 	// connect the first account in the memory wallet accounts list

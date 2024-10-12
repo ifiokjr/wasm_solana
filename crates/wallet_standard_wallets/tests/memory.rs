@@ -33,7 +33,8 @@ async fn sign_transaction() -> Result<()> {
 	let instruction = transfer(&pubkey, &target_pubkey, sol_to_lamports(0.5));
 	let blockhash = runner.rpc().get_latest_blockhash().await?;
 	let rpc = runner.rpc().clone();
-	let transaction = VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], blockhash)?;
+	let transaction =
+		VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], &[], blockhash)?;
 	let mut memory_wallet = MemoryWallet::new(rpc, &[keypair]);
 
 	memory_wallet.connect().await?;
@@ -57,7 +58,8 @@ async fn sign_and_send_transaction() -> Result<()> {
 	let instruction = transfer(&pubkey, &target_pubkey, sol_to_lamports(0.5));
 	let rpc = runner.rpc().clone();
 	let blockhash = rpc.get_latest_blockhash().await?;
-	let transaction = VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], blockhash)?;
+	let transaction =
+		VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], &[], blockhash)?;
 	let mut memory_wallet = MemoryWallet::new(rpc, &[keypair]);
 
 	memory_wallet.connect().await?;
@@ -86,7 +88,7 @@ async fn banks_client_process_transaction() -> Result<()> {
 	wallet.connect().await?;
 
 	let transaction =
-		VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], Hash::default())?;
+		VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], &[], Hash::default())?;
 	let props = SolanaSignAndSendTransactionProps::builder()
 		.transaction(transaction)
 		.build();
@@ -112,7 +114,7 @@ async fn banks_client_simulate_transaction() -> Result<()> {
 	wallet.connect().await?;
 
 	let transaction =
-		VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], Hash::default())?;
+		VersionedTransaction::new_unsigned_v0(&pubkey, &[instruction], &[], Hash::default())?;
 	let props = SolanaSignAndSendTransactionProps::builder()
 		.transaction(transaction)
 		.build();
