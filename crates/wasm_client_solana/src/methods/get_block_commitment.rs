@@ -1,10 +1,12 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use solana_sdk::vote::state::MAX_LOCKOUT_HISTORY;
 
 use crate::impl_http_method;
 
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple)]
 pub struct GetBlockCommitmentRequest {
 	pub slot: u64,
 }
@@ -19,7 +21,7 @@ impl GetBlockCommitmentRequest {
 
 type BlockCommitmentArray = [u64; MAX_LOCKOUT_HISTORY + 1];
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct GetBlockCommitmentResponse {
 	pub commitment: Option<BlockCommitmentArray>,

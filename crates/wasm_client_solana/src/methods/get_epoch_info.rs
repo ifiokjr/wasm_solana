@@ -1,4 +1,6 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::skip_serializing_none;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -7,7 +9,7 @@ use solana_sdk::epoch_info::EpochInfo;
 use crate::impl_http_method;
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize_tuple, Default)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple, Default)]
 pub struct GetEpochInfoRequest {
 	pub config: Option<CommitmentConfig>,
 }
@@ -26,7 +28,7 @@ impl GetEpochInfoRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetEpochInfoResponse(EpochInfo);
 
 impl From<GetEpochInfoResponse> for EpochInfo {

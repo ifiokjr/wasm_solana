@@ -7,14 +7,14 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::impl_http_method;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GetClusterNodesRequest;
 
 impl_http_method!(GetClusterNodesRequest, "getClusterNodes");
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcContactInfoWasm {
 	#[serde_as(as = "DisplayFromStr")]
@@ -27,7 +27,7 @@ pub struct RpcContactInfoWasm {
 	pub shred_version: Option<u16>,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetClusterNodesResponse(Vec<RpcContactInfoWasm>);
 
 impl From<GetClusterNodesResponse> for Vec<RpcContactInfoWasm> {

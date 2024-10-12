@@ -4,12 +4,12 @@ use solana_sdk::epoch_schedule::EpochSchedule;
 
 use crate::impl_http_method;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GetEpochScheduleRequest;
 
 impl_http_method!(GetEpochScheduleRequest, "getEpochSchedule");
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetEpochScheduleResponse(EpochSchedule);
 
 impl From<GetEpochScheduleResponse> for EpochSchedule {

@@ -1,10 +1,12 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use solana_sdk::clock::UnixTimestamp;
 
 use crate::impl_http_method;
 
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple)]
 pub struct GetBlockTimeRequest {
 	pub slot: u64,
 }
@@ -17,7 +19,7 @@ impl GetBlockTimeRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetBlockTimeResponse(Option<UnixTimestamp>);
 
 impl From<GetBlockTimeResponse> for Option<UnixTimestamp> {

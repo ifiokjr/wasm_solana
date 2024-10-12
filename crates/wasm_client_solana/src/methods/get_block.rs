@@ -1,4 +1,6 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::skip_serializing_none;
 use solana_sdk::clock::Slot;
@@ -8,7 +10,7 @@ use crate::rpc_config::RpcBlockConfig;
 use crate::solana_transaction_status::UiConfirmedBlock;
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple)]
 pub struct GetBlockRequest {
 	pub slot: Slot,
 	pub config: Option<RpcBlockConfig>,
@@ -29,7 +31,7 @@ impl GetBlockRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetBlockResponse(UiConfirmedBlock);
 
 impl From<GetBlockResponse> for UiConfirmedBlock {

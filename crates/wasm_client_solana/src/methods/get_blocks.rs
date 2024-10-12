@@ -1,4 +1,6 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::skip_serializing_none;
 use solana_sdk::clock::Slot;
@@ -7,7 +9,7 @@ use solana_sdk::commitment_config::CommitmentConfig;
 use crate::impl_http_method;
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple)]
 #[serde(rename_all = "camelCase")]
 pub struct GetBlocksRequest {
 	pub start_slot: Slot,
@@ -39,7 +41,7 @@ impl GetBlocksRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetBlocksResponse(Vec<Slot>);
 
 impl From<GetBlocksResponse> for Vec<Slot> {

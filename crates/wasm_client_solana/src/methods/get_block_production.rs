@@ -1,4 +1,6 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::skip_serializing_none;
 
@@ -8,7 +10,7 @@ use crate::rpc_config::RpcBlockProductionConfig;
 use crate::rpc_response::RpcBlockProduction;
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize_tuple, Default)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple, Default)]
 pub struct GetBlockProductionRequest {
 	pub config: Option<RpcBlockProductionConfig>,
 }
@@ -27,7 +29,7 @@ impl GetBlockProductionRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetBlockProductionResponse {
 	pub context: Context,
 	pub value: RpcBlockProduction,

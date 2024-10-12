@@ -1,4 +1,6 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
@@ -12,7 +14,7 @@ use crate::solana_account_decoder::UiAccount;
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple)]
 #[serde(rename_all = "camelCase")]
 pub struct GetMultipleAccountsRequest {
 	#[serde_as(as = "Vec<DisplayFromStr>")]
@@ -38,7 +40,7 @@ impl GetMultipleAccountsRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetMultipleAccountsResponse {
 	pub context: Context,
 	pub value: Vec<Option<UiAccount>>,
