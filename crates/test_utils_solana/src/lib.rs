@@ -1,4 +1,3 @@
-pub use rpc_provider::*;
 pub use solana_banks_client::BanksClientExt;
 pub use solana_program_runtime;
 pub use solana_program_test::BanksClient;
@@ -10,12 +9,13 @@ pub use solana_program_test::ProgramTestError;
 pub use solana_program_test::processor;
 pub use solana_program_test::programs;
 pub use solana_sdk;
+pub use test_rpc_provider::*;
 #[cfg(feature = "test_validator")]
 pub use test_validator_runner::*;
 pub use utils::*;
 
 mod macros;
-mod rpc_provider;
+mod test_rpc_provider;
 #[cfg(feature = "test_validator")]
 mod test_validator_runner;
 mod utils;

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use derive_more::Deref;
 use derive_more::DerefMut;
+use futures::future::join_all;
 use futures::lock::Mutex;
 use send_wrapper::SendWrapper;
 use serde_json::Value;
@@ -17,9 +18,13 @@ use wasm_client_solana::GetAccountInfoRequest;
 use wasm_client_solana::GetAccountInfoResponse;
 use wasm_client_solana::GetBalanceRequest;
 use wasm_client_solana::GetBalanceResponse;
+use wasm_client_solana::GetLatestBlockhashRequest;
 use wasm_client_solana::GetLatestBlockhashResponse;
+use wasm_client_solana::GetMultipleAccountsRequest;
+use wasm_client_solana::GetMultipleAccountsResponse;
 use wasm_client_solana::GetSignatureStatusesRequest;
 use wasm_client_solana::GetSignatureStatusesResponse;
+use wasm_client_solana::HttpMethod;
 use wasm_client_solana::LOCALNET;
 use wasm_client_solana::RequestAirdropRequest;
 use wasm_client_solana::RequestAirdropResponse;
@@ -32,6 +37,7 @@ use wasm_client_solana::SimulateTransactionResponseValue;
 use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::rpc_response::RpcBlockhash;
 use wasm_client_solana::solana_account_decoder::UiAccount;
+use wasm_client_solana::solana_account_decoder::UiAccountEncoding;
 use wasm_client_solana::solana_transaction_status::TransactionConfirmationStatus;
 use wasm_client_solana::solana_transaction_status::TransactionStatus;
 
@@ -76,18 +82,34 @@ impl RpcProvider for TestRpcProvider {
 
 	async fn send(&self, method: &'static str, request: Value) -> ClientResult<Value> {
 		let future = async move {
-			let mut client = self.0.lock().await;
-			let banks = &mut client.banks_client;
+			let context = {
+				Context {
+					slot: self.0.lock().await.get_slot().await.unwrap(),
+				}
+			};
 
 			let result = match method {
-				"getAccountInfo" => {
+				GetAccountInfoRequest::NAME => {
+					let mut client = self.0.lock().await;
 					let request: GetAccountInfoRequest = serde_json::from_value(request).unwrap();
-					let account = banks.get_account(request.pubkey).await.unwrap();
+					let account = client
+						.banks_client
+						.get_account(request.pubkey)
+						.await
+						.unwrap();
+					let encoding = request.config.encoding.unwrap_or(UiAccountEncoding::Base64);
+
 					let result = GetAccountInfoResponse {
-						context: Context {
-							slot: client.get_slot().await.unwrap(),
-						},
-						value: account.map(|account| UiAccount::encode(&request.pubkey, &account, wasm_client_solana::solana_account_decoder::UiAccountEncoding::Base64, None, None)),
+						context,
+						value: account.map(|account| {
+							UiAccount::encode(
+								&request.pubkey,
+								&account,
+								encoding,
+								None,
+								request.config.data_slice,
+							)
+						}),
 					};
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
@@ -97,15 +119,15 @@ impl RpcProvider for TestRpcProvider {
 
 					serde_json::to_value(response).unwrap()
 				}
-				"getBalance" => {
+				GetBalanceRequest::NAME => {
+					let mut client = self.0.lock().await;
 					let request: GetBalanceRequest = serde_json::from_value(request).unwrap();
-					let value = banks.get_balance(request.pubkey).await.unwrap();
-					let result = GetBalanceResponse {
-						context: Context {
-							slot: client.get_slot().await.unwrap(),
-						},
-						value,
-					};
+					let value = client
+						.banks_client
+						.get_balance(request.pubkey)
+						.await
+						.unwrap();
+					let result = GetBalanceResponse { context, value };
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
 						id: 0,
@@ -114,13 +136,13 @@ impl RpcProvider for TestRpcProvider {
 
 					serde_json::to_value(response).unwrap()
 				}
-				"getLatestBlockhash" => {
-					let blockhash = banks.get_latest_blockhash().await.unwrap();
-					let last_valid_block_height = banks.get_root_block_height().await.unwrap();
+				GetLatestBlockhashRequest::NAME => {
+					let mut client = self.0.lock().await;
+					let blockhash = client.banks_client.get_latest_blockhash().await.unwrap();
+					let last_valid_block_height =
+						client.banks_client.get_root_block_height().await.unwrap();
 					let result = GetLatestBlockhashResponse {
-						context: Context {
-							slot: client.get_slot().await.unwrap(),
-						},
+						context,
 						value: RpcBlockhash {
 							blockhash,
 							last_valid_block_height,
@@ -134,18 +156,18 @@ impl RpcProvider for TestRpcProvider {
 
 					serde_json::to_value(response).unwrap()
 				}
-				"getSignatureStatuses" => {
+				GetSignatureStatusesRequest::NAME => {
+					let mut client = self.0.lock().await;
 					let request: GetSignatureStatusesRequest =
 						serde_json::from_value(request).unwrap();
-					let statuses = banks
+					let statuses = client
+						.banks_client
 						.get_transaction_statuses(request.signatures)
 						.await
 						.unwrap();
 
 					let result = GetSignatureStatusesResponse {
-						context: Context {
-							slot: client.get_slot().await.unwrap(),
-						},
+						context,
 						value: statuses
 							.into_iter()
 							.map(|maybe_status| {
@@ -174,7 +196,37 @@ impl RpcProvider for TestRpcProvider {
 
 					serde_json::to_value(response).unwrap()
 				}
-				"requestAirdrop" => {
+				GetMultipleAccountsRequest::NAME => {
+					let request: GetMultipleAccountsRequest =
+						serde_json::from_value(request).unwrap();
+					let encoding = request
+						.config
+						.as_ref()
+						.and_then(|config| config.encoding)
+						.unwrap_or(UiAccountEncoding::Base64);
+					let data_slice = request.config.as_ref().and_then(|config| config.data_slice);
+					let futures = request.addresses.iter().map(|pubkey| {
+						async move {
+							let mut client = self.0.lock().await;
+							let account = client.banks_client.get_account(*pubkey).await.unwrap();
+
+							account.map(|account| {
+								UiAccount::encode(pubkey, &account, encoding, None, data_slice)
+							})
+						}
+					});
+					let value = join_all(futures).await;
+					let result = GetMultipleAccountsResponse { context, value };
+					let response = ClientResponse {
+						jsonrpc: "2.0".into(),
+						id: 0,
+						result,
+					};
+
+					serde_json::to_value(response).unwrap()
+				}
+				RequestAirdropRequest::NAME => {
+					let mut client = self.0.lock().await;
 					let request: RequestAirdropRequest = serde_json::from_value(request).unwrap();
 					client
 						.fund_account(&request.pubkey, request.lamports)
@@ -189,7 +241,8 @@ impl RpcProvider for TestRpcProvider {
 
 					serde_json::to_value(response).unwrap()
 				}
-				"sendTransaction" => {
+				SendTransactionRequest::NAME => {
+					let mut client = self.0.lock().await;
 					let request: SendTransactionRequest = serde_json::from_value(request).unwrap();
 					let signature = request
 						.transaction
@@ -197,7 +250,11 @@ impl RpcProvider for TestRpcProvider {
 						.first()
 						.copied()
 						.unwrap_or(Signature::default());
-					banks.send_transaction(request.transaction).await.unwrap();
+					client
+						.banks_client
+						.send_transaction(request.transaction)
+						.await
+						.unwrap();
 					let result: SendTransactionResponse = SendTransactionResponse(signature);
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
@@ -207,18 +264,18 @@ impl RpcProvider for TestRpcProvider {
 
 					serde_json::to_value(response).unwrap()
 				}
-				"simulateTransaction" => {
+				SimulateTransactionRequest::NAME => {
+					let mut client = self.0.lock().await;
 					let request: SimulateTransactionRequest =
 						serde_json::from_value(request).unwrap();
-					let simulation = banks
+					let simulation = client
+						.banks_client
 						.simulate_transaction(request.transaction)
 						.await
 						.unwrap();
 
 					let result = SimulateTransactionResponse {
-						context: Context {
-							slot: client.get_slot().await.unwrap(),
-						},
+						context,
 						value: SimulateTransactionResponseValue {
 							err: simulation.result.and_then(|value| value.err().clone()),
 							logs: simulation
