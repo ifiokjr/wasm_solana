@@ -65,7 +65,7 @@ pub struct SolanaSignTransactionProps {
 	#[builder(default, setter(into))]
 	pub chain: Option<String>,
 	/// Additional options for the transaction.
-	#[builder(default, setter(into, strip_option))]
+	#[builder(default, setter(into, strip_option(fallback = options_opt)))]
 	pub options: Option<SolanaSignTransactionOptions>,
 }
 

@@ -13,7 +13,6 @@ mod types;
 pub mod prelude {
 	pub use solana_sdk::signer::Signer;
 
-	pub use super::AsyncSigner;
 	pub use super::SolanaSignAndSendTransactionOutput;
 	pub use super::SolanaSignInOutput;
 	pub use super::SolanaSignMessageOutput;

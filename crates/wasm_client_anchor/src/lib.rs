@@ -33,7 +33,6 @@ pub mod prelude {
 	pub use anchor_lang::ToAccountMetas;
 	pub use anchor_lang::ZeroCopy;
 	pub use solana_sdk::signer::Signer;
-	pub use wallet_standard::AsyncSigner;
 	pub use wasm_client_solana::prelude::*;
 
 	pub use crate::AnchorProgramClient;
