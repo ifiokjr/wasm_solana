@@ -1,0 +1,3 @@
+pub const COMPUTE_UNIT_MAX_LIMIT: usize = 1_400_000;
+pub const COMPUTE_UNIT_DEFAULT_LIMIT: usize = 200_000;
+pub const MAX_LOOKUP_ADDRESSES_PER_TRANSACTION: usize = 30;

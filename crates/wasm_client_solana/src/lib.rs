@@ -1,6 +1,7 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/readme.md"))]
 
 pub use crate::client::*;
+pub use crate::constants::*;
 pub use crate::errors::*;
 pub use crate::extensions::*;
 pub use crate::methods::*;
@@ -10,6 +11,7 @@ pub use crate::solana_client::*;
 pub use crate::utils::spawn_local;
 
 mod client;
+mod constants;
 mod errors;
 mod extensions;
 mod methods;
@@ -33,9 +35,9 @@ pub mod prelude {
 	pub use futures::StreamExt;
 	pub use futures::TryFutureExt;
 	pub use futures::TryStreamExt;
+	pub use wallet_standard::prelude::*;
 
 	pub use crate::RpcProvider;
-	pub use crate::extensions::AsyncVersionedTransactionExtension;
 	pub use crate::extensions::VersionedMessageExtension;
 	pub use crate::extensions::VersionedTransactionExtension;
 	pub use crate::solana_account_decoder::ToUiAccount;

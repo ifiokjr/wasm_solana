@@ -438,6 +438,7 @@ impl SolanaRpcClient {
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<bool> {
 		let mut is_success = false;
+
 		for _ in 0..MAX_RETRIES {
 			let signature_statuses = self.get_signature_statuses(&[*signature]).await?;
 
@@ -1320,6 +1321,7 @@ impl SolanaRpcClient {
 		Ok(response.result)
 	}
 
+	/// Get the address lookup table.
 	pub async fn get_address_lookup_table(
 		&self,
 		pubkey: &Pubkey,

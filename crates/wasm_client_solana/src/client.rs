@@ -49,8 +49,8 @@ pub struct ClientResponse<T> {
 pub type SubscriptionResult = ClientResponse<SubscriptionId>;
 pub type UnsubscriptionResult = ClientResponse<bool>;
 
-pub const MAX_RETRIES: usize = 40;
-pub const SLEEP_MS: u64 = 250;
+pub const MAX_RETRIES: usize = 25;
+pub const SLEEP_MS: u64 = 400; // solana block time
 
 fn is_null(v: &Value) -> bool {
 	match v {
