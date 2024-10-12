@@ -298,7 +298,7 @@
   scripts."install:solana" = {
     exec = ''
       set -e
-      SOLANA_DOWNLOAD_ROOT="https://github.com/solana-labs/solana/releases/download"
+      SOLANA_DOWNLOAD_ROOT="https://github.com/anza-xyz/agave/releases/download"
       LOCAL_CACHE="$DEVENV_ROOT/.local-cache"
       VERSION=`cat $DEVENV_ROOT/setup/cache-versions.json | jq -r '.solana'`
       OS_TYPE="$(uname -s)"

@@ -105,7 +105,7 @@ cargo-insta = { version = "1.40.0" }
 cargo-llvm-cov = { version = "0.6.10" }
 cargo-nextest = { version = "0.9.72" }
 wait-for-them = { version = "0.4.0", bins = ["wait-for-them"] }
-wasm-bindgen-cli = { version = "0.2.93", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
+wasm-bindgen-cli = { version = "0.2.95", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 
 [profile.dev.package]
 insta.opt-level = 3
