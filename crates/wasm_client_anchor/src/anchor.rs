@@ -5,6 +5,7 @@ use anchor_lang::Event;
 use anchor_lang::Key;
 use async_trait::async_trait;
 use serde::Serialize;
+use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::hash::Hash;
@@ -141,27 +142,86 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 		(&'a W,),
 		(),
 		(),
+		(Vec<&'a dyn Signer>,),
+		(Vec<Instruction>,),
 		(),
-		(),
-		(),
+		(Vec<AddressLookupTableAccount>,),
 		(),
 	),
 >;
 
 /// A custom anchor request with the async signer as the payer.
 #[derive(Clone, TypedBuilder)]
+#[builder(mutators(
+		/// Add signers to the request method. This can be added multiple times in the builder.
+    pub fn signers(
+			&mut self,
+			mut signers: Vec<&'a dyn Signer>
+		) {
+			self.signers_.append(&mut signers);
+    }
+		/// Add signers to the request method. This can be added multiple times in the builder.
+    pub fn signer(
+			&mut self,
+			signer: &'a impl Signer
+		) {
+			self.signers_.push(signer);
+    }
+    /// Add instructions to the request method. This can be added multiple times in the builder.
+    pub fn instructions(
+			&mut self,
+			mut instructions: Vec<Instruction>
+		) {
+			self.instructions_.append(&mut instructions);
+    }
+    /// Add an instruction to the request method. This can be added multiple times in the builder.
+    pub fn instruction(
+			&mut self,
+			instruction: Instruction
+		) {
+			self.instructions_.push(instruction);
+    }
+    /// Add [`AddressLookupTable`]'s to the request method. This can be added multiple times in the builder.
+    pub fn address_lookup_tables(
+			&mut self,
+			mut address_lookup_tables: Vec<AddressLookupTableAccount>
+		) {
+			self.address_lookup_tables_.append(&mut address_lookup_tables);
+    }
+    /// Add an [`AddressLookupTable`] to the request method. This can be added multiple times in the builder.
+    pub fn address_lookup_table(
+			&mut self,
+			address_lookup_table: AddressLookupTableAccount
+		) {
+			self.address_lookup_tables_.push(address_lookup_table);
+    }
+))]
 pub struct AnchorRequest<'a, W: WalletAnchor + 'a> {
+	/// The rpc to use for making requests.
 	pub rpc: &'a SolanaRpcClient,
+	/// The program the anchor request will be sent to.
 	pub program_id: Pubkey,
+	/// The wallet used as the main payer for this instruction.
 	pub wallet: &'a W,
+	/// The byte data to feed to the anchor instruction.
 	pub data: Vec<u8>,
+	/// The accounts to be used in the transaction.
 	pub accounts: Vec<AccountMeta>,
-	#[builder(default)]
-	pub signers: Vec<&'a dyn Signer>,
-	#[builder(default)]
-	pub instructions: Vec<Instruction>,
+	/// The additional signers needed for the request.
+	#[builder(via_mutators(init = vec![]))]
+	pub signers_: Vec<&'a dyn Signer>,
+	/// Instructions that should be inserted before the anchor instruction
+	/// within the transaction.
+	#[builder(via_mutators(init = vec![]))]
+	pub instructions_: Vec<Instruction>,
+	/// Instructions that should be added after the anchor instruction.
 	#[builder(default)]
 	pub extra_instructions: Vec<Instruction>,
+	/// The address lookup tables to add to the transaction which saves space
+	/// when creating the transaction.
+	#[builder(via_mutators(init = vec![]))]
+	pub address_lookup_tables_: Vec<AddressLookupTableAccount>,
+	/// Additional options to use when signing the transaction.
 	#[builder(default)]
 	pub options: SolanaSignAndSendTransactionOptions,
 }
@@ -181,11 +241,11 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a,
 	}
 
 	fn signers(&self) -> Vec<&'a dyn Signer> {
-		self.signers.clone()
+		self.signers_.clone()
 	}
 
 	fn instructions(&self) -> Vec<Instruction> {
-		let mut instructions = self.instructions.clone();
+		let mut instructions = self.instructions_.clone();
 
 		instructions.push(Instruction {
 			program_id: self.program_id,
@@ -197,21 +257,82 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a,
 
 		instructions
 	}
+
+	fn address_lookup_tables(&self) -> Vec<AddressLookupTableAccount> {
+		self.address_lookup_tables_.clone()
+	}
 }
 
-pub type EmptyAnchorRequestBuilderPartial<'a, W> =
-	EmptyAnchorRequestBuilder<'a, W, ((&'a SolanaRpcClient,), (Pubkey,), (&'a W,), (), (), ())>;
+pub type EmptyAnchorRequestBuilderPartial<'a, W> = EmptyAnchorRequestBuilder<
+	'a,
+	W,
+	(
+		(&'a SolanaRpcClient,),
+		(Pubkey,),
+		(&'a W,),
+		(Vec<&'a dyn Signer>,),
+		(Vec<Instruction>,),
+		(Vec<AddressLookupTableAccount>,),
+		(),
+	),
+>;
 
-/// A custom anchor request with the async signer as the payer.
+/// A custom anchor request with the anchor wallet as the payer.
 #[derive(Clone, TypedBuilder)]
+#[builder(mutators(
+		/// Add signers to the request method. This can be added multiple times in the builder.
+    pub fn signers(
+			&mut self,
+			mut signers: Vec<&'a dyn Signer>
+		) {
+			self.signers_.append(&mut signers);
+    }
+		/// Add signers to the request method. This can be added multiple times in the builder.
+    pub fn signer(
+			&mut self,
+			signer: &'a impl Signer
+		) {
+			self.signers_.push(signer);
+    }
+    /// Add instructions to the request method. This can be added multiple times in the builder.
+    pub fn instructions(
+			&mut self,
+			mut instructions: Vec<Instruction>
+		) {
+			self.instructions_.append(&mut instructions);
+    }
+    /// Add an instruction to the request method. This can be added multiple times in the builder.
+    pub fn instruction(
+			&mut self,
+			instruction: Instruction
+		) {
+			self.instructions_.push(instruction);
+    }
+    /// Add [`AddressLookupTable`]'s to the request method. This can be added multiple times in the builder.
+    pub fn address_lookup_tables(
+			&mut self,
+			mut address_lookup_tables: Vec<AddressLookupTableAccount>
+		) {
+			self.address_lookup_tables_.append(&mut address_lookup_tables);
+    }
+    /// Add an [`AddressLookupTable`] to the request method. This can be added multiple times in the builder.
+    pub fn address_lookup_table(
+			&mut self,
+			address_lookup_table: AddressLookupTableAccount
+		) {
+			self.address_lookup_tables_.push(address_lookup_table);
+    }
+))]
 pub struct EmptyAnchorRequest<'a, W: WalletAnchor + 'a> {
 	pub rpc: &'a SolanaRpcClient,
 	pub program_id: Pubkey,
 	pub wallet: &'a W,
-	#[builder(default)]
-	pub signers: Vec<&'a dyn Signer>,
-	#[builder(default)]
-	pub instructions: Vec<Instruction>,
+	#[builder(via_mutators(init = vec![]))]
+	pub signers_: Vec<&'a dyn Signer>,
+	#[builder(via_mutators(init = vec![]))]
+	pub instructions_: Vec<Instruction>,
+	#[builder(via_mutators(init = vec![]))]
+	pub address_lookup_tables_: Vec<AddressLookupTableAccount>,
 	#[builder(default)]
 	pub options: SolanaSignAndSendTransactionOptions,
 }
@@ -231,11 +352,15 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorReques
 	}
 
 	fn signers(&self) -> Vec<&'a dyn Signer> {
-		self.signers.clone()
+		self.signers_.clone()
 	}
 
 	fn instructions(&self) -> Vec<Instruction> {
-		self.instructions.clone()
+		self.instructions_.clone()
+	}
+
+	fn address_lookup_tables(&self) -> Vec<AddressLookupTableAccount> {
+		self.address_lookup_tables_.clone()
 	}
 }
 
@@ -252,35 +377,40 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	/// Get the custom instructions with the program instruction appended to the
 	/// end.
 	fn instructions(&self) -> Vec<Instruction>;
+	/// The referenced lookup tables.
+	fn address_lookup_tables(&self) -> Vec<AddressLookupTableAccount>;
 
 	/// Get the unsigned message with all the instructions and the current hash.
 	fn message(&self, hash: Hash) -> AnchorClientResult<VersionedMessage> {
-		self.message_with_instructions(hash, vec![])
+		self.message_with_instructions(hash, &[])
 	}
 
 	/// Get the unsigned message with all the instructions and the current hash.
 	fn message_with_instructions(
 		&self,
 		hash: Hash,
-		mut instructions: Vec<Instruction>,
+		instructions: &[Instruction],
 	) -> AnchorClientResult<VersionedMessage> {
 		let payer = self.wallet().pubkey();
-		instructions.append(&mut self.instructions());
-		let message = v0::Message::try_compile(&payer, &instructions, &[], hash)?;
+		let address_lookup_tables = self.address_lookup_tables();
+		let mut ix = instructions.to_vec();
+		ix.append(&mut self.instructions());
+
+		let message = v0::Message::try_compile(&payer, &ix, &address_lookup_tables, hash)?;
 
 		Ok(VersionedMessage::V0(message))
 	}
 
 	/// Get the unsigned [`VersionedTransaction`].
 	async fn transaction(&self) -> AnchorClientResult<VersionedTransaction> {
-		self.transaction_with_instructions(vec![]).await
+		self.transaction_with_instructions(&[]).await
 	}
 
 	/// Get the unsigned [`VersionedTransaction`] with additional instructions
 	/// inserted at the beginning.
 	async fn transaction_with_instructions(
 		&self,
-		instructions: Vec<Instruction>,
+		instructions: &[Instruction],
 	) -> AnchorClientResult<VersionedTransaction> {
 		let hash = self.rpc().get_latest_blockhash().await?;
 		let transaction = self
@@ -347,7 +477,7 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	) -> AnchorClientResult<SimulateTransactionResponse> {
 		let compute_limit_instruction = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
 		let transaction = self
-			.transaction_with_instructions(vec![compute_limit_instruction])
+			.transaction_with_instructions(&[compute_limit_instruction])
 			.await?;
 		let result = self.rpc().simulate_transaction(&transaction).await;
 

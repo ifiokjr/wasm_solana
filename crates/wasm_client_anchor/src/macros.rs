@@ -7,30 +7,44 @@ macro_rules! base_create_request_builder {
 					/// Add signers to the request method. This can be added multiple times in the builder.
 			    pub fn signers(
 						&mut self,
-						mut signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>
+						mut signers: std::vec::Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>
 					) {
-						self.all_signers.append(&mut signers);
+						self.signers_.append(&mut signers);
 			    }
 					/// Add signers to the request method. This can be added multiple times in the builder.
 			    pub fn signer(
 						&mut self,
 						mut signer: &'a impl $crate::__private::solana_sdk::signer::Signer
 					) {
-						self.all_signers.push(signer);
+						self.signers_.push(signer);
 			    }
 			    /// Add instructions to the request method. This can be added multiple times in the builder.
 			    pub fn instructions(
 						&mut self,
-						mut instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>
+						mut instructions: std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>
 					) {
-						self.pre_instructions.append(&mut instructions);
+						self.instructions_before.append(&mut instructions);
 			    }
 			    /// Add an instruction to the request method. This can be added multiple times in the builder.
 			    pub fn instruction(
 						&mut self,
 						instruction: $crate::__private::solana_sdk::instruction::Instruction
 					) {
-						self.pre_instructions.push(instruction);
+						self.instructions_before.push(instruction);
+			    }
+			    /// Add [`AddressLookupTable`]'s to the request method. This can be added multiple times in the builder.
+			    pub fn address_lookup_tables(
+						&mut self,
+						mut address_lookup_tables: std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>
+					) {
+						self.address_lookup_tables_.append(&mut address_lookup_tables);
+			    }
+			    /// Add an [`AddressLookupTable`] to the request method. This can be added multiple times in the builder.
+			    pub fn address_lookup_table(
+						&mut self,
+						address_lookup_table: $crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount
+					) {
+						self.address_lookup_tables_.push(address_lookup_table);
 			    }
 			))]
 			pub struct [<$name_prefix Request>]<
@@ -48,16 +62,20 @@ macro_rules! base_create_request_builder {
 				pub accounts: ::$program::accounts::$accounts,
 				/// Additional accounts which might be needed in a transfer hook / or in a future transaction when the transaction is saved on chain for a later date.
 				#[builder(default)]
-				pub remaining_accounts: Vec<$crate::__private::solana_sdk::instruction::AccountMeta>,
+				pub remaining_accounts: std::vec::Vec<$crate::__private::solana_sdk::instruction::AccountMeta>,
 				/// Signers that can sign the data synchronously
 				#[builder(via_mutators(init = vec![]))]
-				pub all_signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
+				pub signers_: std::vec::Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
 				/// Instructions that are run prior to the current anchor program instruction.
 				#[builder(via_mutators(init = vec![]))]
-				pub pre_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				pub instructions_before: std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,
 				#[builder(default)]
 				/// Instructions that are run after the anchor program instruction.
-				pub post_instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				pub instructions_after: std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				/// The address lookup tables to add to the transaction which saves space
+				/// when creating the transaction.
+				#[builder(via_mutators(init = vec![]))]
+				pub address_lookup_tables_: std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>,
 				/// Options to be passed into the transaction being signed or sent.
 				#[builder(default)]
 				pub options: $crate::__private::wallet_standard::SolanaSignAndSendTransactionOptions,
@@ -79,16 +97,16 @@ macro_rules! base_create_request_builder {
 					self.program_client.rpc()
 				}
 
-				fn signers(&self) -> Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer> {
-					self.all_signers.clone()
+				fn signers(&self) -> std::vec::Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer> {
+					self.signers_.clone()
 				}
 
-				fn instructions(&self) -> Vec<$crate::__private::solana_sdk::instruction::Instruction> {
+				fn instructions(&self) -> std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction> {
 					use $crate::__private::anchor_lang::InstructionData;
 					use $crate::__private::anchor_lang::ToAccountMetas;
 
 					let mut accounts = self.accounts.to_account_metas(None);
-					let mut instructions = self.pre_instructions.clone();
+					let mut instructions = self.instructions_before.clone();
 
 					accounts.append(&mut self.remaining_accounts.clone());
 
@@ -98,9 +116,13 @@ macro_rules! base_create_request_builder {
 						data: self.args.data(),
 					});
 
-					instructions.append(&mut self.post_instructions.clone());
+					instructions.append(&mut self.instructions_after.clone());
 
 					instructions
+				}
+
+				fn address_lookup_tables(&self) -> std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount> {
+					self.address_lookup_tables_.clone()
 				}
 			}
 
@@ -113,6 +135,7 @@ macro_rules! base_create_request_builder {
 						program_client: self.program_client,
 						instructions: self.instructions(),
 						signers: self.signers(),
+						address_lookup_tables: self.address_lookup_tables(),
 					}
 				}
 			}
@@ -139,6 +162,7 @@ macro_rules! create_request_builder {
 						(std::vec::Vec<&'a dyn $crate::prelude::Signer>,),
 						(std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,),
 						(),
+						(std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>,),
 						(),
 					),
 				>;
@@ -159,6 +183,7 @@ macro_rules! create_request_builder {
 						.args(::$program::instruction::$name_prefix {})
 						.instructions(self.instructions)
 						.signers(self.signers)
+						.address_lookup_tables(self.address_lookup_tables)
 				}
 			}
 		}
@@ -180,6 +205,7 @@ macro_rules! create_request_builder {
 						(std::vec::Vec<&'a dyn $crate::prelude::Signer>,),
 						(std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,),
 						(),
+						(std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>,),
 						(),
 					),
 				>;
@@ -200,6 +226,7 @@ macro_rules! create_request_builder {
 						.wallet(self.program_client.wallet())
 						.instructions(self.instructions)
 						.signers(self.signers)
+						.address_lookup_tables(self.address_lookup_tables)
 				}
 			}
 		}
@@ -325,27 +352,34 @@ macro_rules! create_program_client {
 			pub struct [<$program_client_name Composer>]<'a, W: $crate::WalletAnchor + 'a> {
 				/// This is the anchor client for interacting with this program.
 				program_client: &'a $program_client_name<W>,
-				instructions: Vec<$crate::__private::solana_sdk::instruction::Instruction>,
-				signers: Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
+				instructions: std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,
+				signers: std::vec::Vec<&'a dyn $crate::__private::solana_sdk::signer::Signer>,
+				address_lookup_tables: std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>,
 			}
 
 			impl<'a, W: $crate::WalletAnchor + 'a> [<$program_client_name Composer>]<'a, W> {
 				/// Generate a custom anchor request for instruction that you want to
 				/// declare yourself.
-				pub fn request(&self) -> $crate::AnchorRequestBuilderPartial<'_, W> {
+				pub fn request(self) -> $crate::AnchorRequestBuilderPartial<'a, W> {
 					$crate::AnchorRequest::builder()
 						.rpc(self.program_client.rpc())
 						.program_id(self.program_client.id())
 						.wallet(self.program_client.wallet())
+						.signers(self.signers)
+						.instructions(self.instructions)
+						.address_lookup_tables(self.address_lookup_tables)
 				}
 
 				/// Sometimes you don't want to interact with the program directly, but just
 				/// need to send a transaction using the wallet.
-				pub fn empty_request(&self) -> $crate::EmptyAnchorRequestBuilderPartial<'_, W> {
+				pub fn empty_request(self) -> $crate::EmptyAnchorRequestBuilderPartial<'a, W> {
 					$crate::EmptyAnchorRequest::builder()
 						.rpc(self.program_client.rpc())
 						.program_id(self.program_client.id())
 						.wallet(self.program_client.wallet())
+						.signers(self.signers)
+						.instructions(self.instructions)
+						.address_lookup_tables(self.address_lookup_tables)
 				}
 
 			}
