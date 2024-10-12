@@ -7775,7 +7775,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils_solana"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -8517,7 +8517,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "async-trait",
  "bincode",
@@ -8534,7 +8534,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard_browser"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "async-trait",
  "bincode",
@@ -8556,7 +8556,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard_wallets"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "anyhow",
  "assert2",
@@ -8694,7 +8694,7 @@ dependencies = [
 
 [[package]]
 name = "wasm_client_anchor"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anchor-lang",
  "anyhow",
@@ -8723,7 +8723,7 @@ dependencies = [
 
 [[package]]
 name = "wasm_client_solana"
-version = "0.3.6"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "assert2",

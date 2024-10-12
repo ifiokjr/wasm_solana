@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.4.0...wasm_client_anchor@v0.5.0) - 2024-10-12
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] support address lookup tables in anchor transactions
+
+### <!-- 2 -->🚜 Refactor
+
+- [**breaking**] remove `AsyncSigner`
+
 ## [0.4.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.3.2...wasm_client_anchor@v0.4.0) - 2024-10-11
 
 ### <!-- 0 -->🎉 Added

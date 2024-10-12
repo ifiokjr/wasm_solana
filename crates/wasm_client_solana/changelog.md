@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.6...wasm_client_solana@v0.4.0) - 2024-10-12
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] add `async` methods directly to `VersionedTransactionExtension`
+- add serialize and deserialize support to more method structs
+
 ## [0.3.6](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.3.5...wasm_client_solana@v0.3.6) - 2024-10-11
 
 ### <!-- 0 -->🎉 Added
