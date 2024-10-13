@@ -78,7 +78,7 @@ impl<W: WalletAnchor> AnchorProgram<W> {
 	}
 
 	pub fn payer(&self) -> Pubkey {
-		self.wallet().pubkey()
+		self.wallet().solana_pubkey()
 	}
 
 	pub fn wallet(&self) -> &W {
@@ -391,7 +391,7 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 		hash: Hash,
 		instructions: &[Instruction],
 	) -> AnchorClientResult<VersionedMessage> {
-		let payer = self.wallet().pubkey();
+		let payer = self.wallet().solana_pubkey();
 		let address_lookup_tables = self.address_lookup_tables();
 		let mut ix = instructions.to_vec();
 		ix.append(&mut self.instructions());

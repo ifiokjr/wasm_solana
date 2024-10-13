@@ -18,7 +18,6 @@ pub mod prelude {
 	pub use super::SolanaSignMessageOutput;
 	pub use super::SolanaSignTransactionOutput;
 	pub use super::SolanaSignatureOutput;
-	pub use super::WalletAccountInfoSolanaPubkey;
 	pub use super::WalletSolana;
 	pub use super::WalletSolanaPubkey;
 	pub use super::WalletSolanaSignAndSendTransaction;

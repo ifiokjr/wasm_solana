@@ -456,7 +456,7 @@ impl WalletSolanaSignMessage for MemoryWallet {
 	type Output = MemorySolanaSignMessageOutput;
 
 	/// Sign a  message using the account's secret key.
-	async fn sign_message(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output> {
+	async fn sign_message_async(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output> {
 		let Some(ref account) = self.account else {
 			return Err(WalletError::WalletNotConnected);
 		};
@@ -479,7 +479,7 @@ impl WalletSolanaSignMessage for MemoryWallet {
 	) -> WalletResult<Vec<Self::Output>> {
 		let futures = messages
 			.into_iter()
-			.map(|message| WalletSolanaSignMessage::sign_message(self, message));
+			.map(|message| WalletSolanaSignMessage::sign_message_async(self, message));
 
 		try_join_all(futures).await
 	}

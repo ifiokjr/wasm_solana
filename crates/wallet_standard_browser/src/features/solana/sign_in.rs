@@ -119,7 +119,7 @@ impl WalletSolanaSignIn for BrowserWallet {
 		&self,
 		inputs: Vec<SolanaSignInInput>,
 	) -> WalletResult<Vec<Self::Output>> {
-		let Ok(address) = self.try_pubkey().map(|pubkey| pubkey.to_string()) else {
+		let Ok(address) = self.try_solana_pubkey().map(|pubkey| pubkey.to_string()) else {
 			return Err(WalletError::WalletAccount);
 		};
 

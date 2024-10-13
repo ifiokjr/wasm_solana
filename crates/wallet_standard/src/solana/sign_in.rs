@@ -3,10 +3,10 @@ use std::fmt::Write;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
+use solana_sdk::pubkey::Pubkey;
 use typed_builder::TypedBuilder;
 
 use super::SolanaSignMessageOutput;
-use super::WalletAccountInfoSolanaPubkey;
 use crate::SolanaSignatureOutput;
 use crate::WalletAccountInfo;
 use crate::WalletError;
@@ -106,7 +106,8 @@ pub fn verify_sign_in(
 
 	let signature = output.try_signature()?;
 	let signed_message = output.signed_message();
-	let pubkey = account.pubkey();
+	let bytes = account.public_key();
+	let pubkey = Pubkey::try_from(bytes).map_err(|_| WalletError::WalletPublicKey)?;
 
 	if pubkey.to_string().as_str() != input_address {
 		return Err(WalletError::WalletSignIn);

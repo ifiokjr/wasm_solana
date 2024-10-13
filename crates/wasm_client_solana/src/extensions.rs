@@ -235,7 +235,7 @@ impl VersionedTransactionExtension for VersionedTransaction {
 	) -> impl Future<Output = WalletResult<&mut Self>> {
 		async move {
 			let Some(position) = self
-				.get_signing_keypair_positions(&[wallet.pubkey()])?
+				.get_signing_keypair_positions(&[wallet.solana_pubkey()])?
 				.first()
 				.copied()
 				.flatten()
@@ -268,7 +268,7 @@ impl VersionedTransactionExtension for VersionedTransaction {
 					.for_each(|signature| *signature = Signature::default());
 			}
 
-			let signature = wallet.sign_message(self.message.serialize()).await?;
+			let signature = wallet.sign_message_async(self.message.serialize()).await?;
 			self.signatures[position] = signature.try_signature()?;
 
 			Ok(())

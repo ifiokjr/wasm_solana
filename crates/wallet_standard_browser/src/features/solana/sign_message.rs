@@ -128,7 +128,7 @@ impl SolanaSignMessageFeature {
 impl WalletSolanaSignMessage for BrowserWallet {
 	type Output = BrowserSolanaSignMessageOutput;
 
-	async fn sign_message(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output> {
+	async fn sign_message_async(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output> {
 		let Some(ref wallet_account) = self.wallet_account else {
 			return Err(WalletError::WalletAccount);
 		};

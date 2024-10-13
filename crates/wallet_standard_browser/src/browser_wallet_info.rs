@@ -7,10 +7,12 @@ use std::hash::Hasher;
 use js_sys::Array;
 use js_sys::Function;
 use js_sys::Object;
+use solana_sdk::pubkey::Pubkey;
 use wallet_standard::WalletAccountInfo;
 use wallet_standard::WalletError;
 use wallet_standard::WalletInfo;
 use wallet_standard::WalletResult;
+use wallet_standard::WalletSolanaPubkey;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
@@ -352,6 +354,12 @@ impl WalletAccountInfo for BrowserWalletAccountInfo {
 
 	fn icon(&self) -> Option<String> {
 		self._icon()
+	}
+}
+
+impl WalletSolanaPubkey for BrowserWalletAccountInfo {
+	fn try_solana_pubkey(&self) -> WalletResult<Pubkey> {
+		Pubkey::try_from(self.public_key()).map_err(|_| WalletError::WalletPublicKey)
 	}
 }
 
