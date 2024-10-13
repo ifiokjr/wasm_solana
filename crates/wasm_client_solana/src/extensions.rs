@@ -315,15 +315,17 @@ impl VersionedMessageExtension for VersionedMessage {
 }
 
 /// Initialize a lookup table that can be used with versioned transactions.
-pub async fn initialize_address_lookup_table_with_wallet<
-	W: WalletSolanaSignTransaction + WalletSolanaPubkey,
+pub async fn initialize_address_lookup_table<
+	P: WalletSolanaSignTransaction + WalletSolanaPubkey,
+	A: WalletSolanaSignMessage + WalletSolanaPubkey,
 >(
 	rpc: &SolanaRpcClient,
-	wallet: &W,
+	payer_wallet: &P,
+	authority_signer: &A,
 	addresses: &[Pubkey],
 ) -> ClientResult<Pubkey> {
-	let payer = wallet.try_pubkey()?;
-	let authority = &payer;
+	let payer = payer_wallet.try_solana_pubkey()?;
+	let authority = authority_signer.try_solana_pubkey()?;
 
 	if addresses.len() > 256 {
 		return Err(ClientError::Other(
@@ -335,31 +337,37 @@ pub async fn initialize_address_lookup_table_with_wallet<
 	let chunk = address_chunks.next().unwrap_or(&[]);
 	let slot = rpc.get_slot().await? - 1;
 	let (lookup_table_instruction, lookup_table_address) =
-		create_lookup_table(payer, *authority, slot);
+		create_lookup_table(payer, authority, slot);
 	let mut instructions = vec![lookup_table_instruction];
 
 	if !chunk.is_empty() {
 		let instruction =
-			extend_lookup_table(lookup_table_address, *authority, Some(payer), chunk.into());
+			extend_lookup_table(lookup_table_address, authority, Some(payer), chunk.into());
 
 		instructions.push(instruction);
 	}
 
-	let versioned_transaction = VersionedTransaction::new_unsigned_v0(
+	let mut versioned_transaction = VersionedTransaction::new_unsigned_v0(
 		&payer,
 		&instructions,
 		&[],
 		rpc.get_latest_blockhash().await?,
 	)?
-	.sign_with_wallet(wallet, None)
+	.sign_with_wallet(payer_wallet, None)
 	.await?;
+
+	if payer != authority && !chunk.is_empty() {
+		versioned_transaction
+			.sign_async(authority_signer, None)
+			.await?;
+	}
 
 	rpc.send_transaction(&versioned_transaction).await?;
 	rpc.wait_for_new_block(1).await?;
 
 	let instructions = address_chunks
 		.map(|chunk| {
-			extend_lookup_table(lookup_table_address, *authority, Some(payer), chunk.into())
+			extend_lookup_table(lookup_table_address, authority, Some(payer), chunk.into())
 		})
 		.collect::<Vec<_>>();
 
@@ -395,14 +403,21 @@ pub async fn initialize_address_lookup_table_with_wallet<
 		);
 		let mut instructions = vec![compute_limit_instruction];
 		instructions.append(&mut instruction_chunk.to_vec());
-		let versioned_transaction = VersionedTransaction::new_unsigned_v0(
+		let mut versioned_transaction = VersionedTransaction::new_unsigned_v0(
 			&payer,
 			&instructions,
 			&[],
 			rpc.get_latest_blockhash().await?,
 		)?
-		.sign_with_wallet(wallet, None)
+		.sign_with_wallet(payer_wallet, None)
 		.await?;
+
+		if payer != authority {
+			versioned_transaction
+				.sign_async(authority_signer, None)
+				.await?;
+		}
+
 		rpc.send_transaction(&versioned_transaction).await?;
 	}
 
