@@ -1,6 +1,6 @@
 [package]
 name = "wasm_client_anchor"
-version = "0.5.0"
+version = "0.5.1"
 authors = { workspace = true }
 categories = ["wasm", "web-programming"]
 edition = { workspace = true }

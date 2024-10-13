@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_browser@v0.3.0...wallet_standard_browser@v0.3.1) - 2024-10-13
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- move `solana` specific features
+- update instances of `pubkey` and `sign_message` after rename
+
 ## [0.3.0](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_browser@v0.2.1...wallet_standard_browser@v0.3.0) - 2024-10-12
 
 ### <!-- 2 -->🚜 Refactor
