@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard@v0.3.0...wallet_standard@v0.4.0) - 2024-10-13
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] rename `pubkey` to `WalletSolanaPubkey::solana_pubkey` to prevent clashes
+- [**breaking**] rename `sign_message` to `WalletSolanaSignMessage::sign_message_async`
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- update instances of `pubkey` and `sign_message` after rename
+
 ## [0.3.0](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard@v0.2.1...wallet_standard@v0.3.0) - 2024-10-12
 
 ### <!-- 2 -->🚜 Refactor

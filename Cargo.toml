@@ -89,11 +89,11 @@ test_utils = { path = "./crates/test_utils" }
 
 # publishable crates
 test_utils_solana = { path = "./crates/test_utils_solana" }
-wallet_standard = { path = "./crates/wallet_standard", version = "0.3.0" }
-wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.3.0" }
-wallet_standard_wallets = { path = "./crates/wallet_standard_wallets", version = "0.1.11" }
-wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.5.0" }
-wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.4.0" }
+wallet_standard = { path = "./crates/wallet_standard", version = "0.4.0" }
+wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.3.1" }
+wallet_standard_wallets = { path = "./crates/wallet_standard_wallets", version = "0.1.12" }
+wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.5.1" }
+wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.5.0" }
 
 [patch.crates-io.curve25519-dalek]
 git = "https://github.com/anza-xyz/curve25519-dalek.git"

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.5.0...wasm_client_anchor@v0.5.1) - 2024-10-13
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- update instances of `pubkey` and `sign_message` after rename
+
 ## [0.5.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.4.0...wasm_client_anchor@v0.5.0) - 2024-10-12
 
 ### <!-- 0 -->🎉 Added
