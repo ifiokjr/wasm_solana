@@ -11,7 +11,7 @@ use spl_token_2022::extension::ExtensionType;
 use spl_token_2022::extension::StateWithExtensions;
 use spl_token_2022::extension::{self};
 use spl_token_2022::solana_program::pubkey::Pubkey;
-use spl_token_2022::solana_zk_token_sdk::zk_token_elgamal::pod::ElGamalPubkey;
+use spl_token_2022::solana_zk_sdk::encryption::pod::elgamal::PodElGamalPubkey;
 use spl_token_group_interface::state::TokenGroup;
 use spl_token_group_interface::state::TokenGroupMember;
 use spl_token_metadata_interface::state::TokenMetadata;
@@ -373,7 +373,7 @@ impl From<extension::confidential_transfer::ConfidentialTransferMint>
 		confidential_transfer_mint: extension::confidential_transfer::ConfidentialTransferMint,
 	) -> Self {
 		let authority: Option<Pubkey> = confidential_transfer_mint.authority.into();
-		let auditor_elgamal_pubkey: Option<ElGamalPubkey> =
+		let auditor_elgamal_pubkey: Option<PodElGamalPubkey> =
 			confidential_transfer_mint.auditor_elgamal_pubkey.into();
 		Self {
 			authority,
@@ -390,7 +390,7 @@ impl From<extension::confidential_transfer::ConfidentialTransferMint>
 pub struct UiConfidentialTransferFeeConfig {
 	#[serde_as(as = "Option<DisplayFromStr>")]
 	pub authority: Option<Pubkey>,
-	pub withdraw_withheld_authority_elgamal_pubkey: Option<String>,
+	pub withdraw_withheld_authority_elgamal_pubkey: String,
 	pub harvest_to_mint_enabled: bool,
 	pub withheld_amount: String,
 }
@@ -402,14 +402,11 @@ impl From<extension::confidential_transfer_fee::ConfidentialTransferFeeConfig>
 		confidential_transfer_fee_config: extension::confidential_transfer_fee::ConfidentialTransferFeeConfig,
 	) -> Self {
 		let authority: Option<Pubkey> = confidential_transfer_fee_config.authority.into();
-		let withdraw_withheld_authority_elgamal_pubkey: Option<ElGamalPubkey> =
-			confidential_transfer_fee_config
-				.withdraw_withheld_authority_elgamal_pubkey
-				.into();
 		Self {
 			authority,
-			withdraw_withheld_authority_elgamal_pubkey: withdraw_withheld_authority_elgamal_pubkey
-				.map(|pubkey| pubkey.to_string()),
+			withdraw_withheld_authority_elgamal_pubkey: confidential_transfer_fee_config
+				.withdraw_withheld_authority_elgamal_pubkey
+				.to_string(),
 			harvest_to_mint_enabled: confidential_transfer_fee_config
 				.harvest_to_mint_enabled
 				.into(),
@@ -631,10 +628,12 @@ impl From<extension::group_member_pointer::GroupMemberPointer> for UiGroupMember
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenGroup {
+	#[serde_as(as = "Option<DisplayFromStr>")]
 	pub update_authority: Option<Pubkey>,
+	#[serde_as(as = "DisplayFromStr")]
 	pub mint: Pubkey,
-	pub size: u32,
-	pub max_size: u32,
+	pub size: u64,
+	pub max_size: u64,
 }
 
 impl From<TokenGroup> for UiTokenGroup {
@@ -658,7 +657,7 @@ pub struct UiTokenGroupMember {
 	pub mint: Pubkey,
 	#[serde_as(as = "DisplayFromStr")]
 	pub group: Pubkey,
-	pub member_number: u32,
+	pub member_number: u64,
 }
 
 impl From<TokenGroupMember> for UiTokenGroupMember {
