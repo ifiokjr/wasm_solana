@@ -147,6 +147,7 @@ pub type AnchorRequestBuilderPartial<'a, W> = AnchorRequestBuilder<
 		(),
 		(Vec<AddressLookupTableAccount>,),
 		(),
+		(),
 	),
 >;
 
@@ -221,6 +222,9 @@ pub struct AnchorRequest<'a, W: WalletAnchor + 'a> {
 	/// when creating the transaction.
 	#[builder(via_mutators(init = vec![]))]
 	pub address_lookup_tables_: Vec<AddressLookupTableAccount>,
+	/// A custom blockhash which can be used for a `DurableNonce` hash.
+	#[builder(default, setter(into, strip_option(fallback = blockhash_opt)))]
+	pub blockhash: Option<Hash>,
 	/// Additional options to use when signing the transaction.
 	#[builder(default)]
 	pub options: SolanaSignAndSendTransactionOptions,
@@ -261,6 +265,13 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for AnchorRequest<'a,
 	fn address_lookup_tables(&self) -> Vec<AddressLookupTableAccount> {
 		self.address_lookup_tables_.clone()
 	}
+
+	async fn blockhash(&self) -> AnchorClientResult<Hash> {
+		let hash = self
+			.blockhash
+			.unwrap_or(self.rpc().get_latest_blockhash().await?);
+		Ok(hash)
+	}
 }
 
 pub type EmptyAnchorRequestBuilderPartial<'a, W> = EmptyAnchorRequestBuilder<
@@ -273,6 +284,7 @@ pub type EmptyAnchorRequestBuilderPartial<'a, W> = EmptyAnchorRequestBuilder<
 		(Vec<&'a dyn Signer>,),
 		(Vec<Instruction>,),
 		(Vec<AddressLookupTableAccount>,),
+		(),
 		(),
 	),
 >;
@@ -333,6 +345,8 @@ pub struct EmptyAnchorRequest<'a, W: WalletAnchor + 'a> {
 	pub instructions_: Vec<Instruction>,
 	#[builder(via_mutators(init = vec![]))]
 	pub address_lookup_tables_: Vec<AddressLookupTableAccount>,
+	#[builder(default, setter(into, strip_option(fallback = blockhash_opt)))]
+	pub blockhash: Option<Hash>,
 	#[builder(default)]
 	pub options: SolanaSignAndSendTransactionOptions,
 }
@@ -362,6 +376,13 @@ impl<'a, W: WalletAnchor + 'a> AnchorRequestMethods<'a, W> for EmptyAnchorReques
 	fn address_lookup_tables(&self) -> Vec<AddressLookupTableAccount> {
 		self.address_lookup_tables_.clone()
 	}
+
+	async fn blockhash(&self) -> AnchorClientResult<Hash> {
+		let hash = self
+			.blockhash
+			.unwrap_or(self.rpc().get_latest_blockhash().await?);
+		Ok(hash)
+	}
 }
 
 #[async_trait(?Send)]
@@ -379,6 +400,8 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	fn instructions(&self) -> Vec<Instruction>;
 	/// The referenced lookup tables.
 	fn address_lookup_tables(&self) -> Vec<AddressLookupTableAccount>;
+	/// Get the blockhash to use for this request.
+	async fn blockhash(&self) -> AnchorClientResult<Hash>;
 
 	/// Get the unsigned message with all the instructions and the current hash.
 	fn message(&self, hash: Hash) -> AnchorClientResult<VersionedMessage> {
@@ -412,7 +435,7 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 		&self,
 		instructions: &[Instruction],
 	) -> AnchorClientResult<VersionedTransaction> {
-		let hash = self.rpc().get_latest_blockhash().await?;
+		let hash = self.blockhash().await?;
 		let transaction = self
 			.message_with_instructions(hash, instructions)?
 			.into_versioned_transaction();

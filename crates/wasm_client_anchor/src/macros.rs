@@ -76,6 +76,9 @@ macro_rules! base_create_request_builder {
 				/// when creating the transaction.
 				#[builder(via_mutators(init = vec![]))]
 				pub address_lookup_tables_: std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>,
+				/// A custom blockhash which can be used for a `DurableNonce` hash.
+				#[builder(default, setter(into, strip_option(fallback = blockhash_opt)))]
+				pub blockhash: ::core::option::Option<$crate::__private::solana_sdk::hash::Hash>,
 				/// Options to be passed into the transaction being signed or sent.
 				#[builder(default)]
 				pub options: $crate::__private::wallet_standard::SolanaSignAndSendTransactionOptions,
@@ -124,6 +127,13 @@ macro_rules! base_create_request_builder {
 				fn address_lookup_tables(&self) -> std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount> {
 					self.address_lookup_tables_.clone()
 				}
+
+				async fn blockhash(&self) -> $crate::AnchorClientResult<$crate::__private::solana_sdk::hash::Hash> {
+					let hash = self
+						.blockhash
+						.unwrap_or(self.rpc().get_latest_blockhash().await?);
+					Ok(hash)
+				}
 			}
 
 			impl<'a, W: $crate::WalletAnchor + 'a> [<$name_prefix Request>]<'a, W> {
@@ -163,6 +173,7 @@ macro_rules! create_request_builder {
 						(std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,),
 						(),
 						(std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>,),
+						(),
 						(),
 					),
 				>;
@@ -206,6 +217,7 @@ macro_rules! create_request_builder {
 						(std::vec::Vec<$crate::__private::solana_sdk::instruction::Instruction>,),
 						(),
 						(std::vec::Vec<$crate::__private::solana_sdk::address_lookup_table::AddressLookupTableAccount>,),
+						(),
 						(),
 					),
 				>;
