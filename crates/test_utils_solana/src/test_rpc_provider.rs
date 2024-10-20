@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -84,19 +85,20 @@ impl RpcProvider for TestRpcProvider {
 		let future = async move {
 			let context = {
 				Context {
-					slot: self.0.lock().await.get_slot().await.unwrap(),
+					slot: self.0.lock().await.get_slot().await.map_err(to_error)?,
 				}
 			};
 
 			let result = match method {
 				GetAccountInfoRequest::NAME => {
 					let mut client = self.0.lock().await;
-					let request: GetAccountInfoRequest = serde_json::from_value(request).unwrap();
+					let request: GetAccountInfoRequest =
+						serde_json::from_value(request).map_err(to_error)?;
 					let account = client
 						.banks_client
 						.get_account(request.pubkey)
 						.await
-						.unwrap();
+						.map_err(to_error)?;
 					let encoding = request.config.encoding.unwrap_or(UiAccountEncoding::Base64);
 
 					let result = GetAccountInfoResponse {
@@ -117,16 +119,17 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				GetBalanceRequest::NAME => {
 					let mut client = self.0.lock().await;
-					let request: GetBalanceRequest = serde_json::from_value(request).unwrap();
+					let request: GetBalanceRequest =
+						serde_json::from_value(request).map_err(to_error)?;
 					let value = client
 						.banks_client
 						.get_balance(request.pubkey)
 						.await
-						.unwrap();
+						.map_err(to_error)?;
 					let result = GetBalanceResponse { context, value };
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
@@ -134,13 +137,20 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				GetLatestBlockhashRequest::NAME => {
 					let mut client = self.0.lock().await;
-					let blockhash = client.banks_client.get_latest_blockhash().await.unwrap();
-					let last_valid_block_height =
-						client.banks_client.get_root_block_height().await.unwrap();
+					let blockhash = client
+						.banks_client
+						.get_latest_blockhash()
+						.await
+						.map_err(to_error)?;
+					let last_valid_block_height = client
+						.banks_client
+						.get_root_block_height()
+						.await
+						.map_err(to_error)?;
 					let result = GetLatestBlockhashResponse {
 						context,
 						value: RpcBlockhash {
@@ -154,17 +164,17 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				GetSignatureStatusesRequest::NAME => {
 					let mut client = self.0.lock().await;
 					let request: GetSignatureStatusesRequest =
-						serde_json::from_value(request).unwrap();
+						serde_json::from_value(request).map_err(to_error)?;
 					let statuses = client
 						.banks_client
 						.get_transaction_statuses(request.signatures)
 						.await
-						.unwrap();
+						.map_err(to_error)?;
 
 					let result = GetSignatureStatusesResponse {
 						context,
@@ -194,11 +204,11 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				GetMultipleAccountsRequest::NAME => {
 					let request: GetMultipleAccountsRequest =
-						serde_json::from_value(request).unwrap();
+						serde_json::from_value(request).map_err(to_error)?;
 					let encoding = request
 						.config
 						.as_ref()
@@ -223,15 +233,16 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				RequestAirdropRequest::NAME => {
 					let mut client = self.0.lock().await;
-					let request: RequestAirdropRequest = serde_json::from_value(request).unwrap();
+					let request: RequestAirdropRequest =
+						serde_json::from_value(request).map_err(to_error)?;
 					client
 						.fund_account(&request.pubkey, request.lamports)
 						.await
-						.unwrap();
+						.map_err(to_error)?;
 					let result = RequestAirdropResponse(Signature::default());
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
@@ -239,11 +250,12 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				SendTransactionRequest::NAME => {
 					let mut client = self.0.lock().await;
-					let request: SendTransactionRequest = serde_json::from_value(request).unwrap();
+					let request: SendTransactionRequest =
+						serde_json::from_value(request).map_err(to_error)?;
 					let signature = request
 						.transaction
 						.signatures
@@ -254,7 +266,7 @@ impl RpcProvider for TestRpcProvider {
 						.banks_client
 						.send_transaction(request.transaction)
 						.await
-						.unwrap();
+						.map_err(to_error)?;
 					let result: SendTransactionResponse = SendTransactionResponse(signature);
 					let response = ClientResponse {
 						jsonrpc: "2.0".into(),
@@ -262,17 +274,33 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				SimulateTransactionRequest::NAME => {
 					let mut client = self.0.lock().await;
 					let request: SimulateTransactionRequest =
-						serde_json::from_value(request).unwrap();
-					let simulation = client
-						.banks_client
-						.simulate_transaction(request.transaction)
-						.await
-						.unwrap();
+						serde_json::from_value(request).map_err(to_error)?;
+					let transaction = request.transaction.clone();
+					let simulation =
+						match client.banks_client.simulate_transaction(transaction).await {
+							Ok(result) => result,
+							Err(error) => {
+								let mut transaction = request.transaction.clone();
+								transaction.message.set_recent_blockhash(
+									client
+										.banks_client
+										.get_latest_blockhash()
+										.await
+										.map_err(to_error)?,
+								);
+
+								client
+									.banks_client
+									.simulate_transaction(transaction)
+									.await
+									.map_err(to_error)?
+							}
+						};
 
 					let result = SimulateTransactionResponse {
 						context,
@@ -298,7 +326,7 @@ impl RpcProvider for TestRpcProvider {
 						result,
 					};
 
-					serde_json::to_value(response).unwrap()
+					serde_json::to_value(response).map_err(to_error)?
 				}
 				value => {
 					todo!("This method: `{value}` is not yet implementd for the `TestRpcProvider`.")
@@ -310,4 +338,8 @@ impl RpcProvider for TestRpcProvider {
 
 		SendWrapper::new(future).await
 	}
+}
+
+fn to_error<T: Display>(error: T) -> ClientError {
+	ClientError::Other(error.to_string())
 }
