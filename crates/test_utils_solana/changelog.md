@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.5.3...test_utils_solana@v0.5.4) - 2024-10-20
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- `TestRpcProvider` `simulate_transaction`
+
 ## [0.5.3](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.5.2...test_utils_solana@v0.5.3) - 2024-10-19
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
