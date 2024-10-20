@@ -1,20 +1,24 @@
 //! Durable transaction nonce helpers.
 
+use serde::Deserialize;
+use serde::Serialize;
 use solana_sdk::account::Account;
 use solana_sdk::account::ReadableAccount;
 use solana_sdk::account_utils::StateMut;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
+use solana_sdk::nonce;
 use solana_sdk::nonce::State;
 use solana_sdk::nonce::state::Data;
 use solana_sdk::nonce::state::Versions;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::system_program;
 
+use crate::ClientResult;
 use crate::SolanaRpcClient;
 use crate::rpc_config::RpcAccountInfoConfig;
 
-#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, thiserror::Error, PartialEq, Eq)]
 pub enum NonceError {
 	#[error("invalid account owner")]
 	InvalidAccountOwner,
@@ -128,5 +132,35 @@ pub fn data_from_state(state: &State) -> Result<&Data, NonceError> {
 	match state {
 		State::Uninitialized => Err(NonceError::InvalidStateForOperation),
 		State::Initialized(data) => Ok(data),
+	}
+}
+
+impl SolanaRpcClient {
+	/// Deserialize the state of a durable transaction nonce account.
+	///
+	/// # Errors
+	///
+	/// Returns an error if the account is not owned by the system program or
+	/// contains no data.
+	pub async fn get_nonce_account_state(&self, nonce_pubkey: &Pubkey) -> ClientResult<State> {
+		let account = self.get_account(nonce_pubkey).await?;
+		account_identity_ok(&account)?;
+		let state = state_from_account(&account)?;
+
+		Ok(state)
+	}
+
+	/// Deserialize the state data of a durable transaction nonce account.
+	///
+	/// # Errors
+	///
+	/// Returns an error if the account is not owned by the system program or
+	/// contains no data. Returns an error if the account state is uninitialized
+	/// or fails to deserialize.
+	pub async fn get_nonce_account_data(&self, nonce_pubkey: &Pubkey) -> ClientResult<Data> {
+		let state = self.get_nonce_account_state(nonce_pubkey).await?;
+		let data = data_from_state(&state).cloned()?;
+
+		Ok(data)
 	}
 }

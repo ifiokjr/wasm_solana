@@ -7,6 +7,8 @@ use solana_sdk::signer::SignerError;
 use wallet_standard::IntoWalletError;
 use wallet_standard::WalletError;
 
+use crate::nonce_utils::NonceError;
+
 pub const DEFAULT_ERROR_CODE: u16 = 500u16;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -69,13 +71,17 @@ pub enum ClientError {
 	/// An rpc client error.
 	#[error("{0}")]
 	Rpc(#[from] RpcError),
+	#[error("Websocket Error: {0}")]
+	WebSocket(#[from] ClientWebSocketError),
+	/// The wallet error.
+	#[error("{0}")]
+	Wallet(#[from] WalletError),
+	/// The nonce error.
+	#[error("{0}")]
+	Nonce(#[from] NonceError),
 	/// The string of any unsupported errors.
 	#[error("Other: {0}")]
 	Other(String),
-	#[error("Websocket Error: {0}")]
-	WebSocket(#[from] ClientWebSocketError),
-	#[error("{0}")]
-	Wallet(#[from] WalletError),
 }
 
 impl IntoWalletError for ClientError {}
