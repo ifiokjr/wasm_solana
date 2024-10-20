@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.5.0...wasm_client_solana@v0.6.0) - 2024-10-20
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] `SolanaRpcClient::get_nonce_account_*` methods
+
 ## [0.5.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.4.0...wasm_client_solana@v0.5.0) - 2024-10-13
 
 ### <!-- 0 -->🎉 Added
