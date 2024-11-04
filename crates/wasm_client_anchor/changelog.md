@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.6.1...wasm_client_anchor@v0.7.0) - 2024-11-04
+
+### <!-- 0 -->🎉 Added
+
+- add `get_zero_copy_anchor_account` method
+
 ## [0.6.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_anchor@v0.6.0...wasm_client_anchor@v0.6.1) - 2024-10-20
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
