@@ -12,6 +12,7 @@
       pkgs.geckodriver
       pkgs.jq
       pkgs.libiconv
+      pkgs.mold
       pkgs.nixfmt-rfc-style
       pkgs.protobuf # needed for `solana-test-validator` in tests
       pkgs.rustup
