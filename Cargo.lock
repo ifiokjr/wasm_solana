@@ -8698,6 +8698,7 @@ dependencies = [
  "assert2",
  "async-trait",
  "base64 0.22.1",
+ "bytemuck",
  "futures 0.3.31",
  "insta",
  "js-sys",
