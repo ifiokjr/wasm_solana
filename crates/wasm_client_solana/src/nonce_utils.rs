@@ -7,7 +7,6 @@ use solana_sdk::account::ReadableAccount;
 use solana_sdk::account_utils::StateMut;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
-use solana_sdk::nonce;
 use solana_sdk::nonce::State;
 use solana_sdk::nonce::state::Data;
 use solana_sdk::nonce::state::Versions;
