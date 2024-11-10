@@ -8,7 +8,7 @@ edition = "2021"
 homepage = "https://github.com/ifiokjr/wasm_solana"
 license = "Unlicense"
 repository = "https://github.com/ifiokjr/wasm_solana"
-rust-version = "1.76.0"
+rust-version = "1.79.0"
 
 [workspace.dependencies]
 anchor-lang = { git = "https://github.com/coral-xyz/anchor", rev = "8dca0d6" }
