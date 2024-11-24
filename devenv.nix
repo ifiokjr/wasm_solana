@@ -102,7 +102,7 @@
   };
   scripts."build:docs" = {
     exec = ''
-      RUSTDOCFLAGS="--cfg docsrs" cargo doc --all-features --workspace --exclude example_program --exclude test_utils --exclude example_client
+      RUSTDOCFLAGS="--cfg docsrs" cargo doc --workspace --exclude example_program --exclude test_utils --exclude example_client --exclude test_utils_solana
     '';
     description = "Build documentation site.";
   };
