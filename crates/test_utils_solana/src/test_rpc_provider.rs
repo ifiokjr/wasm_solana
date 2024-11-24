@@ -91,7 +91,7 @@ impl RpcProvider for TestRpcProvider {
 
 			let result = match method {
 				GetAccountInfoRequest::NAME => {
-					let mut client = self.0.lock().await;
+					let client = self.0.lock().await;
 					let request: GetAccountInfoRequest =
 						serde_json::from_value(request).map_err(to_error)?;
 					let account = client
@@ -122,7 +122,7 @@ impl RpcProvider for TestRpcProvider {
 					serde_json::to_value(response).map_err(to_error)?
 				}
 				GetBalanceRequest::NAME => {
-					let mut client = self.0.lock().await;
+					let client = self.0.lock().await;
 					let request: GetBalanceRequest =
 						serde_json::from_value(request).map_err(to_error)?;
 					let value = client
@@ -140,7 +140,7 @@ impl RpcProvider for TestRpcProvider {
 					serde_json::to_value(response).map_err(to_error)?
 				}
 				GetLatestBlockhashRequest::NAME => {
-					let mut client = self.0.lock().await;
+					let client = self.0.lock().await;
 					let blockhash = client
 						.banks_client
 						.get_latest_blockhash()
@@ -167,7 +167,7 @@ impl RpcProvider for TestRpcProvider {
 					serde_json::to_value(response).map_err(to_error)?
 				}
 				GetSignatureStatusesRequest::NAME => {
-					let mut client = self.0.lock().await;
+					let client = self.0.lock().await;
 					let request: GetSignatureStatusesRequest =
 						serde_json::from_value(request).map_err(to_error)?;
 					let statuses = client
@@ -217,7 +217,7 @@ impl RpcProvider for TestRpcProvider {
 					let data_slice = request.config.as_ref().and_then(|config| config.data_slice);
 					let futures = request.addresses.iter().map(|pubkey| {
 						async move {
-							let mut client = self.0.lock().await;
+							let client = self.0.lock().await;
 							let account = client.banks_client.get_account(*pubkey).await.unwrap();
 
 							account.map(|account| {
@@ -253,7 +253,7 @@ impl RpcProvider for TestRpcProvider {
 					serde_json::to_value(response).map_err(to_error)?
 				}
 				SendTransactionRequest::NAME => {
-					let mut client = self.0.lock().await;
+					let client = self.0.lock().await;
 					let request: SendTransactionRequest =
 						serde_json::from_value(request).map_err(to_error)?;
 					let signature = request
@@ -277,7 +277,7 @@ impl RpcProvider for TestRpcProvider {
 					serde_json::to_value(response).map_err(to_error)?
 				}
 				SimulateTransactionRequest::NAME => {
-					let mut client = self.0.lock().await;
+					let client = self.0.lock().await;
 					let request: SimulateTransactionRequest =
 						serde_json::from_value(request).map_err(to_error)?;
 					let transaction = request.transaction.clone();

@@ -23,6 +23,7 @@ use solana_sdk::message::v0::LoadedMessage;
 use solana_sdk::message::v0::MessageAddressTableLookup;
 use solana_sdk::message::v0::{self};
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::reserved_account_keys::ReservedAccountKeys;
 pub use solana_sdk::reward_type::RewardType;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Result as TransactionResult;
@@ -951,12 +952,16 @@ impl VersionedTransactionWithStatusMeta {
 		show_rewards: bool,
 	) -> Result<EncodedTransactionWithStatusMeta, EncodeError> {
 		let version = self.validate_version(max_supported_transaction_version)?;
+		let reserved_account_keys = ReservedAccountKeys::new_all_activated();
 
 		let account_keys = match &self.transaction.message {
 			VersionedMessage::Legacy(message) => parse_legacy_message_accounts(message),
 			VersionedMessage::V0(message) => {
-				let loaded_message =
-					LoadedMessage::new_borrowed(message, &self.meta.loaded_addresses);
+				let loaded_message = LoadedMessage::new_borrowed(
+					message,
+					&self.meta.loaded_addresses,
+					&reserved_account_keys.active,
+				);
 				parse_v0_message_accounts(&loaded_message)
 			}
 		};
@@ -1222,8 +1227,13 @@ impl EncodableWithMeta for v0::Message {
 		meta: &TransactionStatusMeta,
 	) -> Self::Encoded {
 		if encoding == UiTransactionEncoding::JsonParsed {
+			let reserved_account_keys = ReservedAccountKeys::new_all_activated();
 			let account_keys = AccountKeys::new(&self.account_keys, Some(&meta.loaded_addresses));
-			let loaded_message = LoadedMessage::new_borrowed(self, &meta.loaded_addresses);
+			let loaded_message = LoadedMessage::new_borrowed(
+				self,
+				&meta.loaded_addresses,
+				&reserved_account_keys.active,
+			);
 			UiMessage::Parsed(UiParsedMessage {
 				account_keys: parse_v0_message_accounts(&loaded_message),
 				recent_blockhash: self.recent_blockhash,

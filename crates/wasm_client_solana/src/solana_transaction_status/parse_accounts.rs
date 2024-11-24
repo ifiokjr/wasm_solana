@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use serde::Deserialize;
 use serde::Serialize;
 use serde_with::DisplayFromStr;
@@ -32,7 +34,7 @@ pub fn parse_legacy_message_accounts(message: &Message) -> Vec<ParsedAccount> {
 	for (i, pubkey) in message.account_keys.iter().enumerate() {
 		accounts.push(ParsedAccount {
 			pubkey: *pubkey,
-			writable: message.is_writable(i),
+			writable: message.is_maybe_writable(i, Some(&HashSet::new())),
 			signer: message.is_signer(i),
 			source: Some(ParsedAccountSource::Transaction),
 		});
@@ -68,6 +70,7 @@ mod test {
 	use solana_sdk::message::v0;
 	use solana_sdk::message::v0::LoadedAddresses;
 	use solana_sdk::pubkey::Pubkey;
+	use solana_sdk::reserved_account_keys::ReservedAccountKeys;
 
 	use super::*;
 
@@ -137,6 +140,7 @@ mod test {
 				writable: vec![pubkey4],
 				readonly: vec![pubkey5],
 			},
+			&ReservedAccountKeys::empty_key_set(),
 		);
 
 		assert_eq!(parse_v0_message_accounts(&message), vec![

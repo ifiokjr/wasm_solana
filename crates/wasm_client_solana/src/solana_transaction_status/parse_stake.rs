@@ -26,36 +26,37 @@ pub fn parse_stake(
 			));
 		}
 	}
+
 	match stake_instruction {
 		StakeInstruction::Initialize(authorized, lockup) => {
 			check_num_stake_accounts(&instruction.accounts, 2)?;
 			let authorized = json!({
-				"staker": authorized.staker.to_string(),
-				"withdrawer": authorized.withdrawer.to_string(),
+					"staker": authorized.staker.to_string(),
+					"withdrawer": authorized.withdrawer.to_string(),
 			});
 			let lockup = json!({
-				"unixTimestamp": lockup.unix_timestamp,
-				"epoch": lockup.epoch,
-				"custodian": lockup.custodian.to_string(),
+					"unixTimestamp": lockup.unix_timestamp,
+					"epoch": lockup.epoch,
+					"custodian": lockup.custodian.to_string(),
 			});
 			Ok(ParsedInstructionEnum {
 				instruction_type: "initialize".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"rentSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-					"authorized": authorized,
-					"lockup": lockup,
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"rentSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+						"authorized": authorized,
+						"lockup": lockup,
 				}),
 			})
 		}
 		StakeInstruction::Authorize(new_authorized, authority_type) => {
 			check_num_stake_accounts(&instruction.accounts, 3)?;
 			let mut value = json!({
-				"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-				"clockSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-				"authority": account_keys[instruction.accounts[2] as usize].to_string(),
-				"newAuthority": new_authorized.to_string(),
-				"authorityType": authority_type,
+					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+					"clockSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+					"authority": account_keys[instruction.accounts[2] as usize].to_string(),
+					"newAuthority": new_authorized.to_string(),
+					"authorityType": authority_type,
 			});
 			let map = value.as_object_mut().unwrap();
 			if instruction.accounts.len() >= 4 {
@@ -74,12 +75,12 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "delegate".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"voteAccount": account_keys[instruction.accounts[1] as usize].to_string(),
-					"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-					"stakeHistorySysvar": account_keys[instruction.accounts[3] as usize].to_string(),
-					"stakeConfigAccount": account_keys[instruction.accounts[4] as usize].to_string(),
-					"stakeAuthority": account_keys[instruction.accounts[5] as usize].to_string(),
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"voteAccount": account_keys[instruction.accounts[1] as usize].to_string(),
+						"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
+						"stakeHistorySysvar": account_keys[instruction.accounts[3] as usize].to_string(),
+						"stakeConfigAccount": account_keys[instruction.accounts[4] as usize].to_string(),
+						"stakeAuthority": account_keys[instruction.accounts[5] as usize].to_string(),
 				}),
 			})
 		}
@@ -88,22 +89,22 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "split".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"newSplitAccount": account_keys[instruction.accounts[1] as usize].to_string(),
-					"stakeAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
-					"lamports": lamports,
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"newSplitAccount": account_keys[instruction.accounts[1] as usize].to_string(),
+						"stakeAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
+						"lamports": lamports,
 				}),
 			})
 		}
 		StakeInstruction::Withdraw(lamports) => {
 			check_num_stake_accounts(&instruction.accounts, 5)?;
 			let mut value = json!({
-				"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-				"destination": account_keys[instruction.accounts[1] as usize].to_string(),
-				"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-				"stakeHistorySysvar": account_keys[instruction.accounts[3] as usize].to_string(),
-				"withdrawAuthority": account_keys[instruction.accounts[4] as usize].to_string(),
-				"lamports": lamports,
+					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+					"destination": account_keys[instruction.accounts[1] as usize].to_string(),
+					"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
+					"stakeHistorySysvar": account_keys[instruction.accounts[3] as usize].to_string(),
+					"withdrawAuthority": account_keys[instruction.accounts[4] as usize].to_string(),
+					"lamports": lamports,
 			});
 			let map = value.as_object_mut().unwrap();
 			if instruction.accounts.len() >= 6 {
@@ -122,9 +123,9 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "deactivate".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"clockSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-					"stakeAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"clockSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+						"stakeAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
 				}),
 			})
 		}
@@ -143,9 +144,9 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "setLockup".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"custodian": account_keys[instruction.accounts[1] as usize].to_string(),
-					"lockup": lockup_map,
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"custodian": account_keys[instruction.accounts[1] as usize].to_string(),
+						"lockup": lockup_map,
 				}),
 			})
 		}
@@ -154,23 +155,23 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "merge".to_string(),
 				info: json!({
-					"destination": account_keys[instruction.accounts[0] as usize].to_string(),
-					"source": account_keys[instruction.accounts[1] as usize].to_string(),
-					"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-					"stakeHistorySysvar": account_keys[instruction.accounts[3] as usize].to_string(),
-					"stakeAuthority": account_keys[instruction.accounts[4] as usize].to_string(),
+						"destination": account_keys[instruction.accounts[0] as usize].to_string(),
+						"source": account_keys[instruction.accounts[1] as usize].to_string(),
+						"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
+						"stakeHistorySysvar": account_keys[instruction.accounts[3] as usize].to_string(),
+						"stakeAuthority": account_keys[instruction.accounts[4] as usize].to_string(),
 				}),
 			})
 		}
 		StakeInstruction::AuthorizeWithSeed(args) => {
 			check_num_stake_accounts(&instruction.accounts, 2)?;
 			let mut value = json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"authorityBase": account_keys[instruction.accounts[1] as usize].to_string(),
-					"newAuthorized": args.new_authorized_pubkey.to_string(),
-					"authorityType": args.stake_authorize,
-					"authoritySeed": args.authority_seed,
-					"authorityOwner": args.authority_owner.to_string(),
+							"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+							"authorityBase": account_keys[instruction.accounts[1] as usize].to_string(),
+							"newAuthorized": args.new_authorized_pubkey.to_string(),
+							"authorityType": args.stake_authorize,
+							"authoritySeed": args.authority_seed,
+							"authorityOwner": args.authority_owner.to_string(),
 			});
 			let map = value.as_object_mut().unwrap();
 			if instruction.accounts.len() >= 3 {
@@ -195,21 +196,21 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "initializeChecked".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"rentSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-					"staker": account_keys[instruction.accounts[2] as usize].to_string(),
-					"withdrawer": account_keys[instruction.accounts[3] as usize].to_string(),
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"rentSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+						"staker": account_keys[instruction.accounts[2] as usize].to_string(),
+						"withdrawer": account_keys[instruction.accounts[3] as usize].to_string(),
 				}),
 			})
 		}
 		StakeInstruction::AuthorizeChecked(authority_type) => {
 			check_num_stake_accounts(&instruction.accounts, 4)?;
 			let mut value = json!({
-				"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-				"clockSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-				"authority": account_keys[instruction.accounts[2] as usize].to_string(),
-				"newAuthority": account_keys[instruction.accounts[3] as usize].to_string(),
-				"authorityType": authority_type,
+					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+					"clockSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+					"authority": account_keys[instruction.accounts[2] as usize].to_string(),
+					"newAuthority": account_keys[instruction.accounts[3] as usize].to_string(),
+					"authorityType": authority_type,
 			});
 			let map = value.as_object_mut().unwrap();
 			if instruction.accounts.len() >= 5 {
@@ -226,13 +227,13 @@ pub fn parse_stake(
 		StakeInstruction::AuthorizeCheckedWithSeed(args) => {
 			check_num_stake_accounts(&instruction.accounts, 4)?;
 			let mut value = json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"authorityBase": account_keys[instruction.accounts[1] as usize].to_string(),
-					"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-					"newAuthorized": account_keys[instruction.accounts[3] as usize].to_string(),
-					"authorityType": args.stake_authorize,
-					"authoritySeed": args.authority_seed,
-					"authorityOwner": args.authority_owner.to_string(),
+							"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+							"authorityBase": account_keys[instruction.accounts[1] as usize].to_string(),
+							"clockSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
+							"newAuthorized": account_keys[instruction.accounts[3] as usize].to_string(),
+							"authorityType": args.stake_authorize,
+							"authoritySeed": args.authority_seed,
+							"authorityOwner": args.authority_owner.to_string(),
 			});
 			let map = value.as_object_mut().unwrap();
 			if instruction.accounts.len() >= 5 {
@@ -264,9 +265,9 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "setLockupChecked".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"custodian": account_keys[instruction.accounts[1] as usize].to_string(),
-					"lockup": lockup_map,
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"custodian": account_keys[instruction.accounts[1] as usize].to_string(),
+						"lockup": lockup_map,
 				}),
 			})
 		}
@@ -281,9 +282,9 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "deactivateDelinquent".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"voteAccount": account_keys[instruction.accounts[1] as usize].to_string(),
-					"referenceVoteAccount": account_keys[instruction.accounts[2] as usize].to_string(),
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"voteAccount": account_keys[instruction.accounts[1] as usize].to_string(),
+						"referenceVoteAccount": account_keys[instruction.accounts[2] as usize].to_string(),
 				}),
 			})
 		}
@@ -292,11 +293,35 @@ pub fn parse_stake(
 			Ok(ParsedInstructionEnum {
 				instruction_type: "redelegate".to_string(),
 				info: json!({
-					"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-					"newStakeAccount": account_keys[instruction.accounts[1] as usize].to_string(),
-					"voteAccount": account_keys[instruction.accounts[2] as usize].to_string(),
-					"stakeConfigAccount": account_keys[instruction.accounts[3] as usize].to_string(),
-					"stakeAuthority": account_keys[instruction.accounts[4] as usize].to_string(),
+						"stakeAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+						"newStakeAccount": account_keys[instruction.accounts[1] as usize].to_string(),
+						"voteAccount": account_keys[instruction.accounts[2] as usize].to_string(),
+						"stakeConfigAccount": account_keys[instruction.accounts[3] as usize].to_string(),
+						"stakeAuthority": account_keys[instruction.accounts[4] as usize].to_string(),
+				}),
+			})
+		}
+		StakeInstruction::MoveStake(lamports) => {
+			check_num_stake_accounts(&instruction.accounts, 3)?;
+			Ok(ParsedInstructionEnum {
+				instruction_type: "moveStake".to_string(),
+				info: json!({
+						"source": account_keys[instruction.accounts[0] as usize].to_string(),
+						"destination": account_keys[instruction.accounts[1] as usize].to_string(),
+						"stakeAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
+						"lamports": lamports,
+				}),
+			})
+		}
+		StakeInstruction::MoveLamports(lamports) => {
+			check_num_stake_accounts(&instruction.accounts, 3)?;
+			Ok(ParsedInstructionEnum {
+				instruction_type: "moveLamports".to_string(),
+				info: json!({
+						"source": account_keys[instruction.accounts[0] as usize].to_string(),
+						"destination": account_keys[instruction.accounts[1] as usize].to_string(),
+						"stakeAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
+						"lamports": lamports,
 				}),
 			})
 		}

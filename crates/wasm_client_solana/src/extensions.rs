@@ -371,7 +371,7 @@ pub async fn initialize_address_lookup_table<
 		})
 		.collect::<Vec<_>>();
 
-	let Some(instruction) = instructions.first().cloned() else {
+	let Some(instruction) = instructions.first().map(wasm_safe_instruction_clone) else {
 		return Ok(lookup_table_address);
 	};
 
@@ -402,7 +402,11 @@ pub async fn initialize_address_lookup_table<
 			instruction_chunk.len().mul(compute_units as usize) as u32,
 		);
 		let mut instructions = vec![compute_limit_instruction];
-		instructions.append(&mut instruction_chunk.to_vec());
+		let mut cloned_chunk = instruction_chunk
+			.iter()
+			.map(wasm_safe_instruction_clone)
+			.collect::<Vec<_>>();
+		instructions.append(&mut cloned_chunk);
 		let mut versioned_transaction = VersionedTransaction::new_unsigned_v0(
 			&payer,
 			&instructions,
@@ -422,4 +426,19 @@ pub async fn initialize_address_lookup_table<
 	}
 
 	Ok(lookup_table_address)
+}
+
+fn wasm_safe_instruction_clone(instruction: &Instruction) -> Instruction {
+	#[cfg(target_arch = "wasm32")]
+	{
+		Instruction {
+			program_id: instruction.program_id.clone(),
+			accounts: instruction.accounts.clone(),
+			data: instruction.data.clone(),
+		}
+	}
+	#[cfg(not(target_arch = "wasm32"))]
+	{
+		instruction.clone()
+	}
 }

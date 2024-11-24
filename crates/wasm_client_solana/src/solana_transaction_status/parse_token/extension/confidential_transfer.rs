@@ -156,7 +156,7 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_confidential_tran
 					ParseInstructionError::InstructionNotParsable(ParsableProgram::SplToken)
 				})?;
 			let amount: u64 = withdrawal_data.amount.into();
-			let proof_instruction_offset: i8 = withdrawal_data.proof_instruction_offset;
+			let range_proof_instruction_offset: i8 = withdrawal_data.range_proof_instruction_offset;
 			let mut value = json!({
 				"source": account_keys[account_indexes[0] as usize].to_string(),
 				"destination": account_keys[account_indexes[1] as usize].to_string(),
@@ -165,7 +165,7 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_confidential_tran
 				"amount": amount,
 				"decimals": withdrawal_data.decimals,
 				"newDecryptableAvailableBalance": format!("{}", withdrawal_data.new_decryptable_available_balance),
-				"proofInstructionOffset": proof_instruction_offset,
+				"rangeProofInstructionOffset": range_proof_instruction_offset,
 
 			});
 			let map = value.as_object_mut().unwrap();
@@ -188,14 +188,14 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_confidential_tran
 				.map_err(|_| {
 					ParseInstructionError::InstructionNotParsable(ParsableProgram::SplToken)
 				})?;
-			let proof_instruction_offset: i8 = transfer_data.proof_instruction_offset;
+			let range_proof_instruction_offset: i8 = transfer_data.range_proof_instruction_offset;
 			let mut value = json!({
 				"source": account_keys[account_indexes[0] as usize].to_string(),
 				"mint": account_keys[account_indexes[1] as usize].to_string(),
 				"destination": account_keys[account_indexes[2] as usize].to_string(),
 				"instructionsSysvar": account_keys[account_indexes[3] as usize].to_string(),
 				"newSourceDecryptableAvailableBalance": format!("{}", transfer_data.new_source_decryptable_available_balance),
-				"proofInstructionOffset": proof_instruction_offset,
+				"rangeProofInstructionOffset": range_proof_instruction_offset,
 
 			});
 			let map = value.as_object_mut().unwrap();
@@ -321,39 +321,9 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_confidential_tran
 				info: value,
 			})
 		}
-		ConfidentialTransferInstruction::TransferWithSplitProofs => {
-			check_num_token_accounts(account_indexes, 7)?;
-			let transfer_data: TransferWithSplitProofsInstructionData =
-				*decode_instruction_data(instruction_data).map_err(|_| {
-					ParseInstructionError::InstructionNotParsable(ParsableProgram::SplToken)
-				})?;
-			let mut value = json!({
-				"source": account_keys[account_indexes[0] as usize].to_string(),
-				"mint": account_keys[account_indexes[1] as usize].to_string(),
-				"destination": account_keys[account_indexes[2] as usize].to_string(),
-				"ciphertextCommitmentEqualityContext": account_keys[account_indexes[3] as usize].to_string(),
-				"batchedGroupedCiphertext2HandlesValidityContext": account_keys[account_indexes[4] as usize].to_string(),
-				"batchedRangeProofContext": account_keys[account_indexes[5] as usize].to_string(),
-				"owner": account_keys[account_indexes[6] as usize].to_string(),
-				"newSourceDecryptableAvailableBalance": format!("{}", transfer_data.new_source_decryptable_available_balance),
-				"noOpOnUninitializedSplitContextState": bool::from(transfer_data.no_op_on_uninitialized_split_context_state),
-				"closeSplitContextStateOnExecution": bool::from(transfer_data.close_split_context_state_on_execution),
-			});
-			let map = value.as_object_mut().unwrap();
-			if transfer_data.close_split_context_state_on_execution.into() {
-				map.insert(
-					"lamportDestination".to_string(),
-					json!(account_keys[account_indexes[7] as usize].to_string()),
-				);
-				map.insert(
-					"contextStateOwner".to_string(),
-					json!(account_keys[account_indexes[8] as usize].to_string()),
-				);
-			}
-			Ok(ParsedInstructionEnum {
-				instruction_type: "confidentialTransferWithSplitProofs".to_string(),
-				info: value,
-			})
+		ConfidentialTransferInstruction::TransferWithFee => {
+			todo!("Not yet implemented")
 		}
+		ConfidentialTransferInstruction::ConfigureAccountWithRegistry => todo!(),
 	}
 }
