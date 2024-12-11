@@ -2,9 +2,6 @@
 
 use std::fmt::Display;
 
-use anchor_lang::AccountDeserialize;
-use anchor_lang::AnchorSerialize;
-use anchor_lang::Discriminator;
 use async_trait::async_trait;
 use borsh::BorshSerialize;
 use chrono_humanize::Accuracy;
@@ -12,21 +9,18 @@ use chrono_humanize::HumanTime;
 use chrono_humanize::Tense;
 use solana_banks_client::BanksClient;
 use solana_banks_client::BanksClientError;
-use solana_banks_interface::BanksTransactionResultWithSimulation;
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::BanksTransactionResultWithMetadata;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
-use solana_sdk::account::AccountSharedData;
-use solana_sdk::account::WritableAccount;
 use solana_sdk::bpf_loader_upgradeable::UpgradeableLoaderState;
 use solana_sdk::bpf_loader_upgradeable::{self};
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentLevel;
-use solana_sdk::message::VersionedMessage;
 use solana_sdk::message::v0;
+use solana_sdk::message::VersionedMessage;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::program_option::COption;
 use solana_sdk::program_pack::Pack;
@@ -36,11 +30,10 @@ use solana_sdk::signature::Signer;
 use solana_sdk::sysvar::rent::Rent;
 use solana_sdk::transaction::VersionedTransaction;
 use spl_associated_token_account::get_associated_token_address;
+use wallet_standard::prelude::*;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
-use wallet_standard::prelude::*;
-use wasm_client_anchor::AnchorClientResult;
-use wasm_client_anchor::prelude::*;
+use wasm_client_solana::prelude::*;
 
 #[async_trait(?Send)]
 pub trait BanksClientAsyncExtension {
@@ -56,19 +49,9 @@ pub trait BanksClientAsyncExtension {
 		wallet: &W,
 		props: SolanaSignAndSendTransactionProps,
 	) -> WalletResult<BanksTransactionResultWithMetadata>;
-	/// Sign and imulate the transaction.
-	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
-		&mut self,
-		wallet: &W,
-		props: SolanaSignAndSendTransactionProps,
-	) -> AnchorClientResult<BanksTransactionResultWithSimulation>;
-	async fn get_anchor_account<T: AccountDeserialize>(
-		&mut self,
-		address: &Pubkey,
-	) -> Result<T, BanksClientError>;
 }
 
-fn into_wallet_error<T: Display>(error: T) -> WalletError {
+pub fn into_wallet_error<T: Display>(error: T) -> WalletError {
 	WalletError::External(error.to_string())
 }
 
@@ -101,11 +84,14 @@ impl BanksClientAsyncExtension for BanksClient {
 		}: SolanaSignAndSendTransactionProps,
 	) -> WalletResult<BanksTransactionResultWithMetadata> {
 		let transaction = self
-			.wallet_sign_transaction(wallet, SolanaSignTransactionProps {
-				transaction,
-				chain,
-				options: options.map(Into::into),
-			})
+			.wallet_sign_transaction(
+				wallet,
+				SolanaSignTransactionProps {
+					transaction,
+					chain,
+					options: options.map(Into::into),
+				},
+			)
 			.await?;
 
 		let metadata = self
@@ -114,51 +100,6 @@ impl BanksClientAsyncExtension for BanksClient {
 			.map_err(into_wallet_error)?;
 
 		Ok(metadata)
-	}
-
-	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
-		&mut self,
-		wallet: &W,
-		SolanaSignAndSendTransactionProps {
-			transaction,
-			chain,
-			options,
-			..
-		}: SolanaSignAndSendTransactionProps,
-	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
-		let transaction = self
-			.wallet_sign_transaction(wallet, SolanaSignTransactionProps {
-				transaction,
-				chain,
-				options: options.map(Into::into),
-			})
-			.await?;
-
-		let result = self
-			.simulate_transaction(transaction)
-			.await
-			.map_err(into_wallet_error)?;
-
-		Ok(result)
-	}
-
-	async fn get_anchor_account<T: AccountDeserialize>(
-		&mut self,
-		address: &Pubkey,
-	) -> Result<T, BanksClientError> {
-		let Some(account) = self
-			.get_account_with_commitment(*address, CommitmentLevel::Finalized)
-			.await?
-		else {
-			return Err(BanksClientError::ClientError("account not found"));
-		};
-
-		let mut data: &[u8] = &account.data;
-		let result = T::try_deserialize(&mut data).map_err(|_| {
-			BanksClientError::ClientError("could not deserialize account, invalid data")
-		})?;
-
-		Ok(result)
 	}
 }
 
@@ -173,21 +114,6 @@ pub trait ProgramTestExtension {
 		owner: Pubkey,
 		data: &[u8],
 		executable: bool,
-	);
-	/// Adds an Anchor account.
-	fn add_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		pubkey: Pubkey,
-		owner: Pubkey,
-		anchor_data: T,
-		executable: bool,
-	);
-	/// Adds an empty anchor account with a discriminator and specified size.
-	fn add_empty_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		pubkey: Pubkey,
-		owner: Pubkey,
-		size: usize,
 	);
 	/// Adds an account with the given balance to the test environment.
 	fn add_account_with_lamports(&mut self, pubkey: Pubkey, owner: Pubkey, lamports: u64);
@@ -274,54 +200,29 @@ impl ProgramTestExtension for ProgramTest {
 		data: &[u8],
 		executable: bool,
 	) {
-		self.add_account(pubkey, Account {
-			lamports: Rent::default().minimum_balance(data.len()),
-			data: data.to_vec(),
-			executable,
-			owner,
-			rent_epoch: 0,
-		});
-	}
-
-	fn add_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		pubkey: Pubkey,
-		owner: Pubkey,
-		anchor_data: T,
-		executable: bool,
-	) {
-		let discriminator = &T::DISCRIMINATOR;
-		let data = anchor_data
-			.try_to_vec()
-			.expect("Cannot serialize provided anchor account");
-		let mut v = Vec::new();
-		v.extend_from_slice(discriminator);
-		v.extend_from_slice(&data);
-		self.add_account_with_data(pubkey, owner, &v, executable);
-	}
-
-	fn add_empty_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		pubkey: Pubkey,
-		owner: Pubkey,
-		size: usize,
-	) {
-		let discriminator = T::DISCRIMINATOR;
-		let data = vec![0_u8; size];
-		let mut v = Vec::new();
-		v.extend_from_slice(discriminator);
-		v.extend_from_slice(&data);
-		self.add_account_with_data(pubkey, owner, &v, false);
+		self.add_account(
+			pubkey,
+			Account {
+				lamports: Rent::default().minimum_balance(data.len()),
+				data: data.to_vec(),
+				executable,
+				owner,
+				rent_epoch: 0,
+			},
+		);
 	}
 
 	fn add_account_with_lamports(&mut self, pubkey: Pubkey, owner: Pubkey, lamports: u64) {
-		self.add_account(pubkey, Account {
-			lamports,
-			data: vec![],
-			executable: false,
-			owner,
-			rent_epoch: 0,
-		});
+		self.add_account(
+			pubkey,
+			Account {
+				lamports,
+				data: vec![],
+				executable: false,
+				owner,
+				rent_epoch: 0,
+			},
+		);
 	}
 
 	fn add_account_with_packable<P: Pack>(&mut self, pubkey: Pubkey, owner: Pubkey, data: P) {
@@ -353,13 +254,17 @@ impl ProgramTestExtension for ProgramTest {
 		decimals: u8,
 		freeze_authority: Option<Pubkey>,
 	) {
-		self.add_account_with_packable(pubkey, spl_token_2022::ID, spl_token_2022::state::Mint {
-			mint_authority: COption::from(mint_authority),
-			supply,
-			decimals,
-			is_initialized: true,
-			freeze_authority: COption::from(freeze_authority),
-		});
+		self.add_account_with_packable(
+			pubkey,
+			spl_token_2022::ID,
+			spl_token_2022::state::Mint {
+				mint_authority: COption::from(mint_authority),
+				supply,
+				decimals,
+				is_initialized: true,
+				freeze_authority: COption::from(freeze_authority),
+			},
+		);
 	}
 
 	fn add_token_account(
@@ -428,17 +333,23 @@ impl ProgramTestExtension for ProgramTest {
 			let program_data_pubkey = Pubkey::new_unique();
 			let mut program = Vec::<u8>::new();
 
-			bincode::serialize_into(&mut program, &UpgradeableLoaderState::Program {
-				programdata_address: program_data_pubkey,
-			})
+			bincode::serialize_into(
+				&mut program,
+				&UpgradeableLoaderState::Program {
+					programdata_address: program_data_pubkey,
+				},
+			)
 			.unwrap();
 
 			let mut program_data = Vec::<u8>::new();
 
-			bincode::serialize_into(&mut program_data, &UpgradeableLoaderState::ProgramData {
-				slot: 0,
-				upgrade_authority_address: Some(program_authority),
-			})
+			bincode::serialize_into(
+				&mut program_data,
+				&UpgradeableLoaderState::ProgramData {
+					slot: 0,
+					upgrade_authority_address: Some(program_authority),
+				},
+			)
 			.unwrap();
 
 			log::info!(
@@ -495,16 +406,22 @@ impl ProgramTestExtension for ProgramTest {
 			let program_bytes = solana_program_test::read_file(program_file.clone());
 
 			let mut program = Vec::<u8>::new();
-			bincode::serialize_into(&mut program, &UpgradeableLoaderState::Program {
-				programdata_address: program_data_pubkey,
-			})
+			bincode::serialize_into(
+				&mut program,
+				&UpgradeableLoaderState::Program {
+					programdata_address: program_data_pubkey,
+				},
+			)
 			.unwrap();
 
 			let mut program_data = Vec::<u8>::new();
-			bincode::serialize_into(&mut program_data, &UpgradeableLoaderState::ProgramData {
-				slot: 0,
-				upgrade_authority_address: Some(program_authority),
-			})
+			bincode::serialize_into(
+				&mut program_data,
+				&UpgradeableLoaderState::ProgramData {
+					slot: 0,
+					upgrade_authority_address: Some(program_authority),
+				},
+			)
 			.unwrap();
 
 			log::info!(
@@ -554,17 +471,6 @@ pub trait ProgramTestContextExtension {
 	async fn create_funded_keypair(&mut self) -> Result<Keypair, BanksClientError>;
 	/// Get the current slot
 	async fn get_slot(&mut self) -> Result<Slot, BanksClientError>;
-	/// Get the anchor account from the provided address.
-	async fn get_anchor_account<T: AccountDeserialize>(
-		&mut self,
-		address: &Pubkey,
-	) -> Result<T, BanksClientError>;
-	fn add_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		pubkey: &Pubkey,
-		owner: &Pubkey,
-		anchor_data: T,
-	) -> Result<(), BanksClientError>;
 	/// Fund an account with the set number of lamports.
 	async fn fund_account(
 		&mut self,
@@ -605,13 +511,6 @@ impl ProgramTestContextExtension for ProgramTestContext {
 			.await
 	}
 
-	async fn get_anchor_account<T: AccountDeserialize>(
-		&mut self,
-		address: &Pubkey,
-	) -> Result<T, BanksClientError> {
-		self.banks_client.get_anchor_account(address).await
-	}
-
 	async fn fund_account(
 		&mut self,
 		address: &Pubkey,
@@ -637,17 +536,6 @@ impl ProgramTestContextExtension for ProgramTestContext {
 			.into();
 			self.set_account(address, &new_account);
 		}
-
-		Ok(())
-	}
-
-	fn add_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		address: &Pubkey,
-		owner: &Pubkey,
-		data: T,
-	) -> Result<(), BanksClientError> {
-		self.set_account(address, &AccountSharedData::from_anchor_data(data, *owner));
 
 		Ok(())
 	}
@@ -693,24 +581,5 @@ impl ProgramTestContextExtension for ProgramTestContext {
 				.expect("Number of seconds added is too great"),
 		)
 		.await
-	}
-}
-
-pub trait FromAnchorData {
-	fn from_anchor_data<T: AnchorSerialize + Discriminator>(data: T, owner: Pubkey) -> Self;
-}
-
-impl FromAnchorData for AccountSharedData {
-	fn from_anchor_data<T: AnchorSerialize + Discriminator>(data: T, owner: Pubkey) -> Self {
-		let mut bytes = Vec::new();
-		let discriminator = T::DISCRIMINATOR;
-		let anchor_data = data.try_to_vec().expect("cannot serialize anchor data");
-
-		bytes.extend_from_slice(discriminator);
-		bytes.extend_from_slice(&anchor_data);
-
-		let rent = Rent::default().minimum_balance(bytes.len());
-
-		Self::create(rent, bytes, owner, false, 0)
 	}
 }

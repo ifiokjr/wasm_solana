@@ -8,14 +8,12 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use anchor_lang::AnchorSerialize;
-use anchor_lang::Discriminator;
 use anyhow::Context;
 use anyhow::Result;
 use crossbeam_channel::unbounded;
+use futures::future::Shared;
 use futures::Future;
 use futures::FutureExt;
-use futures::future::Shared;
 use lazy_static::lazy_static;
 use port_check::is_local_ipv4_port_free;
 use rand::Rng;
@@ -33,12 +31,10 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_program;
 use solana_test_validator::TestValidator;
-use solana_test_validator::TestValidatorGenesis;
+pub use solana_test_validator::TestValidatorGenesis;
 use solana_test_validator::UpgradeableProgramInfo;
 use typed_builder::TypedBuilder;
 use wasm_client_solana::SolanaRpcClient;
-
-use crate::FromAnchorData;
 
 #[derive(Default, Clone, TypedBuilder)]
 pub struct TestValidatorRunnerProps {
@@ -366,25 +362,5 @@ fn find_ports() -> Option<(u16, u16, u16)> {
 		if attempts <= 0 {
 			return None;
 		}
-	}
-}
-
-pub trait TestValidatorGenesisExtensions {
-	fn add_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		pubkey: Pubkey,
-		owner: Pubkey,
-		data: T,
-	);
-}
-
-impl TestValidatorGenesisExtensions for TestValidatorGenesis {
-	fn add_account_with_anchor<T: AnchorSerialize + Discriminator>(
-		&mut self,
-		address: Pubkey,
-		owner: Pubkey,
-		data: T,
-	) {
-		self.add_account(address, AccountSharedData::from_anchor_data(data, owner));
 	}
 }

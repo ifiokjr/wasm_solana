@@ -14,8 +14,6 @@ description = "Utilities and extensions for testing solana in wasm compatible en
 workspace = true
 
 [dependencies]
-anchor-lang = { workspace = true }
-anchor-spl = { workspace = true }
 anyhow = { workspace = true }
 assert2 = { workspace = true }
 async-trait = { workspace = true }
@@ -46,14 +44,11 @@ spl-token-2022 = { workspace = true }
 tarpc = { workspace = true }
 typed-builder = { workspace = true }
 wallet_standard = { workspace = true, features = ["solana"] }
-wasm_client_anchor = { workspace = true, features = ["ssr"] }
 wasm_client_solana = { workspace = true, features = ["ssr"] }
 
 [dev-dependencies]
-anyhow = { workspace = true }
 assert2 = { workspace = true }
 insta = { workspace = true, features = ["redactions", "json"] }
-spl-pod = { workspace = true }
 test-log = { workspace = true, features = ["trace"] }
 test_utils = { workspace = true }
 tokio = { workspace = true, features = ["test-util", "time"] }

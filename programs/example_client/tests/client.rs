@@ -8,10 +8,10 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use test_utils::SECRET_KEY_WALLET;
+use test_utils_anchor::anchor_processor;
+use test_utils_anchor::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::TestRpcProvider;
-use test_utils_solana::anchor_processor;
-use test_utils_solana::prelude::*;
 use wallet_standard_wallets::MemoryWallet;
 
 #[test_log::test(tokio::test)]
@@ -92,10 +92,13 @@ async fn create_program_test() -> TestRpcProvider {
 		anchor_processor!(example_program),
 	);
 
-	program_test.add_account(pubkey, Account {
-		lamports: sol_to_lamports(1.0),
-		..Account::default()
-	});
+	program_test.add_account(
+		pubkey,
+		Account {
+			lamports: sol_to_lamports(1.0),
+			..Account::default()
+		},
+	);
 
 	let ctx = program_test.start_with_context().await;
 

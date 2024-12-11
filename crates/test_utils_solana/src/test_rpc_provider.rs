@@ -11,6 +11,11 @@ use serde_json::Value;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::signature::Signature;
+use wasm_client_solana::rpc_response::RpcBlockhash;
+use wasm_client_solana::solana_account_decoder::UiAccount;
+use wasm_client_solana::solana_account_decoder::UiAccountEncoding;
+use wasm_client_solana::solana_transaction_status::TransactionConfirmationStatus;
+use wasm_client_solana::solana_transaction_status::TransactionStatus;
 use wasm_client_solana::ClientError;
 use wasm_client_solana::ClientResponse;
 use wasm_client_solana::ClientResult;
@@ -26,7 +31,6 @@ use wasm_client_solana::GetMultipleAccountsResponse;
 use wasm_client_solana::GetSignatureStatusesRequest;
 use wasm_client_solana::GetSignatureStatusesResponse;
 use wasm_client_solana::HttpMethod;
-use wasm_client_solana::LOCALNET;
 use wasm_client_solana::RequestAirdropRequest;
 use wasm_client_solana::RequestAirdropResponse;
 use wasm_client_solana::RpcProvider;
@@ -36,11 +40,7 @@ use wasm_client_solana::SimulateTransactionRequest;
 use wasm_client_solana::SimulateTransactionResponse;
 use wasm_client_solana::SimulateTransactionResponseValue;
 use wasm_client_solana::SolanaRpcClient;
-use wasm_client_solana::rpc_response::RpcBlockhash;
-use wasm_client_solana::solana_account_decoder::UiAccount;
-use wasm_client_solana::solana_account_decoder::UiAccountEncoding;
-use wasm_client_solana::solana_transaction_status::TransactionConfirmationStatus;
-use wasm_client_solana::solana_transaction_status::TransactionStatus;
+use wasm_client_solana::LOCALNET;
 
 use crate::ProgramTestContextExtension;
 
@@ -235,6 +235,27 @@ impl RpcProvider for TestRpcProvider {
 
 					serde_json::to_value(response).map_err(to_error)?
 				}
+				// GetTransactionRequest::NAME => {
+				// 	let mut client = self.0.lock().await;
+				// 	let request: GetTransactionRequest =
+				// 		serde_json::from_value(request).map_err(to_error)?;
+				// 	let Some(transaction_status) = client
+				// 		.banks_client
+				// 		.get_transaction_status(request.signature)
+				// 		.await
+				// 		.map_err(to_error)?
+				// 	else {
+				// 		return Err(RpcError::default().into());
+				// 	};
+
+				// 	let response = ClientResponse {
+				// 		jsonrpc: "2.0".into(),
+				// 		id: 0,
+				// 		result,
+				// 	};
+
+				// 	serde_json::to_value(response).map_err(to_error)?
+				// }
 				RequestAirdropRequest::NAME => {
 					let mut client = self.0.lock().await;
 					let request: RequestAirdropRequest =
@@ -284,7 +305,7 @@ impl RpcProvider for TestRpcProvider {
 					let simulation =
 						match client.banks_client.simulate_transaction(transaction).await {
 							Ok(result) => result,
-							Err(error) => {
+							Err(_error) => {
 								let mut transaction = request.transaction.clone();
 								transaction.message.set_recent_blockhash(
 									client
