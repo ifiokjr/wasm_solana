@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use serde_tuple::Serialize_tuple;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::hash::Hash;
 
 use super::Context;
@@ -50,9 +50,9 @@ mod tests {
 	use solana_sdk::commitment_config::CommitmentConfig;
 
 	use super::*;
+	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
-	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {

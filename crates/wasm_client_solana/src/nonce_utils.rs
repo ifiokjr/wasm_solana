@@ -7,15 +7,15 @@ use solana_sdk::account::ReadableAccount;
 use solana_sdk::account_utils::StateMut;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
-use solana_sdk::nonce::State;
 use solana_sdk::nonce::state::Data;
 use solana_sdk::nonce::state::Versions;
+use solana_sdk::nonce::State;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::system_program;
 
+use crate::rpc_config::RpcAccountInfoConfig;
 use crate::ClientResult;
 use crate::SolanaRpcClient;
-use crate::rpc_config::RpcAccountInfoConfig;
 
 #[derive(Clone, Debug, Serialize, Deserialize, thiserror::Error, PartialEq, Eq)]
 pub enum NonceError {
@@ -63,10 +63,13 @@ pub async fn get_account_with_commitment(
 	commitment_config: CommitmentConfig,
 ) -> Result<Account, NonceError> {
 	rpc_client
-		.get_account_with_config(nonce_pubkey, RpcAccountInfoConfig {
-			commitment: Some(commitment_config),
-			..Default::default()
-		})
+		.get_account_with_config(
+			nonce_pubkey,
+			RpcAccountInfoConfig {
+				commitment: Some(commitment_config),
+				..Default::default()
+			},
+		)
 		.await
 		.map_err(|e| NonceError::Client(format!("{e}")))
 		.and_then(|opt| {

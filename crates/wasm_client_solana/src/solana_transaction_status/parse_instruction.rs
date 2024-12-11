@@ -1,14 +1,14 @@
 use std::collections::HashMap;
-use std::str::Utf8Error;
 use std::str::from_utf8;
+use std::str::Utf8Error;
 
 use heck::ToKebabCase;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::address_lookup_table;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::message::AccountKeys;
@@ -231,13 +231,11 @@ mod test {
 
 		let bad_memo = vec![128u8];
 		assert!(from_utf8(&bad_memo).is_err());
-		assert!(
-			parse_memo(&CompiledInstruction {
-				program_id_index: 0,
-				data: bad_memo,
-				accounts: vec![],
-			})
-			.is_err(),
-		);
+		assert!(parse_memo(&CompiledInstruction {
+			program_id_index: 0,
+			data: bad_memo,
+			accounts: vec![],
+		})
+		.is_err(),);
 	}
 }

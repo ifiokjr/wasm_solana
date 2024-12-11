@@ -1,8 +1,10 @@
 use serde::Deserialize;
+use serde::Serialize;
+use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::signature::Signature;
 
 use crate::impl_http_method;
@@ -11,7 +13,7 @@ use crate::solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize_tuple)]
+#[derive(Debug, Serialize_tuple, Deserialize_tuple)]
 pub struct GetTransactionRequest {
 	#[serde_as(as = "DisplayFromStr")]
 	pub signature: Signature,
@@ -36,7 +38,7 @@ impl GetTransactionRequest {
 	}
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GetTransactionResponse(Option<EncodedConfirmedTransactionWithStatusMeta>);
 
 impl From<GetTransactionResponse> for Option<EncodedConfirmedTransactionWithStatusMeta> {
@@ -53,8 +55,6 @@ mod tests {
 	use solana_sdk::message::MessageHeader;
 
 	use super::*;
-	use crate::ClientRequest;
-	use crate::ClientResponse;
 	use crate::methods::HttpMethod;
 	use crate::solana_transaction_status::EncodedTransaction;
 	use crate::solana_transaction_status::UiCompiledInstruction;
@@ -63,6 +63,8 @@ mod tests {
 	use crate::solana_transaction_status::UiTransaction;
 	use crate::solana_transaction_status::UiTransactionEncoding;
 	use crate::solana_transaction_status::UiTransactionStatusMeta;
+	use crate::ClientRequest;
+	use crate::ClientResponse;
 
 	// Serialization differs a bit from the RPC API but it is allowed too
 	#[test]

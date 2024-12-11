@@ -16,9 +16,9 @@ use extension::transfer_fee::*;
 use extension::transfer_hook::*;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
-use serde_json::json;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::instruction::Instruction;
@@ -32,13 +32,13 @@ use spl_token_2022::solana_program::pubkey::Pubkey;
 use spl_token_group_interface::instruction::TokenGroupInstruction;
 use spl_token_metadata_interface::instruction::TokenMetadataInstruction;
 
+use super::parse_instruction::check_num_accounts;
 use super::parse_instruction::ParsableProgram;
 use super::parse_instruction::ParseInstructionError;
 use super::parse_instruction::ParsedInstructionEnum;
-use super::parse_instruction::check_num_accounts;
 use crate::solana_account_decoder::parse_account_data::SplTokenAdditionalData;
-use crate::solana_account_decoder::parse_token::UiAccountState;
 use crate::solana_account_decoder::parse_token::token_amount_to_ui_amount_v2;
+use crate::solana_account_decoder::parse_token::UiAccountState;
 
 mod extension;
 
@@ -486,12 +486,10 @@ pub fn parse_token(
 				if !extension_types.is_empty() {
 					map.insert(
 						"extensionTypes".to_string(),
-						json!(
-							extension_types
-								.into_iter()
-								.map(UiExtensionType::from)
-								.collect::<Vec<_>>()
-						),
+						json!(extension_types
+							.into_iter()
+							.map(UiExtensionType::from)
+							.collect::<Vec<_>>()),
 					);
 				}
 				Ok(ParsedInstructionEnum {
@@ -1719,10 +1717,11 @@ mod test {
 			}
 		);
 
-		let get_account_data_size_ix = get_account_data_size(program_id, &mint_pubkey, &[
-			ExtensionType::ImmutableOwner,
-			ExtensionType::MemoTransfer,
-		])
+		let get_account_data_size_ix = get_account_data_size(
+			program_id,
+			&mint_pubkey,
+			&[ExtensionType::ImmutableOwner, ExtensionType::MemoTransfer],
+		)
 		.unwrap();
 		let message = Message::new(&[get_account_data_size_ix], None);
 		let compiled_instruction = &message.instructions[0];

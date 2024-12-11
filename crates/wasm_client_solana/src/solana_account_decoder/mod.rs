@@ -16,13 +16,13 @@ pub mod validator_info;
 use std::io::Read;
 use std::io::Write;
 
-use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::account::ReadableAccount;
 use solana_sdk::account::WritableAccount;
 use solana_sdk::clock::Epoch;
@@ -30,9 +30,9 @@ use solana_sdk::fee_calculator::FeeCalculator;
 use solana_sdk::pubkey::Pubkey;
 use typed_builder::TypedBuilder;
 
+use self::parse_account_data::parse_account_data_v2;
 use self::parse_account_data::AccountAdditionalDataV2;
 use self::parse_account_data::ParsedAccount;
-use self::parse_account_data::parse_account_data_v2;
 
 pub type StringAmount = String;
 pub type StringDecimals = String;

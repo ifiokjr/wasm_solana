@@ -7,19 +7,19 @@ use serde::Serialize;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionVersion;
 use typed_builder::TypedBuilder;
-use wallet_standard::SOLANA_SIGN_AND_SEND_TRANSACTION;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
 use wallet_standard::WalletSolanaSignAndSendTransaction;
+use wallet_standard::SOLANA_SIGN_AND_SEND_TRANSACTION;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use wasm_bindgen::prelude::*;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::impl_feature_from_js;
 
 #[wasm_bindgen]
 extern "C" {

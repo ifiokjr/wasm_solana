@@ -39,8 +39,8 @@ The `SolanaRpcClient` provides a wasm compatible client for the [solana rpc](htt
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey;
 use wasm_client_solana::ClientResult;
-use wasm_client_solana::DEVNET;
 use wasm_client_solana::SolanaRpcClient;
+use wasm_client_solana::DEVNET;
 
 async fn run() -> ClientResult<()> {
 	let client = SolanaRpcClient::new(DEVNET);

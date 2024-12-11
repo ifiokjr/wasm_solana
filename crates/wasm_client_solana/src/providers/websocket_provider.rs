@@ -2,19 +2,19 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 use std::pin::Pin;
 use std::sync::Arc;
+use std::task::ready;
 use std::task::Context;
 use std::task::Poll;
-use std::task::ready;
 
 use fork_stream::Forked;
 use fork_stream::StreamExt as _;
-use futures::SinkExt;
-use futures::Stream;
-use futures::StreamExt;
 use futures::future;
 use futures::lock::Mutex;
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
+use futures::SinkExt;
+use futures::Stream;
+use futures::StreamExt;
 use pin_project::pin_project;
 use send_wrapper::SendWrapper;
 use serde::de::DeserializeOwned;
@@ -25,6 +25,7 @@ use typed_builder::TypedBuilder;
 use self::websocket_provider_reqwest::*;
 #[cfg(not(feature = "ssr"))]
 use self::websocket_provider_wasm::*;
+use crate::utils::get_ws_url;
 use crate::ClientRequest;
 use crate::ClientWebSocketError;
 use crate::SubscriptionId;
@@ -33,7 +34,6 @@ use crate::SubscriptionResult;
 use crate::UnsubscriptionResult;
 use crate::WebSocketMethod;
 use crate::WebSocketNotification;
-use crate::utils::get_ws_url;
 
 pub trait ToWebSocketValue {
 	fn to_websocket_value(&self) -> Result<Value, ClientWebSocketError>;
@@ -242,11 +242,11 @@ impl<T: DeserializeOwned + WebSocketNotification> Subscription<T> {
 	///
 	/// ```
 	/// use solana_sdk::pubkey::Pubkey;
-	/// use wasm_client_solana::LOCALNET;
+	/// use wasm_client_solana::prelude::*;
 	/// use wasm_client_solana::LogsSubscribeRequest;
 	/// use wasm_client_solana::RpcTransactionLogsFilter;
 	/// use wasm_client_solana::SolanaRpcClient;
-	/// use wasm_client_solana::prelude::*;
+	/// use wasm_client_solana::LOCALNET;
 	/// # use wasm_client_solana::ClientResult;
 	///
 	/// # async fn run() -> ClientResult<()> {
@@ -333,19 +333,19 @@ impl<T: DeserializeOwned + WebSocketNotification> Stream for Subscription<T> {
 mod websocket_provider_reqwest {
 	use std::future::Future;
 	use std::pin::Pin;
+	use std::task::ready;
 	use std::task::Context;
 	use std::task::Poll;
-	use std::task::ready;
 
+	use futures::future::BoxFuture;
 	use futures::Sink;
 	use futures::SinkExt;
 	use futures::Stream;
-	use futures::future::BoxFuture;
 	use pin_project::pin_project;
+	use reqwest_websocket::websocket;
 	pub use reqwest_websocket::Error as WebSocketError;
 	pub use reqwest_websocket::Message;
 	use reqwest_websocket::WebSocket;
-	use reqwest_websocket::websocket;
 	use send_wrapper::SendWrapper;
 	use serde_json::Value;
 	use typed_builder::TypedBuilder;
@@ -500,15 +500,15 @@ mod websocket_provider_reqwest {
 #[cfg(not(feature = "ssr"))]
 mod websocket_provider_wasm {
 	use std::pin::Pin;
+	use std::task::ready;
 	use std::task::Context;
 	use std::task::Poll;
-	use std::task::ready;
 
 	use futures::Sink;
 	use futures::SinkExt;
 	use futures::Stream;
-	use gloo_net::websocket::Message;
 	use gloo_net::websocket::futures::WebSocket;
+	use gloo_net::websocket::Message;
 	use pin_project::pin_project;
 	use serde_json::Value;
 	use typed_builder::TypedBuilder;

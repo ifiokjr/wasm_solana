@@ -1,12 +1,12 @@
+use anchor_lang::error::Error;
+use anchor_lang::error::ErrorCode;
+use anchor_lang::solana_program::account_info::AccountInfo;
 use anchor_lang::AccountDeserialize;
 use anchor_lang::AccountSerialize;
 use anchor_lang::AnchorSerialize;
 use anchor_lang::Discriminator;
 use anchor_lang::Owner;
 use anchor_lang::Result;
-use anchor_lang::error::Error;
-use anchor_lang::error::ErrorCode;
-use anchor_lang::solana_program::account_info::AccountInfo;
 use solana_program::system_program;
 
 /// In new versions of anchor the `Account` struct requires the lifetime

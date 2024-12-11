@@ -15,6 +15,8 @@ mod standard;
 mod types;
 
 pub mod prelude {
+	#[cfg(feature = "solana")]
+	pub use super::solana::prelude::*;
 	pub use super::ExperimentalDecryptOutput;
 	pub use super::ExperimentalEncryptOutput;
 	pub use super::IntoWalletError;
@@ -29,6 +31,4 @@ pub mod prelude {
 	pub use super::WalletStandard;
 	pub use super::WalletStandardConnect;
 	pub use super::WalletStandardDisconnect;
-	#[cfg(feature = "solana")]
-	pub use super::solana::prelude::*;
 }

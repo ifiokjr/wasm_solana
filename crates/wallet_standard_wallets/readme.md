@@ -41,10 +41,10 @@ use solana_sdk::signature::Signature;
 use solana_sdk::system_instruction;
 use solana_sdk::transaction::VersionedTransaction;
 use wallet_standard::SolanaSignTransactionProps;
-use wallet_standard_wallets::MemoryWallet;
 use wallet_standard_wallets::prelude::*;
-use wasm_client_solana::DEVNET;
+use wallet_standard_wallets::MemoryWallet;
 use wasm_client_solana::SolanaRpcClient;
+use wasm_client_solana::DEVNET;
 
 async fn run() -> Result<()> {
 	let keypair = Keypair::new();

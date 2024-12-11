@@ -5,8 +5,8 @@ use solana_sdk::message::Message;
 use solana_sdk::message::SanitizedMessage;
 use solana_sdk::pubkey::Pubkey;
 
-use super::VersionedTransactionWithStatusMeta;
 use super::parse_instruction::parse_memo_data;
+use super::VersionedTransactionWithStatusMeta;
 
 // A helper function to convert spl_memo::v1::id() as spl_sdk::pubkey::Pubkey to
 // solana_sdk::pubkey::Pubkey

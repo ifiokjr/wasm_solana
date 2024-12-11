@@ -46,8 +46,6 @@ mod tests {
 	use solana_sdk::message::MessageHeader;
 
 	use super::*;
-	use crate::ClientRequest;
-	use crate::ClientResponse;
 	use crate::methods::HttpMethod;
 	use crate::solana_transaction_status::EncodedTransaction;
 	use crate::solana_transaction_status::EncodedTransactionWithStatusMeta;
@@ -58,19 +56,24 @@ mod tests {
 	use crate::solana_transaction_status::UiTransaction;
 	use crate::solana_transaction_status::UiTransactionEncoding;
 	use crate::solana_transaction_status::UiTransactionStatusMeta;
+	use crate::ClientRequest;
+	use crate::ClientResponse;
 
 	#[test]
 	fn request() {
 		let request = ClientRequest::builder()
 			.method(GetBlockRequest::NAME)
 			.id(1)
-			.params(GetBlockRequest::new_with_config(430, RpcBlockConfig {
-				encoding: Some(UiTransactionEncoding::Json),
-				max_supported_transaction_version: Some(0),
-				rewards: Some(false),
-				transaction_details: Some(TransactionDetails::Full),
-				commitment: None,
-			}))
+			.params(GetBlockRequest::new_with_config(
+				430,
+				RpcBlockConfig {
+					encoding: Some(UiTransactionEncoding::Json),
+					max_supported_transaction_version: Some(0),
+					rewards: Some(false),
+					transaction_details: Some(TransactionDetails::Full),
+					commitment: None,
+				},
+			))
 			.build();
 
 		insta::assert_compact_json_snapshot!(request, @r###"

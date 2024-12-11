@@ -4,10 +4,10 @@ use assert2::check;
 use insta::internals::Content;
 use insta::internals::ContentPath;
 
-pub fn create_insta_redaction(
-	value: impl Display,
+pub fn create_insta_redaction<T: Display>(
+	value: T,
 	replacement: &str,
-) -> impl Fn(Content, ContentPath) -> String + Clone + 'static {
+) -> impl Fn(Content, ContentPath) -> String + Clone + 'static + use<T> {
 	let replacement = format!("[{replacement}]");
 	let value = value.to_string();
 
@@ -22,10 +22,10 @@ pub fn create_insta_redaction(
 	}
 }
 
-pub fn create_insta_redaction_u128(
-	value: impl Display,
+pub fn create_insta_redaction_u128<T: Display>(
+	value: T,
 	replacement: &str,
-) -> impl Fn(Content, ContentPath) -> String + Clone + 'static {
+) -> impl Fn(Content, ContentPath) -> String + Clone + 'static + use<T> {
 	let replacement = format!("[{replacement}]");
 	let value = value.to_string();
 

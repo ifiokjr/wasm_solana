@@ -60,13 +60,13 @@ impl From<GetFeeForMessageResponse> for u64 {
 #[cfg(test)]
 mod tests {
 	use assert2::check;
-	use base64::Engine;
 	use base64::prelude::BASE64_STANDARD;
+	use base64::Engine;
 
 	use super::*;
+	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
-	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {

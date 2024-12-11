@@ -39,9 +39,9 @@ impl From<GetRecentPerformanceSamplesResponse> for Vec<RpcPerfSample> {
 mod tests {
 
 	use super::*;
+	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
-	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {
@@ -64,35 +64,38 @@ mod tests {
 		assert_eq!(response.id, 1);
 		assert_eq!(response.jsonrpc, "2.0");
 		let value = response.result.0;
-		assert_eq!(value, vec![
-			RpcPerfSample {
-				num_slots: 126,
-				num_transactions: 126,
-				slot: 348_125,
-				sample_period_secs: 60,
-				num_non_vote_transaction: 1
-			},
-			RpcPerfSample {
-				num_slots: 126,
-				num_transactions: 126,
-				slot: 347_999,
-				sample_period_secs: 60,
-				num_non_vote_transaction: 1
-			},
-			RpcPerfSample {
-				num_slots: 125,
-				num_transactions: 125,
-				slot: 347_873,
-				sample_period_secs: 60,
-				num_non_vote_transaction: 0
-			},
-			RpcPerfSample {
-				num_slots: 125,
-				num_transactions: 125,
-				slot: 347_748,
-				sample_period_secs: 60,
-				num_non_vote_transaction: 0
-			}
-		]);
+		assert_eq!(
+			value,
+			vec![
+				RpcPerfSample {
+					num_slots: 126,
+					num_transactions: 126,
+					slot: 348_125,
+					sample_period_secs: 60,
+					num_non_vote_transaction: 1
+				},
+				RpcPerfSample {
+					num_slots: 126,
+					num_transactions: 126,
+					slot: 347_999,
+					sample_period_secs: 60,
+					num_non_vote_transaction: 1
+				},
+				RpcPerfSample {
+					num_slots: 125,
+					num_transactions: 125,
+					slot: 347_873,
+					sample_period_secs: 60,
+					num_non_vote_transaction: 0
+				},
+				RpcPerfSample {
+					num_slots: 125,
+					num_transactions: 125,
+					slot: 347_748,
+					sample_period_secs: 60,
+					num_non_vote_transaction: 0
+				}
+			]
+		);
 	}
 }

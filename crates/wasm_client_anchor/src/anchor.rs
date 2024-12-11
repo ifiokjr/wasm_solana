@@ -12,9 +12,9 @@ use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::Instruction;
+use solana_sdk::message::v0;
 use solana_sdk::message::CompileError;
 use solana_sdk::message::VersionedMessage;
-use solana_sdk::message::v0;
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::ParsePubkeyError;
 use solana_sdk::pubkey::Pubkey;
@@ -23,19 +23,19 @@ use solana_sdk::signer::Signer;
 use solana_sdk::signer::SignerError;
 use solana_sdk::transaction::VersionedTransaction;
 use typed_builder::TypedBuilder;
+use wallet_standard::prelude::*;
 use wallet_standard::SolanaSignAndSendTransactionOptions;
 use wallet_standard::SolanaSignTransactionProps;
 use wallet_standard::WalletError;
-use wallet_standard::prelude::*;
+use wasm_client_solana::prelude::*;
+use wasm_client_solana::rpc_config::LogsSubscribeRequest;
+use wasm_client_solana::rpc_config::RpcSimulateTransactionConfig;
+use wasm_client_solana::rpc_config::RpcTransactionLogsFilter;
 use wasm_client_solana::ClientError;
 use wasm_client_solana::ClientWebSocketError;
 use wasm_client_solana::RpcError;
 use wasm_client_solana::SimulateTransactionResponse;
 use wasm_client_solana::SolanaRpcClient;
-use wasm_client_solana::prelude::*;
-use wasm_client_solana::rpc_config::LogsSubscribeRequest;
-use wasm_client_solana::rpc_config::RpcSimulateTransactionConfig;
-use wasm_client_solana::rpc_config::RpcTransactionLogsFilter;
 
 use crate::EventSubscription;
 
@@ -608,7 +608,7 @@ impl AnchorRpcClient for SolanaRpcClient {
 		async move {
 			let request = LogsSubscribeRequest::builder()
 				.filter(RpcTransactionLogsFilter::Mentions(vec![
-					program_id.to_string(),
+					program_id.to_string()
 				]))
 				.build();
 			let subscription = self.logs_subscribe(request).await?;

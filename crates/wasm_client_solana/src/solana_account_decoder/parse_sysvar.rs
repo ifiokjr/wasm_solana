@@ -2,9 +2,9 @@ use bincode::deserialize;
 use bv::BitVec;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Epoch;
 use solana_sdk::clock::Slot;
@@ -27,10 +27,10 @@ use solana_sdk::sysvar::recent_blockhashes::RecentBlockhashes;
 use solana_sdk::sysvar::rewards::Rewards;
 use solana_sdk::sysvar::{self};
 
-use super::StringAmount;
-use super::UiFeeCalculator;
 use super::parse_account_data::ParsableAccount;
 use super::parse_account_data::ParseAccountError;
+use super::StringAmount;
+use super::UiFeeCalculator;
 
 pub fn parse_sysvar(data: &[u8], pubkey: &Pubkey) -> Result<SysvarAccountType, ParseAccountError> {
 	#[allow(deprecated)]

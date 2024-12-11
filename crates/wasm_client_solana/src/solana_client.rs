@@ -17,16 +17,6 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
 
-use crate::ClientError;
-use crate::ClientResponse;
-use crate::ClientResult;
-use crate::HttpProvider;
-use crate::MAX_RETRIES;
-use crate::RpcError;
-use crate::RpcProvider;
-use crate::SLEEP_MS;
-use crate::Subscription;
-use crate::WebSocketProvider;
 use crate::methods::*;
 use crate::rpc_config::BlockSubscribeRequest;
 use crate::rpc_config::GetConfirmedSignaturesForAddress2Config;
@@ -63,18 +53,28 @@ use crate::rpc_response::RpcPrioritizationFee;
 use crate::rpc_response::RpcSupply;
 use crate::rpc_response::RpcVersionInfo;
 use crate::rpc_response::RpcVoteAccountStatus;
-use crate::solana_account_decoder::UiAccountData;
-use crate::solana_account_decoder::UiAccountEncoding;
-use crate::solana_account_decoder::parse_address_lookup_table::LookupTableAccountType;
 use crate::solana_account_decoder::parse_address_lookup_table::parse_address_lookup_table;
+use crate::solana_account_decoder::parse_address_lookup_table::LookupTableAccountType;
 use crate::solana_account_decoder::parse_token::TokenAccountType;
 use crate::solana_account_decoder::parse_token::UiTokenAccount;
 use crate::solana_account_decoder::parse_token::UiTokenAmount;
+use crate::solana_account_decoder::UiAccountData;
+use crate::solana_account_decoder::UiAccountEncoding;
 use crate::solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use crate::solana_transaction_status::TransactionConfirmationStatus;
 use crate::solana_transaction_status::TransactionStatus;
 use crate::solana_transaction_status::UiConfirmedBlock;
 use crate::solana_transaction_status::UiTransactionEncoding;
+use crate::ClientError;
+use crate::ClientResponse;
+use crate::ClientResult;
+use crate::HttpProvider;
+use crate::RpcError;
+use crate::RpcProvider;
+use crate::Subscription;
+use crate::WebSocketProvider;
+use crate::MAX_RETRIES;
+use crate::SLEEP_MS;
 
 /// A client of a remote Solana node.
 ///
@@ -265,11 +265,14 @@ impl SolanaRpcClient {
 		pubkey: &Pubkey,
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<Option<Account>> {
-		self.get_account_with_config(pubkey, RpcAccountInfoConfig {
-			commitment: Some(commitment_config),
-			encoding: Some(UiAccountEncoding::Base64),
-			..Default::default()
-		})
+		self.get_account_with_config(
+			pubkey,
+			RpcAccountInfoConfig {
+				commitment: Some(commitment_config),
+				encoding: Some(UiAccountEncoding::Base64),
+				..Default::default()
+			},
+		)
 		.await
 	}
 
@@ -334,6 +337,19 @@ impl SolanaRpcClient {
 		}
 	}
 
+	pub async fn get_transaction(
+		&self,
+		signature: &Signature,
+	) -> ClientResult<EncodedConfirmedTransactionWithStatusMeta> {
+		let request = GetTransactionRequest::new(*signature);
+		let response: ClientResponse<GetTransactionResponse> = self.send(request).await?;
+
+		match response.result.into() {
+			Some(result) => Ok(result),
+			None => Err(RpcError::new(format!("Signature {signature} not found.")).into()),
+		}
+	}
+
 	pub async fn get_latest_blockhash_with_config(
 		&self,
 		commitment_config: CommitmentConfig,
@@ -368,10 +384,13 @@ impl SolanaRpcClient {
 		blockhash: &Hash,
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<bool> {
-		let request = IsBlockhashValidRequest::new_with_config(*blockhash, RpcContextConfig {
-			commitment: Some(commitment_config),
-			min_context_slot: None,
-		});
+		let request = IsBlockhashValidRequest::new_with_config(
+			*blockhash,
+			RpcContextConfig {
+				commitment: Some(commitment_config),
+				min_context_slot: None,
+			},
+		);
 		let response: ClientResponse<IsBlockhashValidResponse> = self.send(request).await?;
 
 		Ok(response.result.value)
@@ -425,11 +444,14 @@ impl SolanaRpcClient {
 		&self,
 		transaction: &VersionedTransaction,
 	) -> ClientResult<Signature> {
-		self.send_transaction_with_config(transaction, RpcSendTransactionConfig {
-			preflight_commitment: Some(self.commitment()),
-			encoding: Some(UiTransactionEncoding::Base64),
-			..Default::default()
-		})
+		self.send_transaction_with_config(
+			transaction,
+			RpcSendTransactionConfig {
+				preflight_commitment: Some(self.commitment()),
+				encoding: Some(UiTransactionEncoding::Base64),
+				..Default::default()
+			},
+		)
 		.await
 	}
 
@@ -562,13 +584,16 @@ impl SolanaRpcClient {
 		&self,
 		pubkey: &Pubkey,
 	) -> ClientResult<Vec<(Pubkey, Account)>> {
-		self.get_program_accounts_with_config(pubkey, RpcProgramAccountsConfig {
-			account_config: RpcAccountInfoConfig {
-				encoding: Some(UiAccountEncoding::Base64),
-				..RpcAccountInfoConfig::default()
+		self.get_program_accounts_with_config(
+			pubkey,
+			RpcProgramAccountsConfig {
+				account_config: RpcAccountInfoConfig {
+					encoding: Some(UiAccountEncoding::Base64),
+					..RpcAccountInfoConfig::default()
+				},
+				..RpcProgramAccountsConfig::default()
 			},
-			..RpcProgramAccountsConfig::default()
-		})
+		)
 		.await
 	}
 
@@ -831,10 +856,13 @@ impl SolanaRpcClient {
 		pubkeys: &[Pubkey],
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<Vec<Option<Account>>> {
-		self.get_multiple_accounts_with_config(pubkeys, RpcAccountInfoConfig {
-			commitment: Some(commitment_config),
-			..RpcAccountInfoConfig::default()
-		})
+		self.get_multiple_accounts_with_config(
+			pubkeys,
+			RpcAccountInfoConfig {
+				commitment: Some(commitment_config),
+				..RpcAccountInfoConfig::default()
+			},
+		)
 		.await
 	}
 
@@ -952,10 +980,13 @@ impl SolanaRpcClient {
 		slot: Option<Slot>,
 		commitment_config: CommitmentConfig,
 	) -> ClientResult<Option<RpcLeaderSchedule>> {
-		self.get_leader_schedule_with_config(slot, RpcLeaderScheduleConfig {
-			commitment: Some(commitment_config),
-			..Default::default()
-		})
+		self.get_leader_schedule_with_config(
+			slot,
+			RpcLeaderScheduleConfig {
+				commitment: Some(commitment_config),
+				..Default::default()
+			},
+		)
 		.await
 	}
 
@@ -1012,12 +1043,14 @@ impl SolanaRpcClient {
 		addresses: &[Pubkey],
 		epoch: Option<Epoch>,
 	) -> ClientResult<Vec<Option<RpcInflationReward>>> {
-		let request =
-			GetInflationRewardRequest::new_with_config(addresses.to_vec(), RpcEpochConfig {
+		let request = GetInflationRewardRequest::new_with_config(
+			addresses.to_vec(),
+			RpcEpochConfig {
 				commitment: Some(self.commitment_config()),
 				epoch,
 				..Default::default()
-			});
+			},
+		);
 		let response: ClientResponse<GetInflationRewardResponse> = self.send(request).await?;
 
 		Ok(response.result.into())
@@ -1158,11 +1191,14 @@ impl SolanaRpcClient {
 		&self,
 		transaction: &VersionedTransaction,
 	) -> ClientResult<SimulateTransactionResponse> {
-		self.simulate_transaction_with_config(transaction, RpcSimulateTransactionConfig {
-			encoding: Some(UiTransactionEncoding::Base64),
-			replace_recent_blockhash: Some(true),
-			..Default::default()
-		})
+		self.simulate_transaction_with_config(
+			transaction,
+			RpcSimulateTransactionConfig {
+				encoding: Some(UiTransactionEncoding::Base64),
+				replace_recent_blockhash: Some(true),
+				..Default::default()
+			},
+		)
 		.await
 	}
 

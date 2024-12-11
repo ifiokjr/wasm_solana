@@ -180,9 +180,9 @@ pub fn parse_account_data_v2(
 
 #[cfg(test)]
 mod test {
-	use solana_sdk::nonce::State;
 	use solana_sdk::nonce::state::Data;
 	use solana_sdk::nonce::state::Versions;
+	use solana_sdk::nonce::State;
 	use solana_sdk::vote::program::id as vote_program_id;
 	use solana_sdk::vote::state::VoteState;
 	use solana_sdk::vote::state::VoteStateVersions;

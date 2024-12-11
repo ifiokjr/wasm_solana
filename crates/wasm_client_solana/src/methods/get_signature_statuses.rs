@@ -2,9 +2,9 @@ use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::signature::Signature;
 
 use super::Context;
@@ -90,10 +90,10 @@ mod tests {
 	use assert2::check;
 
 	use super::*;
-	use crate::ClientRequest;
-	use crate::ClientResponse;
 	use crate::methods::HttpMethod;
 	use crate::solana_transaction_status::TransactionConfirmationStatus;
+	use crate::ClientRequest;
+	use crate::ClientResponse;
 
 	#[test]
 	fn request() {

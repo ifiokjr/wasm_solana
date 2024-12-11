@@ -84,7 +84,7 @@ pub trait WalletSolanaSignIn {
 
 	async fn sign_in(&self, input: SolanaSignInInput) -> WalletResult<Self::Output>;
 	async fn sign_in_many(&self, inputs: Vec<SolanaSignInInput>)
-	-> WalletResult<Vec<Self::Output>>;
+		-> WalletResult<Vec<Self::Output>>;
 }
 
 /// Check tha the input and output of the sign in are valid.

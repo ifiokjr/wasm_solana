@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde_tuple::Serialize_tuple;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
+use serde_with::DisplayFromStr;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::impl_http_method;
@@ -52,9 +52,9 @@ mod tests {
 	use solana_sdk::pubkey;
 
 	use super::*;
+	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
-	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {

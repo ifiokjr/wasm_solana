@@ -13,16 +13,16 @@ use solana_sdk::system_instruction::transfer;
 use solana_sdk::transaction::VersionedTransaction;
 use test_log::test;
 use test_utils::SECRET_KEY_WALLET;
+use test_utils_anchor::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::ProgramTestContext;
 use test_utils_solana::TestValidatorRunner;
 use test_utils_solana::TestValidatorRunnerProps;
-use test_utils_solana::prelude::*;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
 use wallet_standard_wallets::MemoryWallet;
-use wasm_client_solana::LOCALNET;
 use wasm_client_solana::SolanaRpcClient;
+use wasm_client_solana::LOCALNET;
 
 #[test(tokio::test)]
 async fn sign_transaction() -> Result<()> {
@@ -143,10 +143,13 @@ async fn create_program_test() -> (ProgramTestContext, SolanaRpcClient) {
 	let mut program_test = ProgramTest::default();
 	let rpc = SolanaRpcClient::new_with_commitment(LOCALNET, CommitmentConfig::finalized());
 
-	program_test.add_account(pubkey, Account {
-		lamports: sol_to_lamports(1.0),
-		..Account::default()
-	});
+	program_test.add_account(
+		pubkey,
+		Account {
+			lamports: sol_to_lamports(1.0),
+			..Account::default()
+		},
+	);
 
 	let ctx = program_test.start_with_context().await;
 

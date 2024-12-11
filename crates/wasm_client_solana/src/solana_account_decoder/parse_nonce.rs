@@ -1,16 +1,16 @@
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::InstructionError;
-use solana_sdk::nonce::State;
 use solana_sdk::nonce::state::Versions;
+use solana_sdk::nonce::State;
 use solana_sdk::pubkey::Pubkey;
 
-use super::UiFeeCalculator;
 use super::parse_account_data::ParseAccountError;
+use super::UiFeeCalculator;
 
 pub fn parse_nonce(data: &[u8]) -> Result<UiNonceState, ParseAccountError> {
 	let nonce_versions: Versions = bincode::deserialize(data)
@@ -57,9 +57,9 @@ pub struct UiNonceData {
 
 #[cfg(test)]
 mod test {
-	use solana_sdk::nonce::State;
 	use solana_sdk::nonce::state::Data;
 	use solana_sdk::nonce::state::Versions;
+	use solana_sdk::nonce::State;
 
 	use super::*;
 

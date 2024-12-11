@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::pubkey::Pubkey;
 use spl_token_2022::extension::BaseStateWithExtensions;
 use spl_token_2022::extension::StateWithExtensions;
@@ -16,13 +16,13 @@ use spl_token_2022::state::AccountState;
 use spl_token_2022::state::Mint;
 use spl_token_2022::state::Multisig;
 
-use super::StringAmount;
-use super::StringDecimals;
 use super::parse_account_data::ParsableAccount;
 use super::parse_account_data::ParseAccountError;
 use super::parse_account_data::SplTokenAdditionalData;
-use super::parse_token_extension::UiExtension;
 use super::parse_token_extension::parse_extension;
+use super::parse_token_extension::UiExtension;
+use super::StringAmount;
+use super::StringDecimals;
 
 // Returns all known SPL Token program ids
 pub fn spl_token_ids() -> Vec<Pubkey> {
@@ -326,13 +326,13 @@ pub fn get_token_account_mint(data: &[u8]) -> Option<Pubkey> {
 #[cfg(test)]
 mod test {
 	use spl_pod::optional_keys::OptionalNonZeroPubkey;
-	use spl_token_2022::extension::BaseStateWithExtensionsMut;
-	use spl_token_2022::extension::ExtensionType;
-	use spl_token_2022::extension::StateWithExtensionsMut;
 	use spl_token_2022::extension::immutable_owner::ImmutableOwner;
 	use spl_token_2022::extension::interest_bearing_mint::InterestBearingConfig;
 	use spl_token_2022::extension::memo_transfer::MemoTransfer;
 	use spl_token_2022::extension::mint_close_authority::MintCloseAuthority;
+	use spl_token_2022::extension::BaseStateWithExtensionsMut;
+	use spl_token_2022::extension::ExtensionType;
+	use spl_token_2022::extension::StateWithExtensionsMut;
 
 	use super::*;
 	use crate::solana_account_decoder::parse_token_extension::UiMemoTransfer;

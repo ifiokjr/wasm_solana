@@ -5,19 +5,19 @@ use js_sys::Array;
 use serde::Deserialize;
 use serde::Serialize;
 use typed_builder::TypedBuilder;
-use wallet_standard::EXPERIMENTAL_ENCRYPT;
 use wallet_standard::ExperimentalEncryptOutput;
 use wallet_standard::ExperimentalEncryptProps;
 use wallet_standard::WalletError;
 use wallet_standard::WalletExperimentalEncrypt;
 use wallet_standard::WalletResult;
+use wallet_standard::EXPERIMENTAL_ENCRYPT;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use wasm_bindgen::prelude::*;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::impl_feature_from_js;
 
 impl ExperimentalEncryptOutput for BrowserExperimentalEncryptOutput {
 	fn cipher_text(&self) -> Vec<u8> {

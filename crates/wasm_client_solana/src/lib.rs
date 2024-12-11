@@ -37,8 +37,8 @@ pub mod prelude {
 	pub use futures::TryStreamExt;
 	pub use wallet_standard::prelude::*;
 
-	pub use crate::RpcProvider;
 	pub use crate::extensions::VersionedMessageExtension;
 	pub use crate::extensions::VersionedTransactionExtension;
 	pub use crate::solana_account_decoder::ToUiAccount;
+	pub use crate::RpcProvider;
 }

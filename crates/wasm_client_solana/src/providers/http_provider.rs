@@ -7,9 +7,9 @@ pub use wasm_http_provider::HttpProvider;
 
 use crate::ClientRequest;
 use crate::ClientResult;
-use crate::DEFAULT_ERROR_CODE;
 use crate::RpcError;
 use crate::RpcErrorDetails;
+use crate::DEFAULT_ERROR_CODE;
 
 #[async_trait]
 pub trait RpcProvider {
@@ -21,9 +21,9 @@ pub trait RpcProvider {
 
 #[cfg(feature = "ssr")]
 mod ssr_http_provider {
-	use reqwest::Client;
-	use reqwest::header::CONTENT_TYPE;
 	use reqwest::header::HeaderMap;
+	use reqwest::header::CONTENT_TYPE;
+	use reqwest::Client;
 
 	use super::*;
 	use crate::ClientError;

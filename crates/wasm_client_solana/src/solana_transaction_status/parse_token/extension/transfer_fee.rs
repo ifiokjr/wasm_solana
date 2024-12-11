@@ -462,12 +462,12 @@ mod test {
 		);
 
 		// HarvestWithheldTokensToMint
-		let harvest_withheld_tokens_to_mint_ix =
-			harvest_withheld_tokens_to_mint(&spl_token_2022::id(), &mint_pubkey, &[
-				&fee_account0,
-				&fee_account1,
-			])
-			.unwrap();
+		let harvest_withheld_tokens_to_mint_ix = harvest_withheld_tokens_to_mint(
+			&spl_token_2022::id(),
+			&mint_pubkey,
+			&[&fee_account0, &fee_account1],
+		)
+		.unwrap();
 		let message = Message::new(&[harvest_withheld_tokens_to_mint_ix], None);
 		let compiled_instruction = &message.instructions[0];
 		assert_eq!(

@@ -4,15 +4,15 @@ use std::future::Future;
 use std::ops::Div;
 use std::ops::Mul;
 
-use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::address_lookup_table::instruction::create_lookup_table;
 use solana_sdk::address_lookup_table::instruction::extend_lookup_table;
+use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::Instruction;
+use solana_sdk::message::v0;
 use solana_sdk::message::CompileError;
 use solana_sdk::message::VersionedMessage;
-use solana_sdk::message::v0;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::SignerError;
@@ -27,11 +27,11 @@ use wallet_standard::WalletSolanaPubkey;
 use wallet_standard::WalletSolanaSignMessage;
 use wallet_standard::WalletSolanaSignTransaction;
 
-use crate::COMPUTE_UNIT_MAX_LIMIT;
 use crate::ClientError;
 use crate::ClientResult;
-use crate::MAX_LOOKUP_ADDRESSES_PER_TRANSACTION;
 use crate::SolanaRpcClient;
+use crate::COMPUTE_UNIT_MAX_LIMIT;
+use crate::MAX_LOOKUP_ADDRESSES_PER_TRANSACTION;
 
 /// Add extensions which make it possible to partially sign a versioned
 /// transaction.

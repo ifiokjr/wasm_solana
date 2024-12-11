@@ -1,5 +1,5 @@
 edition = "2021"
-version = "Two"
+style_edition = "2021"
 unstable_features = true
 condense_wildcard_suffixes = true
 force_multiline_blocks = true

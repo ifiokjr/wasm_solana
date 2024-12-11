@@ -1,19 +1,19 @@
-use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use bincode::deserialize;
 use bincode::serialized_size;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
+use serde_with::DisplayFromStr;
 use solana_sdk::bpf_loader_upgradeable::UpgradeableLoaderState;
 use solana_sdk::pubkey::Pubkey;
 
-use super::UiAccountData;
-use super::UiAccountEncoding;
 use super::parse_account_data::ParsableAccount;
 use super::parse_account_data::ParseAccountError;
+use super::UiAccountData;
+use super::UiAccountEncoding;
 
 pub fn parse_bpf_upgradeable_loader(
 	data: &[u8],

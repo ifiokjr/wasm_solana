@@ -5,10 +5,10 @@ use solana_sdk::pubkey::Pubkey;
 use spl_associated_token_account::instruction::AssociatedTokenAccountInstruction;
 use spl_token_metadata_interface::borsh::BorshDeserialize;
 
+use super::parse_instruction::check_num_accounts;
 use super::parse_instruction::ParsableProgram;
 use super::parse_instruction::ParseInstructionError;
 use super::parse_instruction::ParsedInstructionEnum;
-use super::parse_instruction::check_num_accounts;
 
 // A helper function to convert spl_associated_token_account::id() as
 // spl_sdk::pubkey::Pubkey to solana_sdk::pubkey::Pubkey
@@ -152,13 +152,11 @@ mod test {
 
 		// after popping another account, parsing should fail
 		compiled_instruction.accounts.pop();
-		assert!(
-			parse_associated_token(
-				compiled_instruction,
-				&AccountKeys::new(&message.account_keys, None)
-			)
-			.is_err()
-		);
+		assert!(parse_associated_token(
+			compiled_instruction,
+			&AccountKeys::new(&message.account_keys, None)
+		)
+		.is_err());
 	}
 
 	#[test]
@@ -192,13 +190,11 @@ mod test {
 			}
 		);
 		compiled_instruction.accounts.pop();
-		assert!(
-			parse_associated_token(
-				compiled_instruction,
-				&AccountKeys::new(&message.account_keys, None)
-			)
-			.is_err()
-		);
+		assert!(parse_associated_token(
+			compiled_instruction,
+			&AccountKeys::new(&message.account_keys, None)
+		)
+		.is_err());
 	}
 
 	#[test]
@@ -236,13 +232,11 @@ mod test {
 			}
 		);
 		compiled_instruction.accounts.pop();
-		assert!(
-			parse_associated_token(
-				compiled_instruction,
-				&AccountKeys::new(&message.account_keys, None)
-			)
-			.is_err()
-		);
+		assert!(parse_associated_token(
+			compiled_instruction,
+			&AccountKeys::new(&message.account_keys, None)
+		)
+		.is_err());
 	}
 
 	#[test]
@@ -294,12 +288,10 @@ mod test {
 			}
 		);
 		compiled_instruction.accounts.pop();
-		assert!(
-			parse_associated_token(
-				compiled_instruction,
-				&AccountKeys::new(&message.account_keys, None)
-			)
-			.is_err()
-		);
+		assert!(parse_associated_token(
+			compiled_instruction,
+			&AccountKeys::new(&message.account_keys, None)
+		)
+		.is_err());
 	}
 }

@@ -1,19 +1,19 @@
 #![allow(unsafe_code)]
 
 use async_trait::async_trait;
-use wallet_standard::STANDARD_CONNECT;
 use wallet_standard::StandardConnectInput;
 use wallet_standard::StandardConnectOutput;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
 use wallet_standard::WalletStandardConnect;
+use wallet_standard::STANDARD_CONNECT;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use wasm_bindgen::prelude::*;
 
+use crate::impl_feature_from_js;
 use crate::BrowserWallet;
 use crate::BrowserWalletAccountInfo;
-use crate::impl_feature_from_js;
 
 #[wasm_bindgen]
 extern "C" {
