@@ -12,7 +12,6 @@
       pkgs.geckodriver
       pkgs.jq
       pkgs.libiconv
-      pkgs.mold
       pkgs.nixfmt-rfc-style
       pkgs.openssl
       pkgs.protobuf # needed for `solana-test-validator` in tests
