@@ -5,30 +5,43 @@
 </p>
 
 <p align="center">
-  solana development with rust based wasm
+  solana development with a rust based wasm client
 </p>
-
-<br />
-
-<p align="center">
-  <a href="#getting-started"><strong>Getting Started</strong></a> ·
-  <a href="#why"><strong>Why?</strong></a> ·
-  <a href="#plans"><strong>Plans</strong></a> ·
-  <a href="./docs/docs"><strong>Documentation</strong></a> ·
-  <a href="./.github/contributing.md"><strong>Contributing</strong></a>
-</p>
-
-<br />
 
 <p align="center">
   <a href="https://github.com/ifiokjr/wasm_solana/actions?query=workflow:ci">
-    <img src="https://github.com/ifiokjr/wasm_solana/workflows/ci/badge.svg?branch=main" alt="Continuous integration badge for github actions" title="CI Badge" />
+    <img src="https://github.com/ifiokjr/wasm_solana/workflows/ci/badge.svg" alt="Continuous integration badge for github actions" title="CI Badge" />
   </a>
 </p>
 
 <br />
 
 ## Description
+
+This repository contains several crates that make it easier to interact with Solana in WebAssembly environments:
+
+| Crate                     | Version | Description                                                     |
+| ------------------------- | ------- | --------------------------------------------------------------- |
+| `wallet_standard`         | 0.4.0   | Core implementation of the wallet standard interface for Solana |
+| `wallet_standard_browser` | 0.3.1   | Browser-specific implementation of the wallet standard          |
+| `test_utils_solana`       | 0.5.5   | Testing utilities for Solana programs                           |
+| `test_utils_anchor`       | 0.5.5   | Testing utilities specific to Anchor programs                   |
+| `wasm_client_anchor`      | 0.7.0   | WebAssembly client for interacting with Anchor programs         |
+| `wasm_client_solana`      | 0.7.0   | WebAssembly client for interacting with Solana programs         |
+
+### Crate Details
+
+- **wallet_standard**: Provides the core wallet standard interface implementation for Solana. This includes transaction signing, message signing, and other wallet-related functionality.
+
+- **wallet_standard_browser**: Browser-specific implementation of the wallet standard, allowing seamless integration with web applications. Includes JavaScript bindings and browser-specific wallet detection.
+
+- **test_utils_solana**: A collection of utilities to make testing Solana programs easier. Includes helpers for setting up test validators, creating test accounts, and managing test transactions.
+
+- **test_utils_anchor**: Extension of test utilities specifically designed for testing Anchor programs. Provides additional helpers for working with Anchor IDLs and program testing.
+
+- **wasm_client_anchor**: A WebAssembly client for interacting with Anchor programs. Provides a type-safe interface for program interactions compiled to WebAssembly.
+
+- **wasm_client_solana**: A WebAssembly client for general Solana program interactions. Includes methods for account management, transaction building, and RPC interactions.
 
 See the individual crates for more information.
 
