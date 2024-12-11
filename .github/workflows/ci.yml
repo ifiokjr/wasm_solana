@@ -62,6 +62,9 @@ jobs:
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
+      - name: free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: checkout repository
         uses: actions/checkout@v4
 
@@ -107,6 +110,9 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-24.04
     steps:
+      - name: free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: checkout repository
         uses: actions/checkout@v4
 
