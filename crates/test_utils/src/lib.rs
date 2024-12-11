@@ -4,10 +4,11 @@ use assert2::check;
 use insta::internals::Content;
 use insta::internals::ContentPath;
 
+#[allow(impl_trait_overcaptures)]
 pub fn create_insta_redaction<T: Display>(
 	value: T,
 	replacement: &str,
-) -> impl Fn(Content, ContentPath) -> String + Clone + 'static + use<T> {
+) -> impl Fn(Content, ContentPath) -> String + Clone + 'static {
 	let replacement = format!("[{replacement}]");
 	let value = value.to_string();
 
@@ -22,10 +23,11 @@ pub fn create_insta_redaction<T: Display>(
 	}
 }
 
+#[allow(impl_trait_overcaptures)]
 pub fn create_insta_redaction_u128<T: Display>(
 	value: T,
 	replacement: &str,
-) -> impl Fn(Content, ContentPath) -> String + Clone + 'static + use<T> {
+) -> impl Fn(Content, ContentPath) -> String + Clone + 'static {
 	let replacement = format!("[{replacement}]");
 	let value = value.to_string();
 
