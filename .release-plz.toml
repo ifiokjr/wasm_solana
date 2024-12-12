@@ -7,9 +7,6 @@ name = "test_utils"
 semver_check = false
 changelog_update = false
 publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
 
 [[package]]
 name = "example_program"
@@ -38,9 +35,6 @@ changelog_path = "crates/test_utils_solana/changelog.md"
 name = "test_utils_anchor"
 changelog_path = "crates/test_utils_anchor/changelog.md"
 publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
 
 [[package]]
 name = "wallet_standard"
@@ -59,9 +53,6 @@ changelog_path = "crates/wallet_standard_wallets/changelog.md"
 name = "wasm_client_anchor"
 changelog_path = "crates/wasm_client_anchor/changelog.md"
 publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
 
 [[package]]
 name = "wasm_client_solana"
