@@ -6,10 +6,8 @@
       pkgs.binaryen
       pkgs.cargo-binstall
       pkgs.cargo-run-bin
-      pkgs.chromedriver
       pkgs.curl
       pkgs.dprint
-      pkgs.geckodriver
       pkgs.jq
       pkgs.libiconv
       pkgs.nixfmt-rfc-style
@@ -32,13 +30,6 @@
   # disable dotenv since it breaks the variable interpolation supported by `direnv`
   dotenv.disableHint = true;
 
-  scripts.anchor = {
-    exec = ''
-      set -e
-      cargo bin anchor $@
-    '';
-    description = "The `anchor` executable";
-  };
   scripts."wasm-bindgen-test-runner" = {
     exec = ''
       set -e
@@ -53,13 +44,6 @@
       install:solana
     '';
     description = "Install all packages.";
-  };
-  scripts."generate:keypair" = {
-    exec = ''
-      set -e
-      solana-keygen new -s -o $DEVENV_ROOT/$1.json --no-bip39-passphrase || true
-    '';
-    description = "Generate a local solana keypair. Must provide a name.";
   };
   scripts."install:cargo:bin" = {
     exec = ''
@@ -101,7 +85,7 @@
   };
   scripts."build:docs" = {
     exec = ''
-      RUSTDOCFLAGS="--cfg docsrs" cargo doc --workspace --exclude example_program --exclude test_utils --exclude example_client --exclude test_utils_solana --exclude test_utils_anchor
+      RUSTDOCFLAGS="--cfg docsrs" cargo doc --workspace
     '';
     description = "Build documentation site.";
   };
@@ -110,45 +94,14 @@
       set -e
       cargo test_wallet_standard_wallets_ssr
       cargo test_wallet_standard_wallets_docs
-      cargo test_wasm_client_solana_ssr
-      cargo test_wasm_client_solana_docs
-      cargo test_streams
-      cargo test_example_client
-      test:validator
     '';
     description = "Run all tests across the crates";
-  };
-  scripts."test:validator" = {
-    exec = ''
-      set -e
-      validator:bg &
-      pid=$!
-      function cleanup {
-        validator:kill
-        kill -9 $pid
-      }
-      trap cleanup EXIT
-
-      export WASM_BINDGEN_TEST_TIMEOUT=90
-
-      cargo bin wait-for-them -t 10000 127.0.0.1:8899
-      sleep 5
-      echo "running tests in chrome..."
-      CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver cargo test_wasm
-      echo "running tests in firefox..."
-      GECKODRIVER=$DEVENV_DOTFILE/profile/bin/geckodriver cargo test_wasm
-    '';
-    description = "Run tests with a validator in the background.";
   };
   scripts."coverage:all" = {
     exec = ''
       set -e
       cargo coverage_wallet_standard_wallets_ssr
       cargo coverage_wallet_standard_wallets_docs
-      cargo coverage_wasm_client_solana_ssr
-      cargo coverage_wasm_client_solana_docs
-      cargo coverage_streams
-      cargo coverage_example_client
       cargo coverage_codecov_report
     '';
     description = "Run coverage across the crates";
@@ -290,9 +243,6 @@
       echo "export DEVENV_PROFILE=$DEVENV_PROFILE" >> /etc/profile
       echo "export DEVENV_ROOT=$DEVENV_ROOT" >> /etc/profile
       echo "export DEVENV_STATE=$DEVENV_STATE" >> /etc/profile
-
-      # Temporary fix for a bug in anchor@0.30.1 https://github.com/coral-xyz/anchor/issues/3042
-      echo "export ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> /etc/profile
     '';
     description = "Setup devenv shell for docker.";
   };

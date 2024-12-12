@@ -3,43 +3,6 @@ git_release_name = "{{ package }}@v{{ version }}"
 git_tag_name = "{{ package }}@v{{ version }}"
 
 [[package]]
-name = "test_utils"
-semver_check = false
-changelog_update = false
-publish = false
-
-[[package]]
-name = "example_program"
-semver_check = false
-changelog_update = false
-publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
-
-[[package]]
-name = "example_client"
-semver_check = false
-changelog_update = false
-publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
-
-[[package]]
-name = "test_utils_solana"
-changelog_path = "crates/test_utils_solana/changelog.md"
-
-# TODO: enable releases when `anchor@0.31.0` is released
-[[package]]
-name = "test_utils_anchor"
-changelog_path = "crates/test_utils_anchor/changelog.md"
-publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
-
-[[package]]
 name = "wallet_standard"
 changelog_path = "crates/wallet_standard/changelog.md"
 
@@ -50,19 +13,6 @@ changelog_path = "crates/wallet_standard_browser/changelog.md"
 [[package]]
 name = "wallet_standard_wallets"
 changelog_path = "crates/wallet_standard_wallets/changelog.md"
-
-# TODO: enable releases when `anchor@0.31.0` is released
-[[package]]
-name = "wasm_client_anchor"
-changelog_path = "crates/wasm_client_anchor/changelog.md"
-publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
-
-[[package]]
-name = "wasm_client_solana"
-changelog_path = "crates/wasm_client_solana/changelog.md"
 
 [changelog]
 commit_parsers = [

@@ -53,10 +53,10 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1733905208,
+        "lastModified": 1734019413,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d93447f35096248ff75366bfdd5abfdac1bdc326",
+        "rev": "4c092f5bcdce63a3dc61862396ed1114622c9e35",
         "type": "github"
       },
       "original": {
@@ -131,10 +131,10 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1733884434,
+        "lastModified": 1733970833,
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "d0483df44ddf0fd1985f564abccbe568e020ddf2",
+        "rev": "f7f4c59ccdf1bec3f1547d27398e9589aa94e3e8",
         "type": "github"
       },
       "original": {

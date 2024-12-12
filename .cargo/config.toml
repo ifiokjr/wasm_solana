@@ -7,31 +7,8 @@ llvm-cov = ["bin", "cargo-llvm-cov"]
 nextest = ["bin", "cargo-nextest"]
 semver-checks = ["bin", "cargo-semver-checks"]
 
-# Tests
+# tests
 
-test_wasm = [
-	"test",
-	"--target",
-	"wasm32-unknown-unknown",
-	"--package",
-	"wasm_client_solana",
-	"-F",
-	"js",
-]
-test_streams = [
-	"nextest",
-	"run",
-	"--package",
-	"test_utils_solana",
-	"-F",
-	"test_validator",
-]
-test_example_client = [
-	"nextest",
-	"run",
-	"--package",
-	"example_client",
-]
 test_wallet_standard_wallets_ssr = [
 	"nextest",
 	"run",
@@ -48,39 +25,9 @@ test_wallet_standard_wallets_docs = [
 	"-F",
 	"ssr",
 ]
-test_wasm_client_solana_ssr = [
-	"nextest",
-	"run",
-	"--package",
-	"wasm_client_solana",
-	"-F",
-	"ssr",
-]
-test_wasm_client_solana_docs = [
-	"test",
-	"--package",
-	"wasm_client_solana",
-	"--doc",
-	"-F",
-	"ssr",
-]
 
-# Coverage
+# coverage
 
-coverage_streams = [
-	"llvm-cov",
-	"--no-report",
-	"--package",
-	"test_utils_solana",
-	"-F",
-	"test_validator",
-]
-coverage_example_client = [
-	"llvm-cov",
-	"--no-report",
-	"--package",
-	"example_client",
-]
 coverage_wallet_standard_wallets_ssr = [
 	"llvm-cov",
 	"--no-report",
@@ -94,23 +41,6 @@ coverage_wallet_standard_wallets_docs = [
 	"--no-report",
 	"--package",
 	"wallet_standard_wallets",
-	"--doc",
-	"-F",
-	"ssr",
-]
-coverage_wasm_client_solana_ssr = [
-	"llvm-cov",
-	"--no-report",
-	"--package",
-	"wasm_client_solana",
-	"-F",
-	"ssr",
-]
-coverage_wasm_client_solana_docs = [
-	"llvm-cov",
-	"--no-report",
-	"--package",
-	"wasm_client_solana",
 	"--doc",
 	"-F",
 	"ssr",

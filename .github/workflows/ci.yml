@@ -88,30 +88,6 @@ jobs:
         run: cargo test_wallet_standard_wallets_docs
         shell: bash
 
-      - name: test `wasm_client_solana` with `ssr`
-        run: cargo test_wasm_client_solana_ssr
-        shell: bash
-
-      - name: test `wasm_client_solana` with `docs`
-        run: cargo test_wasm_client_solana_docs
-        shell: bash
-
-      - name: test `test_utils_solana` with `ssr` and `test_validator`
-        run: cargo test_streams
-        shell: bash
-
-      - name: test `example_client`
-        run: cargo test_example_client
-        shell: bash
-
-      - name: test `wasm` with background validator
-        env:
-          WASM_BINDGEN_TEST_TIMEOUT: 120
-        run: |
-          rustup target add wasm32-unknown-unknown
-          test:validator
-        shell: bash
-
   coverage:
     timeout-minutes: 60
     runs-on: ubuntu-24.04
@@ -140,22 +116,6 @@ jobs:
 
       - name: coverage `wallet_standard_wallets_docs`
         run: cargo coverage_wallet_standard_wallets_docs
-        shell: bash
-
-      - name: coverage `wasm_client_solana_ssr`
-        run: cargo coverage_wasm_client_solana_ssr
-        shell: bash
-
-      - name: coverage `wasm_client_solana_docs`
-        run: cargo coverage_wasm_client_solana_docs
-        shell: bash
-
-      - name: coverage `streams`
-        run: cargo coverage_streams
-        shell: bash
-
-      - name: coverage `example_client`
-        run: cargo coverage_example_client
         shell: bash
 
       - name: coverage `codecov_report`
