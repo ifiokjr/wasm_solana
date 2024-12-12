@@ -8832,7 +8832,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils_solana"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "anyhow",
  "assert2",
@@ -9646,7 +9646,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard_wallets"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "assert2",
