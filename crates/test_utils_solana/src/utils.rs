@@ -9,13 +9,14 @@ use chrono_humanize::HumanTime;
 use chrono_humanize::Tense;
 use solana_banks_client::BanksClient;
 use solana_banks_client::BanksClientError;
+use solana_banks_interface::BanksTransactionResultWithSimulation;
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::BanksTransactionResultWithMetadata;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
+use solana_sdk::bpf_loader_upgradeable;
 use solana_sdk::bpf_loader_upgradeable::UpgradeableLoaderState;
-use solana_sdk::bpf_loader_upgradeable::{self};
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentLevel;
@@ -49,6 +50,12 @@ pub trait BanksClientAsyncExtension {
 		wallet: &W,
 		props: SolanaSignAndSendTransactionProps,
 	) -> WalletResult<BanksTransactionResultWithMetadata>;
+	/// Sign and imulate the transaction.
+	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		props: SolanaSignAndSendTransactionProps,
+	) -> WalletResult<BanksTransactionResultWithSimulation>;
 }
 
 pub fn into_wallet_error<T: Display>(error: T) -> WalletError {
@@ -100,6 +107,35 @@ impl BanksClientAsyncExtension for BanksClient {
 			.map_err(into_wallet_error)?;
 
 		Ok(metadata)
+	}
+
+	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
+		&mut self,
+		wallet: &W,
+		SolanaSignAndSendTransactionProps {
+			transaction,
+			chain,
+			options,
+			..
+		}: SolanaSignAndSendTransactionProps,
+	) -> WalletResult<BanksTransactionResultWithSimulation> {
+		let transaction = self
+			.wallet_sign_transaction(
+				wallet,
+				SolanaSignTransactionProps {
+					transaction,
+					chain,
+					options: options.map(Into::into),
+				},
+			)
+			.await?;
+
+		let result = self
+			.simulate_transaction(transaction)
+			.await
+			.map_err(into_wallet_error)?;
+
+		Ok(result)
 	}
 }
 
