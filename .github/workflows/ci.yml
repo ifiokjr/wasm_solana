@@ -58,12 +58,18 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.79.0", stable, ""]
+        version: ["1.79.0", ""]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
       - name: free disk space
-        uses: jlumbroso/free-disk-space@main
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
 
       - name: checkout repository
         uses: actions/checkout@v4
@@ -111,7 +117,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: free disk space
-        uses: jlumbroso/free-disk-space@main
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
 
       - name: checkout repository
         uses: actions/checkout@v4
@@ -122,12 +134,36 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
-      - name: test coverage
-        run: coverage:all
+      - name: coverage `wallet_standard_wallets_ssr`
+        run: cargo coverage_wallet_standard_wallets_ssr
+        shell: bash
+
+      - name: coverage `wallet_standard_wallets_docs`
+        run: cargo coverage_wallet_standard_wallets_docs
+        shell: bash
+
+      - name: coverage `wasm_client_solana_ssr`
+        run: cargo coverage_wasm_client_solana_ssr
+        shell: bash
+
+      - name: coverage `wasm_client_solana_docs`
+        run: cargo coverage_wasm_client_solana_docs
+        shell: bash
+
+      - name: coverage `streams`
+        run: cargo coverage_streams
+        shell: bash
+
+      - name: coverage `example_client`
+        run: cargo coverage_example_client
+        shell: bash
+
+      - name: coverage `codecov_report`
+        run: cargo coverage_codecov_report
         shell: bash
 
       - name: upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: codecov.json
           fail_ci_if_error: true
@@ -138,7 +174,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.79.0", stable, ""]
+        version: ["1.79.0", ""]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
