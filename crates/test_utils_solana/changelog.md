@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.6.0...test_utils_solana@v0.6.1) - 2024-12-12
+
+### <!-- 0 -->🎉 Added
+
+- add trait method`wallet_sign_and_simulate_transaction` back
+
 ## [0.6.0](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.5.5...test_utils_solana@v0.6.0) - 2024-12-12
 
 ### <!-- 0 -->🎉 Added

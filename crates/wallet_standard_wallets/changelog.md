@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.16](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_wallets@v0.1.15...wallet_standard_wallets@v0.1.16) - 2024-12-12
+
+### <!-- 6 -->🧪 Testing
+
+- remove `test_utils_anchor` from `dev-dependencies`
+
 ## [0.1.15](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_wallets@v0.1.14...wallet_standard_wallets@v0.1.15) - 2024-12-12
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
