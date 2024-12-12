@@ -1,6 +1,6 @@
 [package]
 name = "wallet_standard"
-version = "0.4.0"
+version = "0.4.1"
 authors = { workspace = true }
 categories = ["wasm", "web-programming"]
 edition = { workspace = true }
