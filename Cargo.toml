@@ -32,12 +32,10 @@ futures-timeout = "0.1"
 futures-timer = "3"
 gloo-net = "0.6"
 heck = "0.5"
-indexmap = "2"
 insta = "1"
 js-sys = "0.3"
 lazy_static = "1"
 log = "0.4"
-nacl = "0.5"
 paste = "1"
 pin-project = "1"
 port_check = "0.2"
@@ -80,6 +78,9 @@ test-log = "0.2"
 thiserror = "2"
 tokio = "1"
 typed-builder = "0.20"
+wallet_standard = "0.4"
+wallet_standard_browser = "0.4"
+wallet_standard_wallets = "0.1"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 wasm-bindgen-test = "0.3"
@@ -94,17 +95,17 @@ test_utils = { path = "./crates/test_utils" }
 # publishable crates
 test_utils_anchor = { path = "./crates/test_utils_anchor" }
 test_utils_solana = { path = "./crates/test_utils_solana", version = "0.6.1" }
-wallet_standard = { path = "./crates/wallet_standard", version = "0.4.1" }
-wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.4.0" }
-wallet_standard_wallets = { path = "./crates/wallet_standard_wallets", version = "0.1.16" }
 wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.8.0" }
 wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.7.0" }
 
+[patch.crates-io]
+wasm_client_solana = { path = "./crates/wasm_client_solana" }
+
 [workspace.metadata.bin]
 anchor-cli = { git = "https://github.com/coral-xyz/anchor", rev = "955e7ea", version = "0.30.1", bins = ["anchor"] }
-cargo-insta = { version = "1.40.0" }
-cargo-llvm-cov = { version = "0.6.10" }
-cargo-nextest = { version = "0.9.72" }
+cargo-insta = { version = "1.41.1" }
+cargo-llvm-cov = { version = "0.6.14" }
+cargo-nextest = { version = "0.9.85" }
 wait-for-them = { version = "0.4.0", bins = ["wait-for-them"] }
 wasm-bindgen-cli = { version = "0.2.99", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 

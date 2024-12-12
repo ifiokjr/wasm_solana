@@ -20,20 +20,14 @@
 
 This repository contains several crates that make it easier to interact with Solana in WebAssembly environments:
 
-| Crate                     | Version | Description                                                     |
-| ------------------------- | ------- | --------------------------------------------------------------- |
-| `wallet_standard`         | 0.4.0   | Core implementation of the wallet standard interface for Solana |
-| `wallet_standard_browser` | 0.3.1   | Browser-specific implementation of the wallet standard          |
-| `test_utils_solana`       | 0.5.5   | Testing utilities for Solana programs                           |
-| `test_utils_anchor`       | 0.5.5   | Testing utilities specific to Anchor programs                   |
-| `wasm_client_anchor`      | 0.7.0   | WebAssembly client for interacting with Anchor programs         |
-| `wasm_client_solana`      | 0.7.0   | WebAssembly client for interacting with Solana programs         |
+| Crate                | Version | Description                                             |
+| -------------------- | ------- | ------------------------------------------------------- |
+| `test_utils_solana`  | 0.5.5   | Testing utilities for Solana programs                   |
+| `test_utils_anchor`  | 0.5.5   | Testing utilities specific to Anchor programs           |
+| `wasm_client_anchor` | 0.7.0   | WebAssembly client for interacting with Anchor programs |
+| `wasm_client_solana` | 0.7.0   | WebAssembly client for interacting with Solana programs |
 
 ### Crate Details
-
-- **wallet_standard**: Provides the core wallet standard interface implementation for Solana. This includes transaction signing, message signing, and other wallet-related functionality.
-
-- **wallet_standard_browser**: Browser-specific implementation of the wallet standard, allowing seamless integration with web applications. Includes JavaScript bindings and browser-specific wallet detection.
 
 - **test_utils_solana**: A collection of utilities to make testing Solana programs easier. Includes helpers for setting up test validators, creating test accounts, and managing test transactions.
 
@@ -45,12 +39,13 @@ This repository contains several crates that make it easier to interact with Sol
 
 See the individual crates for more information.
 
+## Contributing
+
 ### scripts
 
 - `anchor`: The `anchor` executable
 - `build:all`: Build all crates with all features activated.
 - `build:docs`: Build documentation site.
-- `copy:js`: Copy the JS needed for the `wallet_standard_browser`.
 - `coverage:all`: Run coverage across the crates
 - `fix:all`: Fix all autofixable problems.
 - `fix:clippy`: Fix clippy lints for rust.
@@ -71,8 +66,6 @@ See the individual crates for more information.
 - `setup:vscode`: Setup the environment for vscode.
 - `test:all`: Run all tests across the crates
 - `update:deps`: Update dependencies.
-
-## Contributing
 
 [`devenv`](https://devenv.sh/) is used to provide a reproducible development environment for this project. Follow the [getting started instructions](https://devenv.sh/getting-started/).
 

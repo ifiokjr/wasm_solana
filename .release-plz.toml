@@ -39,18 +39,6 @@ release = false
 git_release_enable = false
 git_tag_enable = false
 
-[[package]]
-name = "wallet_standard"
-changelog_path = "crates/wallet_standard/changelog.md"
-
-[[package]]
-name = "wallet_standard_browser"
-changelog_path = "crates/wallet_standard_browser/changelog.md"
-
-[[package]]
-name = "wallet_standard_wallets"
-changelog_path = "crates/wallet_standard_wallets/changelog.md"
-
 # TODO: enable releases when `anchor@0.31.0` is released
 [[package]]
 name = "wasm_client_anchor"
