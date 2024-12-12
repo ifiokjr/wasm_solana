@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.6.1...wasm_client_solana@v0.7.0) - 2024-12-12
+
+### <!-- 0 -->🎉 Added
+
+- [**breaking**] add test_utils_anchor crate for testing anchor programs in wasm environments; update dependencies and configurations
+- [**breaking**] upgrade to solana@v2 (#20)
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- update dependencies and configurations across multiple crates
+
 ## [0.6.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.6.0...wasm_client_solana@v0.6.1) - 2024-11-04
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
