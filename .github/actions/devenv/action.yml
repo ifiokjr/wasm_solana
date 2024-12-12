@@ -16,8 +16,8 @@ runs:
       id: nix-cache
       with:
         path: ${{ inputs.nix-cache }}
-        key: ${{ runner.os }}-nix-cache-v1-${{ hashFiles('**/devenv.nix', '**/devenv.yaml', '**/devenv.lock') }}
-        restore-keys: ${{ runner.os }}-nix-cache-v1-
+        key: ${{ runner.os }}-nix-cache-${{ hashFiles('**/devenv.nix', '**/devenv.yaml', '**/devenv.lock') }}
+        restore-keys: ${{ runner.os }}-nix-cache-
 
     - name: install nix
       uses: cachix/install-nix-action@v27
@@ -56,23 +56,24 @@ runs:
     - name: cache rust dependencies
       uses: Swatinem/rust-cache@v2
       with:
-        key: v1-${{ runner.os }}
+        prefix-key: "v0-rust"
+        key: ${{ runner.os }}
 
     - name: cache cargo binaries
       uses: actions/cache@v4
       with:
         path: ./.bin
-        key: ${{ runner.os }}-cargo-bin-v1-${{ env.RUSTUP_TOOLCHAIN }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.toml') }}
+        key: ${{ runner.os }}-cargo-bin-${{ env.RUSTUP_TOOLCHAIN }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.toml') }}
         restore-keys: |
-          ${{ runner.os }}-cargo-bin-v1-
+          ${{ runner.os }}-cargo-bin-
 
     - name: cache local binaries
       uses: actions/cache@v4
       with:
         path: ./.local-cache
-        key: ${{ runner.os }}-local-cache-v1-${{ hashFiles('setup/cache-versions.json') }}
+        key: ${{ runner.os }}-local-cache-${{ hashFiles('setup/cache-versions.json') }}
         restore-keys: |
-          ${{ runner.os }}-local-cache-v1-
+          ${{ runner.os }}-local-cache-
 
     - name: install dependencies
       run: install:all
