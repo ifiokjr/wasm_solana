@@ -13,7 +13,7 @@ use solana_sdk::system_instruction::transfer;
 use solana_sdk::transaction::VersionedTransaction;
 use test_log::test;
 use test_utils::SECRET_KEY_WALLET;
-use test_utils_anchor::prelude::*;
+use test_utils_solana::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::ProgramTestContext;
 use test_utils_solana::TestValidatorRunner;

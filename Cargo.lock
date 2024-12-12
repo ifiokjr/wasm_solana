@@ -9661,7 +9661,6 @@ dependencies = [
  "solana-sdk",
  "test-log",
  "test_utils",
- "test_utils_anchor",
  "test_utils_solana",
  "tokio",
  "typed-builder",
