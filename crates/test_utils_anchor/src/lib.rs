@@ -7,17 +7,11 @@ use solana_sdk::account::AccountSharedData;
 use solana_sdk::account::WritableAccount;
 use solana_sdk::commitment_config::CommitmentLevel;
 use solana_sdk::rent::Rent;
-use solana_sdk::signer::Signer;
-use test_utils_solana::into_wallet_error;
 use test_utils_solana::prelude::*;
 use test_utils_solana::BanksClient;
 use test_utils_solana::BanksClientError;
-use test_utils_solana::BanksTransactionResultWithSimulation;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::ProgramTestContext;
-use wallet_standard::SolanaSignAndSendTransactionProps;
-use wallet_standard::SolanaSignTransactionProps;
-use wasm_client_anchor::AnchorClientResult;
 
 pub trait FromAnchorData {
 	fn from_anchor_data<T: AnchorSerialize + Discriminator>(data: T, owner: Pubkey) -> Self;
@@ -62,12 +56,6 @@ impl TestValidatorGenesisExtensions for test_utils_solana::TestValidatorGenesis 
 
 #[async_trait(?Send)]
 pub trait BanksClientAsyncAnchorExtension {
-	/// Sign and imulate the transaction.
-	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
-		&mut self,
-		wallet: &W,
-		props: SolanaSignAndSendTransactionProps,
-	) -> AnchorClientResult<BanksTransactionResultWithSimulation>;
 	async fn get_anchor_account<T: AccountDeserialize>(
 		&mut self,
 		address: &Pubkey,
@@ -76,35 +64,6 @@ pub trait BanksClientAsyncAnchorExtension {
 
 #[async_trait(?Send)]
 impl BanksClientAsyncAnchorExtension for BanksClient {
-	async fn wallet_sign_and_simulate_transaction<W: WalletSolana + Signer>(
-		&mut self,
-		wallet: &W,
-		SolanaSignAndSendTransactionProps {
-			transaction,
-			chain,
-			options,
-			..
-		}: SolanaSignAndSendTransactionProps,
-	) -> AnchorClientResult<BanksTransactionResultWithSimulation> {
-		let transaction = self
-			.wallet_sign_transaction(
-				wallet,
-				SolanaSignTransactionProps {
-					transaction,
-					chain,
-					options: options.map(Into::into),
-				},
-			)
-			.await?;
-
-		let result = self
-			.simulate_transaction(transaction)
-			.await
-			.map_err(into_wallet_error)?;
-
-		Ok(result)
-	}
-
 	async fn get_anchor_account<T: AccountDeserialize>(
 		&mut self,
 		address: &Pubkey,
