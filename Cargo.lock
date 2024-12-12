@@ -9608,48 +9608,26 @@ dependencies = [
 [[package]]
 name = "wallet_standard"
 version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ec1ca3c933e1dae51e0fa03156a7031eeea1c1476fc773fe860f0ceccd52429"
 dependencies = [
  "async-trait",
  "bincode",
  "derive_more 1.0.0",
  "futures 0.3.31",
  "serde",
- "serde-wasm-bindgen",
  "serde_bytes",
  "solana-sdk",
  "thiserror 2.0.6",
  "typed-builder",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "wallet_standard_browser"
-version = "0.4.0"
-dependencies = [
- "async-trait",
- "bincode",
- "futures 0.3.31",
- "js-sys",
- "log",
- "serde",
- "serde-wasm-bindgen",
- "serde_bytes",
- "solana-sdk",
- "thiserror 2.0.6",
- "tokio",
- "typed-builder",
- "wallet_standard",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]
 name = "wallet_standard_wallets"
 version = "0.1.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81aee6f98d6c2ca8a43f7d6eef9bfa31b612a383d125bd74815b6757a270efca"
 dependencies = [
- "anyhow",
- "assert2",
  "async-trait",
  "derive_more 1.0.0",
  "futures 0.3.31",
@@ -9659,10 +9637,6 @@ dependencies = [
  "serde",
  "solana-program",
  "solana-sdk",
- "test-log",
- "test_utils",
- "test_utils_solana",
- "tokio",
  "typed-builder",
  "wallet_standard",
  "wasm_client_solana",

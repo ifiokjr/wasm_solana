@@ -68,21 +68,11 @@
     '';
     description = "Install cargo binaries locally.";
   };
-  scripts."copy:js" = {
-    exec = ''
-      set -e
-      curl -L https://esm.sh/v135/@wallet-standard/app@1/es2022/app.development.mjs -o $DEVENV_ROOT/crates/wallet_standard_browser/js/app.js
-      curl -L https://esm.sh/v135/@wallet-standard/wallet@1/es2022/wallet.development.mjs -o $DEVENV_ROOT/crates/wallet_standard_browser/js/wallet.js
-      dprint fmt "./crates/wallet_standard_browser/js/*.js"
-    '';
-    description = "Copy the JS needed for the `wallet_standard_browser`.";
-  };
   scripts."update:deps" = {
     exec = ''
       set -e
       cargo update
       devenv update
-      copy:js
     '';
     description = "Update dependencies.";
   };
@@ -108,8 +98,6 @@
   scripts."test:all" = {
     exec = ''
       set -e
-      cargo test_wallet_standard_wallets_ssr
-      cargo test_wallet_standard_wallets_docs
       cargo test_wasm_client_solana_ssr
       cargo test_wasm_client_solana_docs
       cargo test_streams
@@ -143,8 +131,6 @@
   scripts."coverage:all" = {
     exec = ''
       set -e
-      cargo coverage_wallet_standard_wallets_ssr
-      cargo coverage_wallet_standard_wallets_docs
       cargo coverage_wasm_client_solana_ssr
       cargo coverage_wasm_client_solana_docs
       cargo coverage_streams
