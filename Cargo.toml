@@ -92,7 +92,7 @@ example_program = { path = "./programs/example_program" }
 test_utils = { path = "./crates/test_utils" }
 
 # publishable crates
-test_utils_anchor = { path = "./crates/test_utils_anchor", version = "0.1.0" }
+test_utils_anchor = { path = "./crates/test_utils_anchor" }
 test_utils_solana = { path = "./crates/test_utils_solana", version = "0.6.0" }
 wallet_standard = { path = "./crates/wallet_standard", version = "0.4.1" }
 wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.4.0" }
