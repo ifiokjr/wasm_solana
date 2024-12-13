@@ -99,7 +99,7 @@ test_utils_insta = { path = "./crates/test_utils_insta", version = "0.1.0" }
 test_utils_keypairs = { path = "./crates/test_utils_keypairs", version = "0.1.0" }
 test_utils_solana = { path = "./crates/test_utils_solana" }
 wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.8.0" }
-wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.7.1" }
+wasm_client_solana = { path = "./crates/wasm_client_solana" }
 
 [workspace.metadata.bin]
 anchor-cli = { git = "https://github.com/coral-xyz/anchor", rev = "955e7ea", version = "0.30.1", bins = ["anchor"] }
