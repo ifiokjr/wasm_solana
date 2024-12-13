@@ -27,6 +27,10 @@ git_release_enable = false
 git_tag_enable = false
 
 [[package]]
+name = "memory_wallet"
+changelog_path = "crates/memory_wallet/changelog.md"
+
+[[package]]
 name = "test_utils_solana"
 changelog_path = "crates/test_utils_solana/changelog.md"
 
