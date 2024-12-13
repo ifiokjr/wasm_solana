@@ -29,6 +29,7 @@ memory_wallet = { workspace = true }
 test-log = { workspace = true, features = ["log", "trace"] }
 test_utils_anchor = { workspace = true, features = ["test_validator"] }
 test_utils_insta = { workspace = true }
+test_utils_keypairs = { workspace = true }
 test_utils_solana = { workspace = true, features = ["test_validator"] }
 tokio = { workspace = true, features = ["test-util", "rt", "macros", "time"] }
 

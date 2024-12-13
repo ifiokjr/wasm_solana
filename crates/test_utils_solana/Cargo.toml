@@ -51,6 +51,7 @@ assert2 = { workspace = true }
 insta = { workspace = true, features = ["redactions", "json"] }
 test-log = { workspace = true, features = ["trace"] }
 test_utils_insta = { workspace = true }
+test_utils_keypairs = { workspace = true }
 tokio = { workspace = true, features = ["test-util", "time"] }
 
 [features]

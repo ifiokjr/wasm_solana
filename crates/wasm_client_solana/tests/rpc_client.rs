@@ -7,7 +7,7 @@ use assert2::check;
 use futures_timer::Delay;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::signature::Keypair;
-use test_utils_solana::get_wallet_keypair;
+use test_utils_keypairs::get_wallet_keypair;
 use wasm_bindgen_test::*;
 use wasm_client_solana::prelude::*;
 use wasm_client_solana::rpc_config::LogsSubscribeRequest;

@@ -1,0 +1,17 @@
+[package]
+name = "test_utils_keypairs"
+version = "0.1.0"
+authors = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+license = { workspace = true }
+readme = "readme.md"
+repository = { workspace = true }
+rust-version = { workspace = true }
+description = "Test utils to make working with pre defined keypairs easier."
+
+[dependencies]
+solana-sdk = { workspace = true }
+
+[lints]
+workspace = true

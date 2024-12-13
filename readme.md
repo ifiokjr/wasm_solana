@@ -20,14 +20,23 @@
 
 This repository contains several crates that make it easier to interact with Solana in WebAssembly environments:
 
-| Crate                | Version | Description                                             |
-| -------------------- | ------- | ------------------------------------------------------- |
-| `test_utils_solana`  | 0.5.5   | Testing utilities for Solana programs                   |
-| `test_utils_anchor`  | 0.5.5   | Testing utilities specific to Anchor programs           |
-| `wasm_client_anchor` | 0.7.0   | WebAssembly client for interacting with Anchor programs |
-| `wasm_client_solana` | 0.7.0   | WebAssembly client for interacting with Solana programs |
+| Crate                 | Version | Description                                                               |
+| --------------------- | ------- | ------------------------------------------------------------------------- |
+| `memory_wallet`       | 0.1.16  | A memory based wallet standard implementation primarily used for testing. |
+| `test_utils_insta`    | 0.1     | Test utilities for working with `insta` redactions                        |
+| `test_utils_keypairs` | 0.1     | Test utilities for working with pre defined keypairs                      |
+| `test_utils_solana`   | 0.5     | Testing utilities for Solana programs                                     |
+| `test_utils_anchor`   | 0.5     | Testing utilities specific to Anchor programs                             |
+| `wasm_client_anchor`  | 0.7.0   | WebAssembly client for interacting with Anchor programs                   |
+| `wasm_client_solana`  | 0.7.0   | WebAssembly client for interacting with Solana programs                   |
 
 ### Crate Details
+
+- **memory_wallet**: A memory based wallet standard implementation primarily used for testing.
+
+- **test_utils_insta**: Test utilities for working with `insta` redactions.
+
+- **test_utils_keypairs**: Test utilities for working with pre defined keypairs.
 
 - **test_utils_solana**: A collection of utilities to make testing Solana programs easier. Includes helpers for setting up test validators, creating test accounts, and managing test transactions.
 

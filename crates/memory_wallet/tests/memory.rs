@@ -12,7 +12,7 @@ use solana_sdk::signature::Signature;
 use solana_sdk::system_instruction::transfer;
 use solana_sdk::transaction::VersionedTransaction;
 use test_log::test;
-use test_utils_solana::get_wallet_keypair;
+use test_utils_keypairs::get_wallet_keypair;
 use test_utils_solana::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::ProgramTestContext;

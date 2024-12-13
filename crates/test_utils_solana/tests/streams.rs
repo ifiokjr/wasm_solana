@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use assert2::check;
 use solana_sdk::signature::Keypair;
-use test_utils_solana::get_wallet_keypair;
+use test_utils_keypairs::get_wallet_keypair;
 use test_utils_solana::prelude::*;
 use test_utils_solana::TestValidatorRunner;
 use test_utils_solana::TestValidatorRunnerProps;

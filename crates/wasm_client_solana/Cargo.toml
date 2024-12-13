@@ -73,7 +73,7 @@ insta = { workspace = true, features = ["redactions", "json"] }
 spl-pod = { workspace = true }
 test-log = { workspace = true, features = ["trace"] }
 test_utils_insta = { workspace = true }
-test_utils_solana = { workspace = true }
+test_utils_keypairs = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 wasm-bindgen-test = { workspace = true }
 

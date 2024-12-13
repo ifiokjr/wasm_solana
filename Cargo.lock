@@ -1919,6 +1919,7 @@ dependencies = [
  "test-log",
  "test_utils_anchor",
  "test_utils_insta",
+ "test_utils_keypairs",
  "test_utils_solana",
  "tokio",
  "typed-builder",
@@ -3553,6 +3554,7 @@ dependencies = [
  "solana-sdk",
  "test-log",
  "test_utils_insta",
+ "test_utils_keypairs",
  "test_utils_solana",
  "tokio",
  "typed-builder",
@@ -8855,6 +8857,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "test_utils_keypairs"
+version = "0.1.0"
+dependencies = [
+ "solana-sdk",
+]
+
+[[package]]
 name = "test_utils_solana"
 version = "0.6.1"
 dependencies = [
@@ -8889,6 +8898,7 @@ dependencies = [
  "tarpc",
  "test-log",
  "test_utils_insta",
+ "test_utils_keypairs",
  "tokio",
  "typed-builder",
  "wallet_standard",
@@ -9837,7 +9847,7 @@ dependencies = [
  "spl-token-metadata-interface 0.6.0",
  "test-log",
  "test_utils_insta",
- "test_utils_solana",
+ "test_utils_keypairs",
  "thiserror 2.0.6",
  "tokio",
  "typed-builder",

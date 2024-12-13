@@ -1,4 +1,3 @@
-pub use keypairs::*;
 pub use solana_banks_client::BanksClientExt;
 pub use solana_banks_interface::BanksTransactionResultWithSimulation;
 pub use solana_program_runtime;
@@ -16,7 +15,6 @@ pub use test_rpc_provider::*;
 pub use test_validator_runner::*;
 pub use utils::*;
 
-mod keypairs;
 mod macros;
 mod test_rpc_provider;
 #[cfg(feature = "test_validator")]
