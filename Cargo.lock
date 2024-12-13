@@ -3542,7 +3542,7 @@ dependencies = [
 
 [[package]]
 name = "memory_wallet"
-version = "0.1.17"
+version = "0.1.18"
 dependencies = [
  "anyhow",
  "assert2",
@@ -8852,7 +8852,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils_insta"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "assert2",
@@ -8861,14 +8861,14 @@ dependencies = [
 
 [[package]]
 name = "test_utils_keypairs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "solana-sdk",
 ]
 
 [[package]]
 name = "test_utils_solana"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "anyhow",
  "assert2",
@@ -9804,7 +9804,7 @@ dependencies = [
 
 [[package]]
 name = "wasm_client_solana"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "anyhow",
  "assert2",
