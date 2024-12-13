@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.17](https://github.com/ifiokjr/wasm_solana/compare/memory_wallet@v0.1.16...memory_wallet@v0.1.17) - 2024-12-13
+
+### <!-- 0 -->🎉 Added
+
+- add `test_utils_keypairs` crate
+- replace `test_utils` with `test_utils_insta`
+
 ## [0.1.16](https://github.com/ifiokjr/wasm_solana/compare/wallet_standard_wallets@v0.1.15...wallet_standard_wallets@v0.1.16) - 2024-12-12
 
 ### <!-- 6 -->🧪 Testing

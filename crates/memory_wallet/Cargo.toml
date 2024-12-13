@@ -1,6 +1,6 @@
 [package]
 name = "memory_wallet"
-version = "0.1.16"
+version = "0.1.17"
 authors = { workspace = true }
 categories = ["wasm"]
 edition = { workspace = true }

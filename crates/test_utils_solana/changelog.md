@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.6.1...test_utils_solana@v0.6.2) - 2024-12-13
+
+### <!-- 0 -->🎉 Added
+
+- add `test_utils_keypairs` crate
+- replace `test_utils` with `test_utils_insta`
+- add keypair utilities for testing
+
 ## [0.6.1](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.6.0...test_utils_solana@v0.6.1) - 2024-12-12
 
 ### <!-- 0 -->🎉 Added
