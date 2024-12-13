@@ -7,8 +7,6 @@ llvm-cov = ["bin", "cargo-llvm-cov"]
 nextest = ["bin", "cargo-nextest"]
 semver-checks = ["bin", "cargo-semver-checks"]
 
-# Tests
-
 test_wasm = [
 	"test",
 	"--target",
@@ -64,8 +62,6 @@ test_wasm_client_solana_docs = [
 	"-F",
 	"ssr",
 ]
-
-# Coverage
 
 coverage_streams = [
 	"llvm-cov",

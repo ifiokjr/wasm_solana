@@ -39,6 +39,13 @@
     '';
     description = "The `anchor` executable";
   };
+  scripts."release-plz" = {
+    exec = ''
+      set -e
+      cargo bin release-plz $@
+    '';
+    description = "The `release-plz` executable";
+  };
   scripts."wasm-bindgen-test-runner" = {
     exec = ''
       set -e

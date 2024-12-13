@@ -20,7 +20,7 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 async-trait = { workspace = true }
-async-tungstenite = "=0.28.0"
+async-tungstenite = { version = "0.28.1", features = ["futures-03-sink"] }
 base64 = { workspace = true }
 bincode = { workspace = true }
 bs58 = { workspace = true }
