@@ -98,6 +98,8 @@
   scripts."test:all" = {
     exec = ''
       set -e
+      cargo test_memory_wallet_ssr
+      cargo test_memory_wallet_docs
       cargo test_wasm_client_solana_ssr
       cargo test_wasm_client_solana_docs
       cargo test_streams
@@ -131,6 +133,8 @@
   scripts."coverage:all" = {
     exec = ''
       set -e
+      cargo coverage_memory_wallet_ssr
+      cargo coverage_memory_wallet_docs
       cargo coverage_wasm_client_solana_ssr
       cargo coverage_wasm_client_solana_docs
       cargo coverage_streams

@@ -35,14 +35,14 @@ This crate provides the following features:
 Use `AnchorProgram` to interact directly with anchor programs.
 
 ```rust
+use memory_wallet::AnchorProgram;
+use memory_wallet::AnchorRequestMethods;
+use memory_wallet::WalletAnchor;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
-use wallet_standard_wallets::AnchorProgram;
-use wallet_standard_wallets::AnchorRequestMethods;
-use wallet_standard_wallets::WalletAnchor;
 use wasm_client_anchor::AnchorClientResult;
 
 async fn run() -> AnchorClientResult<()> {

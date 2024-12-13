@@ -1913,6 +1913,7 @@ dependencies = [
  "futures 0.3.31",
  "insta",
  "log",
+ "memory_wallet",
  "solana-program",
  "solana-sdk",
  "test-log",
@@ -1922,7 +1923,6 @@ dependencies = [
  "tokio",
  "typed-builder",
  "wallet_standard",
- "wallet_standard_wallets",
  "wasm_client_anchor",
  "wasm_client_solana",
 ]
@@ -3534,6 +3534,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "memory_wallet"
+version = "0.1.16"
+dependencies = [
+ "anyhow",
+ "assert2",
+ "async-trait",
+ "derive_more 1.0.0",
+ "futures 0.3.31",
+ "indexmap 2.7.0",
+ "log",
+ "nacl",
+ "serde",
+ "solana-program",
+ "solana-sdk",
+ "test-log",
+ "test_utils",
+ "test_utils_solana",
+ "tokio",
+ "typed-builder",
+ "wallet_standard",
+ "wasm_client_solana",
 ]
 
 [[package]]
@@ -9620,26 +9644,6 @@ dependencies = [
  "solana-sdk",
  "thiserror 2.0.6",
  "typed-builder",
-]
-
-[[package]]
-name = "wallet_standard_wallets"
-version = "0.1.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81aee6f98d6c2ca8a43f7d6eef9bfa31b612a383d125bd74815b6757a270efca"
-dependencies = [
- "async-trait",
- "derive_more 1.0.0",
- "futures 0.3.31",
- "indexmap 2.7.0",
- "log",
- "nacl",
- "serde",
- "solana-program",
- "solana-sdk",
- "typed-builder",
- "wallet_standard",
- "wasm_client_solana",
 ]
 
 [[package]]

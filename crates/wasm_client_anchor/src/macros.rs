@@ -318,7 +318,7 @@ macro_rules! create_program_client_macro {
 /// use wasm_client_anchor::create_program_client!(example_program, ExampleProgramClient);
 /// use wasm_client_solana::SolanaRpcClient;
 /// use wasm_client_solana::DEVNET;
-/// use wallet_standard_wallets::MemoryWallet;
+/// use memory_wallet::MemoryWallet;
 ///
 /// let rpc = SolanaRpcClient::new(DEVNET);
 /// let wallet = MemoryWallet::new(rpc.clone(), accounts: &[Keypair::new()]);

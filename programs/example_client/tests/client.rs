@@ -2,6 +2,7 @@ use anyhow::Result;
 use assert2::check;
 use example_client::ExampleProgramClient;
 use example_client::IntoExampleProgramClient;
+use memory_wallet::MemoryWallet;
 use solana_sdk::account::Account;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey::Pubkey;
@@ -12,7 +13,6 @@ use test_utils_anchor::anchor_processor;
 use test_utils_anchor::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::TestRpcProvider;
-use wallet_standard_wallets::MemoryWallet;
 
 #[test_log::test(tokio::test)]
 async fn initialize() -> Result<()> {

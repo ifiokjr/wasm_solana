@@ -32,6 +32,22 @@ test_example_client = [
 	"--package",
 	"example_client",
 ]
+test_memory_wallet_ssr = [
+	"nextest",
+	"run",
+	"--package",
+	"memory_wallet",
+	"-F",
+	"ssr",
+]
+test_memory_wallet_docs = [
+	"test",
+	"--package",
+	"memory_wallet",
+	"--doc",
+	"-F",
+	"ssr",
+]
 test_wasm_client_solana_ssr = [
 	"nextest",
 	"run",
@@ -64,6 +80,23 @@ coverage_example_client = [
 	"--no-report",
 	"--package",
 	"example_client",
+]
+coverage_memory_wallet_ssr = [
+	"llvm-cov",
+	"--no-report",
+	"--package",
+	"memory_wallet",
+	"-F",
+	"ssr",
+]
+coverage_memory_wallet_docs = [
+	"llvm-cov",
+	"--no-report",
+	"--package",
+	"memory_wallet",
+	"--doc",
+	"-F",
+	"ssr",
 ]
 coverage_wasm_client_solana_ssr = [
 	"llvm-cov",

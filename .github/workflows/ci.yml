@@ -80,6 +80,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
+      - name: test `memory_wallet` with `ssr`
+        run: cargo test_memory_wallet_ssr
+        shell: bash
+
+      - name: test `memory_wallet` with `docs`
+        run: cargo test_memory_wallet_docs
+        shell: bash
+
       - name: test `wasm_client_solana` with `ssr`
         run: cargo test_wasm_client_solana_ssr
         shell: bash
@@ -125,6 +133,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
+
+      - name: coverage `memory_wallet_ssr`
+        run: cargo coverage_memory_wallet_ssr
+        shell: bash
+
+      - name: coverage `memory_wallet_docs`
+        run: cargo coverage_memory_wallet_docs
+        shell: bash
 
       - name: coverage `wasm_client_solana_ssr`
         run: cargo coverage_wasm_client_solana_ssr

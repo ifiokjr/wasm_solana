@@ -25,12 +25,12 @@ wasm_client_solana = { workspace = true, features = ["ssr"] }
 anyhow = { workspace = true }
 assert2 = { workspace = true }
 insta = { workspace = true, features = ["ron", "yaml", "redactions"] }
+memory_wallet = { workspace = true }
 test-log = { workspace = true, features = ["log", "trace"] }
 test_utils = { workspace = true }
 test_utils_anchor = { workspace = true, features = ["test_validator"] }
 test_utils_solana = { workspace = true, features = ["test_validator"] }
 tokio = { workspace = true, features = ["test-util", "rt", "macros", "time"] }
-wallet_standard_wallets = { workspace = true }
 
 [lints]
 workspace = true
