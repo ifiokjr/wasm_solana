@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use assert2::check;
 use solana_sdk::signature::Keypair;
-use test_utils::SECRET_KEY_WALLET;
+use test_utils_solana::get_wallet_keypair;
 use test_utils_solana::prelude::*;
 use test_utils_solana::TestValidatorRunner;
 use test_utils_solana::TestValidatorRunnerProps;
@@ -91,8 +91,4 @@ async fn create_runner() -> TestValidatorRunner {
 		.build()
 		.run()
 		.await
-}
-
-fn get_wallet_keypair() -> Keypair {
-	Keypair::from_bytes(&SECRET_KEY_WALLET).unwrap()
 }

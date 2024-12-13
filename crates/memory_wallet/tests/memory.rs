@@ -8,12 +8,11 @@ use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::system_instruction::transfer;
 use solana_sdk::transaction::VersionedTransaction;
 use test_log::test;
-use test_utils::SECRET_KEY_WALLET;
+use test_utils_solana::get_wallet_keypair;
 use test_utils_solana::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::ProgramTestContext;
@@ -154,8 +153,4 @@ async fn create_program_test() -> (ProgramTestContext, SolanaRpcClient) {
 	let ctx = program_test.start_with_context().await;
 
 	(ctx, rpc)
-}
-
-pub fn get_wallet_keypair() -> Keypair {
-	Keypair::from_bytes(&SECRET_KEY_WALLET).unwrap()
 }

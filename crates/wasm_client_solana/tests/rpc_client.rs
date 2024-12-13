@@ -7,7 +7,7 @@ use assert2::check;
 use futures_timer::Delay;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::signature::Keypair;
-use test_utils::SECRET_KEY_WALLET;
+use test_utils_solana::get_wallet_keypair;
 use wasm_bindgen_test::*;
 use wasm_client_solana::prelude::*;
 use wasm_client_solana::rpc_config::LogsSubscribeRequest;
@@ -85,7 +85,7 @@ async fn account_subscription() -> Result<()> {
 		}
 	});
 
-	let payer = Keypair::from_bytes(&SECRET_KEY_WALLET).unwrap();
+	let payer = get_wallet_keypair();
 	let instruction = solana_sdk::system_instruction::create_account(
 		&payer.pubkey(),
 		&new_account.pubkey(),

@@ -50,7 +50,7 @@ wasm_client_solana = { workspace = true, features = ["ssr"] }
 assert2 = { workspace = true }
 insta = { workspace = true, features = ["redactions", "json"] }
 test-log = { workspace = true, features = ["trace"] }
-test_utils = { workspace = true }
+test_utils_insta = { workspace = true }
 tokio = { workspace = true, features = ["test-util", "time"] }
 
 [features]

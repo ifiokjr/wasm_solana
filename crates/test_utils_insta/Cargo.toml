@@ -1,13 +1,14 @@
 [package]
-name = "test_utils"
+name = "test_utils_insta"
 version = "0.1.0"
 authors = { workspace = true }
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
-publish = false
+readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
+description = "Test utils to make working with `insta` redactions easier."
 
 [dependencies]
 anyhow = { workspace = true }

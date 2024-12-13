@@ -8,9 +8,9 @@ use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
-use test_utils::SECRET_KEY_WALLET;
 use test_utils_anchor::anchor_processor;
 use test_utils_anchor::prelude::*;
+use test_utils_solana::get_wallet_keypair;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::TestRpcProvider;
 
@@ -103,8 +103,4 @@ async fn create_program_test() -> TestRpcProvider {
 	let ctx = program_test.start_with_context().await;
 
 	TestRpcProvider::new(ctx)
-}
-
-pub fn get_wallet_keypair() -> Keypair {
-	Keypair::from_bytes(&SECRET_KEY_WALLET).unwrap()
 }

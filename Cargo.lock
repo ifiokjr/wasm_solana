@@ -1917,8 +1917,8 @@ dependencies = [
  "solana-program",
  "solana-sdk",
  "test-log",
- "test_utils",
  "test_utils_anchor",
+ "test_utils_insta",
  "test_utils_solana",
  "tokio",
  "typed-builder",
@@ -3552,7 +3552,7 @@ dependencies = [
  "solana-program",
  "solana-sdk",
  "test-log",
- "test_utils",
+ "test_utils_insta",
  "test_utils_solana",
  "tokio",
  "typed-builder",
@@ -8831,15 +8831,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "test_utils"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "assert2",
- "insta",
-]
-
-[[package]]
 name = "test_utils_anchor"
 version = "0.1.0"
 dependencies = [
@@ -8852,6 +8843,15 @@ dependencies = [
  "wallet_standard",
  "wasm_client_anchor",
  "wasm_client_solana",
+]
+
+[[package]]
+name = "test_utils_insta"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert2",
+ "insta",
 ]
 
 [[package]]
@@ -8888,7 +8888,7 @@ dependencies = [
  "spl-token-2022 6.0.0",
  "tarpc",
  "test-log",
- "test_utils",
+ "test_utils_insta",
  "tokio",
  "typed-builder",
  "wallet_standard",
@@ -9836,7 +9836,8 @@ dependencies = [
  "spl-token-group-interface 0.5.0",
  "spl-token-metadata-interface 0.6.0",
  "test-log",
- "test_utils",
+ "test_utils_insta",
+ "test_utils_solana",
  "thiserror 2.0.6",
  "tokio",
  "typed-builder",
