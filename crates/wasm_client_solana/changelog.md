@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.1...wasm_client_solana@v0.7.2) - 2024-12-13
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- make dependency more flexible
+- `async-tungstenite@0.28.1` `futures-03-sink` feature
+
+### <!-- 9 -->◀️ Revert
+
+- "fix: make dependency more flexible"
+
 ## [0.7.1](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.0...wasm_client_solana@v0.7.1) - 2024-12-13
 
 ### <!-- 0 -->🎉 Added
