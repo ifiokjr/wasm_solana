@@ -8,7 +8,6 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use anyhow::Context;
 use anyhow::Result;
 use crossbeam_channel::unbounded;
 use futures::future::Shared;
@@ -36,8 +35,12 @@ use solana_test_validator::UpgradeableProgramInfo;
 use typed_builder::TypedBuilder;
 use wasm_client_solana::SolanaRpcClient;
 
-#[derive(Default, Clone, TypedBuilder)]
+#[derive(Clone, TypedBuilder)]
 pub struct TestValidatorRunnerProps {
+	/// The ports to use for this runner. Defaults to all three ports being
+	/// random. Can be overriden.
+	#[builder(default = TestValidatorPorts::random_ports())]
+	pub ports: TestValidatorPorts,
 	/// The programs to add to the validator.
 	#[builder(default)]
 	pub programs: Vec<TestProgramInfo>,
@@ -76,6 +79,12 @@ pub struct TestValidatorRunnerProps {
 	/// Override the epoch schedule.
 	#[builder(default)]
 	pub epoch_schedule: EpochSchedule,
+}
+
+impl Default for TestValidatorRunnerProps {
+	fn default() -> Self {
+		Self::builder().build()
+	}
 }
 
 impl TestValidatorRunnerProps {
@@ -132,6 +141,38 @@ impl From<TestProgramInfo> for UpgradeableProgramInfo {
 	}
 }
 
+#[derive(Copy, Clone, TypedBuilder)]
+pub struct TestValidatorPorts {
+	#[builder(default = 8899)]
+	pub rpc: u16,
+	#[builder(default = 8900)]
+	pub pubsub: u16,
+	#[builder(default = 9900)]
+	pub faucet: u16,
+}
+
+impl Default for TestValidatorPorts {
+	fn default() -> Self {
+		Self::builder().build()
+	}
+}
+
+impl TestValidatorPorts {
+	pub fn try_random_ports() -> Option<Self> {
+		find_ports().map(|(rpc, pubsub, faucet)| {
+			Self {
+				rpc,
+				pubsub,
+				faucet,
+			}
+		})
+	}
+
+	pub fn random_ports() -> Self {
+		Self::try_random_ports().unwrap()
+	}
+}
+
 /// A local test validator runner which can be used for the test validator.
 #[derive(Clone)]
 pub struct TestValidatorRunner {
@@ -139,7 +180,7 @@ pub struct TestValidatorRunner {
 	/// The ports used for the validator.
 	/// The first port is the `rpc_port`, the second is the `pubsub_port`, and
 	/// the third is the `faucet_port` to allow for airdrops.
-	ports: (u16, u16, u16),
+	ports: TestValidatorPorts,
 	/// The original wrapped test validator
 	validator: Arc<TestValidator>,
 	/// This is the keypair for the mint account and is funded with 500 SOL.
@@ -153,6 +194,7 @@ pub struct TestValidatorRunner {
 impl TestValidatorRunner {
 	async fn run_internal(
 		TestValidatorRunnerProps {
+			ports,
 			programs,
 			pubkeys,
 			initial_lamports,
@@ -167,17 +209,15 @@ impl TestValidatorRunner {
 		let faucet_keypair = Keypair::new();
 		let faucet_pubkey = faucet_keypair.pubkey();
 		let programs = programs.into_iter().map(Into::into).collect::<Vec<_>>();
-		let (rpc_port, pubsub_port, faucet_port) =
-			find_ports().context("could not find a port for the solana localnet")?;
 
-		mark_port_used(rpc_port);
-		mark_port_used(pubsub_port);
-		mark_port_used(faucet_port);
+		mark_port_used(ports.rpc);
+		mark_port_used(ports.pubsub);
+		mark_port_used(ports.faucet);
 
 		let (sender, receiver) = unbounded();
-		let faucet_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), faucet_port);
+		let faucet_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), ports.faucet);
 		// run the faucet in a seperate thread
-		run_local_faucet_with_port(faucet_keypair, sender, None, None, None, faucet_port);
+		run_local_faucet_with_port(faucet_keypair, sender, None, None, None, ports.faucet);
 
 		let _ = receiver
 			.recv()
@@ -192,7 +232,7 @@ impl TestValidatorRunner {
 		});
 
 		genesis
-			.rpc_port(rpc_port)
+			.rpc_port(ports.rpc)
 			.rpc_config(JsonRpcConfig {
 				faucet_addr: Some(faucet_addr),
 				enable_rpc_transaction_history: true,
@@ -227,7 +267,7 @@ impl TestValidatorRunner {
 
 		let runner = Self {
 			genesis: Arc::new(genesis),
-			ports: (rpc_port, pubsub_port, faucet_port),
+			ports,
 			validator: Arc::new(validator),
 			mint_keypair: Arc::new(mint_keypair),
 			rpc,
@@ -289,7 +329,7 @@ impl TestValidatorRunner {
 		&self.genesis
 	}
 
-	pub fn ports(&self) -> (u16, u16, u16) {
+	pub fn ports(&self) -> TestValidatorPorts {
 		self.ports
 	}
 
@@ -304,9 +344,9 @@ impl TestValidatorRunner {
 
 impl Drop for TestValidatorRunner {
 	fn drop(&mut self) {
-		free_port(self.ports.0);
-		free_port(self.ports.1);
-		free_port(self.ports.2);
+		free_port(self.ports.rpc);
+		free_port(self.ports.pubsub);
+		free_port(self.ports.faucet);
 	}
 }
 
