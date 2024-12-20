@@ -1,6 +1,6 @@
 [toolchain]
 # https://rust-lang.github.io/rustup-components-history/
-channel = "nightly-2024-12-09"
+channel = "nightly-2024-12-19"
 components = ["rustfmt", "cargo", "clippy", "rust-analyzer", "llvm-tools-preview"]
 profile = "default"
 targets = ["wasm32-unknown-unknown"]
