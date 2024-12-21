@@ -1,6 +1,6 @@
 inputs:
   nixpkgs:
-    url: github:NixOS/nixpkgs/master
+    url: github:cachix/devenv-nixpkgs/rolling
   rust-overlay:
     url: github:oxalica/rust-overlay
     overlays:

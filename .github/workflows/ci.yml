@@ -58,19 +58,10 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.79.0", ""]
+        version: ["1.81", ""]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
-      - name: free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          df -h
-
       - name: checkout repository
         uses: actions/checkout@v4
 
@@ -116,15 +107,6 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-24.04
     steps:
-      - name: free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          df -h
-
       - name: checkout repository
         uses: actions/checkout@v4
 
@@ -174,7 +156,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.79.0", ""]
+        version: ["1.81", ""]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
