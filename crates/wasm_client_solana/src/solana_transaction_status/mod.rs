@@ -426,12 +426,8 @@ impl UiTransactionStatusMeta {
 					.collect()
 			}),
 			log_messages: meta.log_messages,
-			pre_token_balances: meta
-				.pre_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect()),
-			post_token_balances: meta
-				.post_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect()),
+			pre_token_balances: meta.pre_token_balances,
+			post_token_balances: meta.post_token_balances,
 			rewards: if show_rewards { meta.rewards } else { None },
 			loaded_addresses: None,
 			return_data: meta.return_data.map(Into::into),
@@ -448,12 +444,8 @@ impl UiTransactionStatusMeta {
 			post_balances: meta.post_balances,
 			inner_instructions: None,
 			log_messages: None,
-			pre_token_balances: meta
-				.pre_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect()),
-			post_token_balances: meta
-				.post_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect()),
+			pre_token_balances: meta.pre_token_balances,
+			post_token_balances: meta.post_token_balances,
 			rewards: if show_rewards { meta.rewards } else { None },
 			loaded_addresses: None,
 			return_data: None,
@@ -476,10 +468,10 @@ impl From<TransactionStatusMeta> for UiTransactionStatusMeta {
 			log_messages: meta.log_messages,
 			pre_token_balances: meta
 				.pre_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect()),
+				.map(|balance| balance.into_iter().collect()),
 			post_token_balances: meta
 				.post_token_balances
-				.map(|balance| balance.into_iter().map(Into::into).collect()),
+				.map(|balance| balance.into_iter().collect()),
 			rewards: meta.rewards,
 			loaded_addresses: Some(UiLoadedAddresses::from(&meta.loaded_addresses)),
 			return_data: meta.return_data.map(Into::into),
