@@ -145,6 +145,7 @@ jobs:
         shell: bash
 
       - name: upload coverage
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@v5
         with:
           files: codecov.json
