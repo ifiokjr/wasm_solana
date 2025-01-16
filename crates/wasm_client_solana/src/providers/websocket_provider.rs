@@ -16,7 +16,6 @@ use futures::SinkExt;
 use futures::Stream;
 use futures::StreamExt;
 use pin_project::pin_project;
-use send_wrapper::SendWrapper;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use typed_builder::TypedBuilder;
@@ -60,9 +59,9 @@ pub struct WebSocketProvider {
 	/// The client ID which identifies current client ID.
 	id: Arc<std::sync::Mutex<u32>>,
 	#[debug(skip)]
-	sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
+	sender: Arc<Mutex<SplitSink<WebSocketStream, Value>>>,
 	#[debug(skip)]
-	receiver: SendWrapper<Forked<SplitStream<WebSocketStream>>>,
+	receiver: Forked<SplitStream<WebSocketStream>>,
 }
 
 impl WebSocketProvider {
@@ -70,8 +69,8 @@ impl WebSocketProvider {
 		let url = get_ws_url(url);
 		let stream = WebSocketStream::new(&url);
 		let (sink, stream) = stream.split();
-		let receiver = SendWrapper::new(stream.fork());
-		let sender = Arc::new(Mutex::new(SendWrapper::new(sink)));
+		let receiver = stream.fork();
+		let sender = Arc::new(Mutex::new(sink));
 
 		Self {
 			url,
@@ -145,9 +144,9 @@ pub struct Unsubscription {
 	/// The name of the method used to unsubscribe.
 	pub(crate) method: &'static str,
 	/// The shared sink for pushing messages into the websocket stream.
-	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
+	pub(crate) sender: Arc<Mutex<SplitSink<WebSocketStream, Value>>>,
 	/// The shared receiver for websocket messages.
-	pub(crate) receiver: SendWrapper<Forked<SplitStream<WebSocketStream>>>,
+	pub(crate) receiver: Forked<SplitStream<WebSocketStream>>,
 	/// The `id` that was originally used to create the parent subscription.
 	pub(crate) id: u32,
 	/// The `subscription_id` used to unsubscribe.
@@ -212,9 +211,9 @@ impl Unsubscription {
 pub struct Subscription<T: DeserializeOwned + WebSocketNotification> {
 	/// The shared receiver for receiving messages.
 	#[pin]
-	pub(crate) receiver: SendWrapper<Forked<SplitStream<WebSocketStream>>>,
+	pub(crate) receiver: Forked<SplitStream<WebSocketStream>>,
 	/// The shared sink for pushing messages into the websocket stream.
-	pub(crate) sender: Arc<Mutex<SendWrapper<SplitSink<WebSocketStream, Value>>>>,
+	pub(crate) sender: Arc<Mutex<SplitSink<WebSocketStream, Value>>>,
 	#[builder(default)]
 	pub(crate) latest: PhantomData<T>,
 	/// The `id` that was originally used to create the parent subscription.
@@ -346,7 +345,6 @@ mod websocket_provider_reqwest {
 	pub use reqwest_websocket::Error as WebSocketError;
 	pub use reqwest_websocket::Message;
 	use reqwest_websocket::WebSocket;
-	use send_wrapper::SendWrapper;
 	use serde_json::Value;
 	use typed_builder::TypedBuilder;
 
@@ -394,7 +392,7 @@ mod websocket_provider_reqwest {
 		#[builder(default)]
 		websocket: Option<WebSocket>,
 		#[pin]
-		initiator: SendWrapper<BoxFuture<'static, ReqwestResult>>,
+		initiator: BoxFuture<'static, ReqwestResult>,
 		#[builder(default)]
 		ended: bool,
 	}
@@ -406,7 +404,7 @@ mod websocket_provider_reqwest {
 			let boxed_future: BoxFuture<'static, ReqwestResult> = Box::pin(fut);
 
 			WebSocketStream::builder()
-				.initiator(SendWrapper::new(boxed_future))
+				.initiator(boxed_future)
 				.url(url)
 				.build()
 		}
