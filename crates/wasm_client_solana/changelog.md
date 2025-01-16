@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.3...wasm_client_solana@v0.7.4) - 2025-01-16
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- remove useless `SendWrapper` from `WebSocketProvider`
+
+### <!-- 2 -->🚜 Refactor
+
+- simplify `*_token_balance` handling in `UiTransactionStatusMeta`
+
 ## [0.7.3](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.2...wasm_client_solana@v0.7.3) - 2024-12-21
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
