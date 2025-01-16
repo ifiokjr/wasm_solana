@@ -93,13 +93,13 @@ example_client = { path = "./programs/example_client" }
 example_program = { path = "./programs/example_program" }
 
 # publishable crates
-memory_wallet = { path = "./crates/memory_wallet", version = "0.1.19" }
+memory_wallet = { path = "./crates/memory_wallet", version = "0.1.20" }
 test_utils_anchor = { path = "./crates/test_utils_anchor" }
 test_utils_insta = { path = "./crates/test_utils_insta" }
 test_utils_keypairs = { path = "./crates/test_utils_keypairs" }
 test_utils_solana = { path = "./crates/test_utils_solana" }
 wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.8.0" }
-wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.7.3" }
+wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.7.4" }
 
 [workspace.metadata.bin]
 anchor-cli = { git = "https://github.com/coral-xyz/anchor", rev = "955e7ea", version = "0.30.1", bins = ["anchor"] }
