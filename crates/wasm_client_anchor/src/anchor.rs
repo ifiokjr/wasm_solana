@@ -523,7 +523,7 @@ pub trait AnchorRequestMethods<'a, W: WalletAnchor + 'a> {
 	}
 }
 
-#[derive(Debug, Serialize, thiserror::Error)]
+#[derive(Clone, Debug, Serialize, thiserror::Error)]
 pub enum AnchorClientError {
 	#[error("Account not found: {0}")]
 	AccountNotFound(Pubkey),

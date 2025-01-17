@@ -17,7 +17,7 @@ use spl_token_metadata_interface::state::TokenMetadata;
 
 use super::parse_token::UiAccountState;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", tag = "extension", content = "state")]
 pub enum UiExtension {
 	Uninitialized,
@@ -182,7 +182,7 @@ pub fn parse_extension<S: BaseState + Pack>(
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransferFee {
 	pub epoch: u64,
@@ -202,7 +202,7 @@ impl From<extension::transfer_fee::TransferFee> for UiTransferFee {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransferFeeConfig {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -231,7 +231,7 @@ impl From<extension::transfer_fee::TransferFeeConfig> for UiTransferFeeConfig {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransferFeeAmount {
 	pub withheld_amount: u64,
@@ -247,7 +247,7 @@ impl From<extension::transfer_fee::TransferFeeAmount> for UiTransferFeeAmount {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMintCloseAuthority {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -261,7 +261,7 @@ impl From<extension::mint_close_authority::MintCloseAuthority> for UiMintCloseAu
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiDefaultAccountState {
 	pub account_state: UiAccountState,
@@ -278,7 +278,7 @@ impl From<extension::default_account_state::DefaultAccountState> for UiDefaultAc
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMemoTransfer {
 	pub require_incoming_transfer_memos: bool,
@@ -294,7 +294,7 @@ impl From<extension::memo_transfer::MemoTransfer> for UiMemoTransfer {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiInterestBearingConfig {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -325,7 +325,7 @@ impl From<extension::interest_bearing_mint::InterestBearingConfig> for UiInteres
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiCpiGuard {
 	pub lock_cpi: bool,
@@ -341,7 +341,7 @@ impl From<extension::cpi_guard::CpiGuard> for UiCpiGuard {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiPermanentDelegate {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -357,7 +357,7 @@ impl From<extension::permanent_delegate::PermanentDelegate> for UiPermanentDeleg
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfidentialTransferMint {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -393,7 +393,7 @@ impl From<extension::confidential_transfer::ConfidentialTransferMint>
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfidentialTransferFeeConfig {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -423,7 +423,7 @@ impl From<extension::confidential_transfer_fee::ConfidentialTransferFeeConfig>
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfidentialTransferAccount {
 	pub approved: bool,
@@ -478,7 +478,7 @@ impl From<extension::confidential_transfer::ConfidentialTransferAccount>
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfidentialTransferFeeAmount {
 	pub withheld_amount: String,
@@ -498,7 +498,7 @@ impl From<extension::confidential_transfer_fee::ConfidentialTransferFeeAmount>
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMetadataPointer {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -521,7 +521,7 @@ impl From<extension::metadata_pointer::MetadataPointer> for UiMetadataPointer {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenMetadata {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -550,7 +550,7 @@ impl From<TokenMetadata> for UiTokenMetadata {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransferHook {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -571,7 +571,7 @@ impl From<extension::transfer_hook::TransferHook> for UiTransferHook {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransferHookAccount {
 	pub transferring: bool,
@@ -587,7 +587,7 @@ impl From<extension::transfer_hook::TransferHookAccount> for UiTransferHookAccou
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiGroupPointer {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -610,7 +610,7 @@ impl From<extension::group_pointer::GroupPointer> for UiGroupPointer {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiGroupMemberPointer {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -633,7 +633,7 @@ impl From<extension::group_member_pointer::GroupMemberPointer> for UiGroupMember
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenGroup {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -658,7 +658,7 @@ impl From<TokenGroup> for UiTokenGroup {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenGroupMember {
 	#[serde_as(as = "DisplayFromStr")]

@@ -136,7 +136,7 @@ pub fn parse_token_v2(
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type", content = "info")]
 #[allow(clippy::large_enum_variant)]
 pub enum TokenAccountType {
@@ -147,7 +147,7 @@ pub enum TokenAccountType {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTokenAccount {
 	#[serde_as(as = "DisplayFromStr")]
@@ -167,7 +167,7 @@ pub struct UiTokenAccount {
 	pub extensions: Vec<UiExtension>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum UiAccountState {
 	Uninitialized,
@@ -275,7 +275,7 @@ pub fn token_amount_to_ui_amount_v2(
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMint {
 	#[serde_as(as = "Option<DisplayFromStr>")]
@@ -308,7 +308,7 @@ impl From<&Mint> for UiMint {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiMultisig {
 	pub num_required_signers: u8,
