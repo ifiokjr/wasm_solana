@@ -109,7 +109,7 @@ cargo-nextest = { version = "0.9.87" }
 cargo-semver-checks = { version = "0.38.0" }
 release-plz = { version = "0.3.112", bins = ["release-plz"] }
 wait-for-them = { version = "0.5.0", bins = ["wait-for-them"] }
-wasm-bindgen-cli = { version = "0.2.99", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
+wasm-bindgen-cli = { version = "0.2.100", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 
 [profile.dev.package]
 insta.opt-level = 3
