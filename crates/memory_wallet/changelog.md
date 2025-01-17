@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.21](https://github.com/ifiokjr/wasm_solana/compare/memory_wallet@v0.1.20...memory_wallet@v0.1.21) - 2025-01-17
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- update Cargo.lock dependencies
+
 ## [0.1.20](https://github.com/ifiokjr/wasm_solana/compare/memory_wallet@v0.1.19...memory_wallet@v0.1.20) - 2025-01-16
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks

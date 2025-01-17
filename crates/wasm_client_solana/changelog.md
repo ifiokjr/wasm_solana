@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.5](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.4...wasm_client_solana@v0.7.5) - 2025-01-17
+
+### <!-- 0 -->🎉 Added
+
+- add `Clone` and `Copy` to more structs and enums
+- implement `Clone` for token structs and enums
+
 ## [0.7.4](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.3...wasm_client_solana@v0.7.4) - 2025-01-16
 
 ### <!-- 1 -->🐛 Bug Fixes
