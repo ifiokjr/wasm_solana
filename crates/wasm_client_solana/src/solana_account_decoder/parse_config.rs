@@ -77,7 +77,7 @@ where
 	Some(UiConfig { keys, config_data })
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type", content = "info")]
 pub enum ConfigAccountType {
 	StakeConfig(UiStakeConfig),
@@ -85,7 +85,7 @@ pub enum ConfigAccountType {
 }
 
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfigKey {
 	#[serde_as(as = "DisplayFromStr")]
@@ -97,7 +97,7 @@ pub struct UiConfigKey {
 	since = "1.16.7",
 	note = "Please use `solana_sdk::stake::state::warmup_cooldown_rate()` instead"
 )]
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiStakeConfig {
 	pub warmup_cooldown_rate: f64,
@@ -113,7 +113,7 @@ impl From<StakeConfig> for UiStakeConfig {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfig<T> {
 	pub keys: Vec<UiConfigKey>,

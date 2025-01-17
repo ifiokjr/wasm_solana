@@ -121,7 +121,7 @@ pub fn parse_sysvar(data: &[u8], pubkey: &Pubkey) -> Result<SysvarAccountType, P
 	))
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type", content = "info")]
 pub enum SysvarAccountType {
 	Clock(UiClock),
@@ -139,7 +139,7 @@ pub enum SysvarAccountType {
 	EpochRewards(EpochRewards),
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UiClock {
 	pub slot: Slot,
@@ -161,7 +161,7 @@ impl From<Clock> for UiClock {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UiFees {
 	pub fee_calculator: UiFeeCalculator,
@@ -175,7 +175,7 @@ impl From<Fees> for UiFees {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UiRent {
 	pub lamports_per_byte_year: StringAmount,
@@ -193,7 +193,7 @@ impl From<Rent> for UiRent {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UiRewards {
 	pub validator_point_value: f64,
@@ -209,7 +209,7 @@ impl From<Rewards> for UiRewards {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiRecentBlockhashesEntry {
 	#[serde_as(as = "DisplayFromStr")]
@@ -219,7 +219,7 @@ pub struct UiRecentBlockhashesEntry {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiSlotHashEntry {
 	pub slot: Slot,
@@ -227,7 +227,7 @@ pub struct UiSlotHashEntry {
 	pub hash: Hash,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiSlotHistory {
 	pub next_slot: Slot,
@@ -249,14 +249,14 @@ impl std::fmt::Debug for SlotHistoryBits {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiStakeHistoryEntry {
 	pub epoch: Epoch,
 	pub stake_history: StakeHistoryEntry,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UiLastRestartSlot {
 	pub last_restart_slot: Slot,

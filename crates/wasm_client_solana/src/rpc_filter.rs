@@ -355,7 +355,7 @@ impl VersionReq {
 	}
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TokenAccountsFilter {
 	Mint(Pubkey),
 	ProgramId(Pubkey),

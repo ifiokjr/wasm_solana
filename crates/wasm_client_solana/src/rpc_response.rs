@@ -125,7 +125,7 @@ pub struct RpcBlockCommitment<T> {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockhashFeeCalculator {
 	#[serde_as(as = "DisplayFromStr")]
@@ -134,11 +134,7 @@ pub struct RpcBlockhashFeeCalculator {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-struct A(#[serde_as(as = "DisplayFromStr")] Pubkey);
-
-#[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcBlockhash {
 	#[serde_as(as = "DisplayFromStr")]
@@ -147,7 +143,7 @@ pub struct RpcBlockhash {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcFees {
 	#[serde_as(as = "DisplayFromStr")]
@@ -158,7 +154,7 @@ pub struct RpcFees {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct DeprecatedRpcFees {
 	#[serde_as(as = "DisplayFromStr")]
@@ -168,7 +164,7 @@ pub struct DeprecatedRpcFees {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Fees {
 	#[serde_as(as = "DisplayFromStr")]
@@ -177,7 +173,7 @@ pub struct Fees {
 	pub last_valid_block_height: u64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcFeeCalculator {
 	pub fee_calculator: FeeCalculator,
@@ -189,7 +185,7 @@ pub struct RpcFeeRateGovernor {
 	pub fee_rate_governor: FeeRateGovernor,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcInflationGovernor {
 	pub initial: f64,
@@ -578,7 +574,7 @@ pub struct RpcSupply {
 	pub non_circulating_accounts: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum StakeActivationState {
 	Activating,
@@ -587,7 +583,7 @@ pub enum StakeActivationState {
 	Inactive,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcStakeActivation {
 	pub state: StakeActivationState,
@@ -619,7 +615,7 @@ pub struct RpcConfirmedTransactionStatusWithSignature {
 	pub confirmation_status: Option<TransactionConfirmationStatus>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcPerfSample {
 	pub slot: Slot,
@@ -636,7 +632,7 @@ impl RpcPerfSample {
 }
 
 #[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RpcInflationReward {
 	pub epoch: Epoch,
@@ -646,7 +642,7 @@ pub struct RpcInflationReward {
 	pub commission: Option<u8>, // Vote account commission when the reward was credited
 }
 
-#[derive(Clone, Deserialize, Serialize, Debug, Error, Eq, PartialEq)]
+#[derive(Clone, Copy, Deserialize, Serialize, Debug, Error, Eq, PartialEq)]
 pub enum RpcBlockUpdateError {
 	#[error("block store error")]
 	BlockStoreError,

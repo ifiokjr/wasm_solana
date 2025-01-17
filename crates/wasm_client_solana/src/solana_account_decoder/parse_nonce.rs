@@ -36,7 +36,7 @@ pub fn parse_nonce(data: &[u8]) -> Result<UiNonceState, ParseAccountError> {
 }
 
 /// A duplicate representation of `NonceState` for pretty JSON serialization
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", tag = "type", content = "info")]
 pub enum UiNonceState {
 	Uninitialized,
@@ -45,7 +45,7 @@ pub enum UiNonceState {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiNonceData {
 	#[serde_as(as = "DisplayFromStr")]
