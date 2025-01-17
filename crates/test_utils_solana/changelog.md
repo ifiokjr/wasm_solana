@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.7.1...test_utils_solana@v0.7.2) - 2025-01-17
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- update Cargo.lock dependencies
+
 ## [0.7.1](https://github.com/ifiokjr/wasm_solana/compare/test_utils_solana@v0.7.0...test_utils_solana@v0.7.1) - 2025-01-16
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
