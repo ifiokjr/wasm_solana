@@ -35,8 +35,6 @@ jobs:
   formatting:
     timeout-minutes: 60
     runs-on: ubuntu-24.04
-    env:
-      RUSTUP_TOOLCHAIN: "nightly"
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -46,6 +44,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
+
+      - name: install rustfmt
+        run: rustup update nightly && rustup default nightly && rustup component add rustfmt
+        shell: bash
 
       - name: lint formatting
         run: lint:format
