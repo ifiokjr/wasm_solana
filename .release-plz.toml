@@ -36,23 +36,14 @@ changelog_path = "crates/test_utils_keypairs/changelog.md"
 name = "test_utils_solana"
 changelog_path = "crates/test_utils_solana/changelog.md"
 
-# TODO: enable releases when `anchor@0.31.0` is released
 [[package]]
 name = "test_utils_anchor"
 changelog_path = "crates/test_utils_anchor/changelog.md"
-publish = false
-release = false
 git_release_enable = false
-git_tag_enable = false
 
-# TODO: enable releases when `anchor@0.31.0` is released
 [[package]]
 name = "wasm_client_anchor"
 changelog_path = "crates/wasm_client_anchor/changelog.md"
-publish = false
-release = false
-git_release_enable = false
-git_tag_enable = false
 
 [[package]]
 name = "wasm_client_solana"
