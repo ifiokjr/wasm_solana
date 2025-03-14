@@ -106,7 +106,7 @@
   };
   scripts."build:docs" = {
     exec = ''
-      RUSTDOCFLAGS="--cfg docsrs" cargo doc --workspace --exclude example_program --exclude example_client --exclude test_utils_solana --exclude test_utils_anchor
+      RUSTUP_TOOLCHAIN="nightly" RUSTDOCFLAGS="--cfg docsrs" cargo doc --workspace --exclude example_program --exclude example_client --exclude test_utils_solana --exclude test_utils_anchor
     '';
     description = "Build documentation site.";
 		binary = "bash";
