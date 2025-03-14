@@ -371,11 +371,10 @@ mod websocket_provider_reqwest {
 
 	impl From<&WebSocketError> for ClientWebSocketError {
 		fn from(value: &WebSocketError) -> Self {
-			use WebSocketError::Handshake;
-			use WebSocketError::Reqwest;
-
 			match value {
-				Handshake(_) | Reqwest(_) => Self::ConnectionError,
+				#[cfg(not(target_arch = "wasm32"))]
+				WebSocketError::Handshake(_) => Self::ConnectionError,
+				WebSocketError::Reqwest(_) => Self::ConnectionError,
 				_ => Self::InvalidMessage,
 			}
 		}
@@ -400,7 +399,10 @@ mod websocket_provider_reqwest {
 	impl WebSocketStream {
 		pub fn new(url: impl Into<String>) -> Self {
 			let url = url.into();
+			#[cfg(not(target_arch = "wasm32"))]
 			let fut = websocket(url.clone());
+			#[cfg(target_arch = "wasm32")]
+			let fut = send_wrapper::SendWrapper::new(websocket(url.clone()));
 			let boxed_future: BoxFuture<'static, ReqwestResult> = Box::pin(fut);
 
 			WebSocketStream::builder()

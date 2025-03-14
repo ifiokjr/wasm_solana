@@ -7,9 +7,9 @@ pub use wasm_http_provider::HttpProvider;
 
 use crate::ClientRequest;
 use crate::ClientResult;
+use crate::DEFAULT_ERROR_CODE;
 use crate::RpcError;
 use crate::RpcErrorDetails;
-use crate::DEFAULT_ERROR_CODE;
 
 #[async_trait]
 pub trait RpcProvider {
@@ -21,9 +21,9 @@ pub trait RpcProvider {
 
 #[cfg(feature = "ssr")]
 mod ssr_http_provider {
-	use reqwest::header::HeaderMap;
-	use reqwest::header::CONTENT_TYPE;
 	use reqwest::Client;
+	use reqwest::header::CONTENT_TYPE;
+	use reqwest::header::HeaderMap;
 
 	use super::*;
 	use crate::ClientError;
@@ -47,6 +47,7 @@ mod ssr_http_provider {
 				.id(1)
 				.params(request)
 				.build();
+			#[cfg(not(target_arch = "wasm32"))]
 			let result: Value = self
 				.client
 				.post(&self.url)
@@ -56,6 +57,21 @@ mod ssr_http_provider {
 				.await?
 				.json()
 				.await?;
+
+			#[cfg(target_arch = "wasm32")]
+			let result: Value = {
+				let request = self
+					.client
+					.post(&self.url)
+					.headers(self.headers.clone())
+					.json(&client_request)
+					.send();
+				let wrapped_request = send_wrapper::SendWrapper::new(request);
+				let response = wrapped_request.await?.json();
+				let wrapped_response = send_wrapper::SendWrapper::new(response);
+				let result = wrapped_response.await?;
+				result
+			};
 
 			Ok(result)
 		}
