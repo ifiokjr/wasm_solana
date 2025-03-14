@@ -45,8 +45,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
-      - name: install rustfmt
-        run: rustup update nightly && rustup default nightly && rustup component add rustfmt
+      - name: install nightly rustfmt
+        run: rustup toolchain install nightly --component rustfmt
         shell: bash
 
       - name: lint formatting
@@ -136,13 +136,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
+      # - name: install rust nightly
+      #   run: rustup toolchain install nightly
+      #   shell: bash
+
       - name: coverage `memory_wallet_ssr`
         run: cargo coverage_memory_wallet_ssr
         shell: bash
 
+      # - name: coverage `memory_wallet_docs`
+      #   run: cargo +nightly coverage_memory_wallet_docs
+      #   shell: bash
+
       - name: coverage `wasm_client_solana_ssr`
         run: cargo coverage_wasm_client_solana_ssr
         shell: bash
+
+      # - name: coverage `wasm_client_solana_docs`
+      #   run: cargo +nightly coverage_wasm_client_solana_docs
+      #   shell: bash
 
       - name: coverage `streams`
         run: cargo coverage_streams
