@@ -9,10 +9,8 @@ use extension::interest_bearing_mint::*;
 use extension::memo_transfer::*;
 use extension::metadata_pointer::*;
 use extension::mint_close_authority::*;
-use extension::pausable::parse_pausable_instruction;
 use extension::permanent_delegate::*;
 use extension::reallocate::*;
-use extension::scaled_ui_amount::parse_scaled_ui_amount_instruction;
 use extension::token_group::*;
 use extension::token_metadata::*;
 use extension::transfer_fee::*;
@@ -257,9 +255,7 @@ pub fn parse_token(
 					| AuthorityType::ConfidentialTransferFeeConfig
 					| AuthorityType::MetadataPointer
 					| AuthorityType::GroupPointer
-					| AuthorityType::GroupMemberPointer
-					| AuthorityType::ScaledUiAmount
-					| AuthorityType::Pause => "mint",
+					| AuthorityType::GroupMemberPointer => "mint",
 					AuthorityType::AccountOwner | AuthorityType::CloseAccount => "account",
 				};
 
@@ -720,20 +716,6 @@ pub fn parse_token(
 					account_keys,
 				)
 			}
-			TokenInstruction::ScaledUiAmountExtension => {
-				parse_scaled_ui_amount_instruction(
-					&instruction.data[1..],
-					&instruction.accounts,
-					account_keys,
-				)
-			}
-			TokenInstruction::PausableExtension => {
-				parse_pausable_instruction(
-					&instruction.data[1..],
-					&instruction.accounts,
-					account_keys,
-				)
-			}
 		}
 	} else if let Ok(token_group_instruction) = TokenGroupInstruction::unpack(&instruction.data) {
 		parse_token_group_instruction(
@@ -798,8 +780,6 @@ impl From<AuthorityType> for UiAuthorityType {
 			AuthorityType::MetadataPointer => UiAuthorityType::MetadataPointer,
 			AuthorityType::GroupPointer => UiAuthorityType::GroupPointer,
 			AuthorityType::GroupMemberPointer => UiAuthorityType::GroupMemberPointer,
-			AuthorityType::ScaledUiAmount => UiAuthorityType::ScaledUiAmount,
-			AuthorityType::Pause => UiAuthorityType::Pause,
 		}
 	}
 }
@@ -832,9 +812,6 @@ pub enum UiExtensionType {
 	TokenGroup,
 	TokenGroupMember,
 	ConfidentialMintBurn,
-	ScaledUiAmount,
-	Pausable,
-	PausableAccount,
 }
 
 impl From<ExtensionType> for UiExtensionType {
@@ -871,9 +848,6 @@ impl From<ExtensionType> for UiExtensionType {
 			ExtensionType::TokenGroup => UiExtensionType::TokenGroup,
 			ExtensionType::TokenGroupMember => UiExtensionType::TokenGroupMember,
 			ExtensionType::ConfidentialMintBurn => UiExtensionType::ConfidentialMintBurn,
-			ExtensionType::ScaledUiAmount => UiExtensionType::ScaledUiAmount,
-			ExtensionType::Pausable => UiExtensionType::Pausable,
-			ExtensionType::PausableAccount => UiExtensionType::PausableAccount,
 		}
 	}
 }
