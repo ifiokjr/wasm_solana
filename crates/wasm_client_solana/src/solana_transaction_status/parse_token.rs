@@ -1,3 +1,4 @@
+use extension::confidential_mint_burn::parse_confidential_mint_burn_instruction;
 use extension::confidential_transfer::*;
 use extension::confidential_transfer_fee::*;
 use extension::cpi_guard::*;
@@ -8,17 +9,19 @@ use extension::interest_bearing_mint::*;
 use extension::memo_transfer::*;
 use extension::metadata_pointer::*;
 use extension::mint_close_authority::*;
+use extension::pausable::parse_pausable_instruction;
 use extension::permanent_delegate::*;
 use extension::reallocate::*;
+use extension::scaled_ui_amount::parse_scaled_ui_amount_instruction;
 use extension::token_group::*;
 use extension::token_metadata::*;
 use extension::transfer_fee::*;
 use extension::transfer_hook::*;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
+use serde_json::json;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::instruction::Instruction;
@@ -32,13 +35,13 @@ use spl_token_2022::solana_program::pubkey::Pubkey;
 use spl_token_group_interface::instruction::TokenGroupInstruction;
 use spl_token_metadata_interface::instruction::TokenMetadataInstruction;
 
-use super::parse_instruction::check_num_accounts;
 use super::parse_instruction::ParsableProgram;
 use super::parse_instruction::ParseInstructionError;
 use super::parse_instruction::ParsedInstructionEnum;
+use super::parse_instruction::check_num_accounts;
 use crate::solana_account_decoder::parse_account_data::SplTokenAdditionalData;
-use crate::solana_account_decoder::parse_token::token_amount_to_ui_amount_v2;
 use crate::solana_account_decoder::parse_token::UiAccountState;
+use crate::solana_account_decoder::parse_token::token_amount_to_ui_amount_v2;
 
 mod extension;
 
@@ -254,9 +257,12 @@ pub fn parse_token(
 					| AuthorityType::ConfidentialTransferFeeConfig
 					| AuthorityType::MetadataPointer
 					| AuthorityType::GroupPointer
-					| AuthorityType::GroupMemberPointer => "mint",
+					| AuthorityType::GroupMemberPointer
+					| AuthorityType::ScaledUiAmount
+					| AuthorityType::Pause => "mint",
 					AuthorityType::AccountOwner | AuthorityType::CloseAccount => "account",
 				};
+
 				let mut value = json!({
 					owned: account_keys[instruction.accounts[0] as usize].to_string(),
 					"authorityType": Into::<UiAuthorityType>::into(authority_type),
@@ -486,10 +492,12 @@ pub fn parse_token(
 				if !extension_types.is_empty() {
 					map.insert(
 						"extensionTypes".to_string(),
-						json!(extension_types
-							.into_iter()
-							.map(UiExtensionType::from)
-							.collect::<Vec<_>>()),
+						json!(
+							extension_types
+								.into_iter()
+								.map(UiExtensionType::from)
+								.collect::<Vec<_>>()
+						),
 					);
 				}
 				Ok(ParsedInstructionEnum {
@@ -705,7 +713,27 @@ pub fn parse_token(
 					account_keys,
 				)
 			}
-			TokenInstruction::ConfidentialMintBurnExtension => todo!("not currently supported"),
+			TokenInstruction::ConfidentialMintBurnExtension => {
+				parse_confidential_mint_burn_instruction(
+					&instruction.data[1..],
+					&instruction.accounts,
+					account_keys,
+				)
+			}
+			TokenInstruction::ScaledUiAmountExtension => {
+				parse_scaled_ui_amount_instruction(
+					&instruction.data[1..],
+					&instruction.accounts,
+					account_keys,
+				)
+			}
+			TokenInstruction::PausableExtension => {
+				parse_pausable_instruction(
+					&instruction.data[1..],
+					&instruction.accounts,
+					account_keys,
+				)
+			}
 		}
 	} else if let Ok(token_group_instruction) = TokenGroupInstruction::unpack(&instruction.data) {
 		parse_token_group_instruction(
@@ -746,6 +774,8 @@ pub enum UiAuthorityType {
 	MetadataPointer,
 	GroupPointer,
 	GroupMemberPointer,
+	ScaledUiAmount,
+	Pause,
 }
 
 impl From<AuthorityType> for UiAuthorityType {
@@ -768,6 +798,8 @@ impl From<AuthorityType> for UiAuthorityType {
 			AuthorityType::MetadataPointer => UiAuthorityType::MetadataPointer,
 			AuthorityType::GroupPointer => UiAuthorityType::GroupPointer,
 			AuthorityType::GroupMemberPointer => UiAuthorityType::GroupMemberPointer,
+			AuthorityType::ScaledUiAmount => UiAuthorityType::ScaledUiAmount,
+			AuthorityType::Pause => UiAuthorityType::Pause,
 		}
 	}
 }
@@ -799,6 +831,10 @@ pub enum UiExtensionType {
 	GroupMemberPointer,
 	TokenGroup,
 	TokenGroupMember,
+	ConfidentialMintBurn,
+	ScaledUiAmount,
+	Pausable,
+	PausableAccount,
 }
 
 impl From<ExtensionType> for UiExtensionType {
@@ -834,7 +870,10 @@ impl From<ExtensionType> for UiExtensionType {
 			ExtensionType::GroupMemberPointer => UiExtensionType::GroupMemberPointer,
 			ExtensionType::TokenGroup => UiExtensionType::TokenGroup,
 			ExtensionType::TokenGroupMember => UiExtensionType::TokenGroupMember,
-			ExtensionType::ConfidentialMintBurn => todo!("not currently supported"),
+			ExtensionType::ConfidentialMintBurn => UiExtensionType::ConfidentialMintBurn,
+			ExtensionType::ScaledUiAmount => UiExtensionType::ScaledUiAmount,
+			ExtensionType::Pausable => UiExtensionType::Pausable,
+			ExtensionType::PausableAccount => UiExtensionType::PausableAccount,
 		}
 	}
 }

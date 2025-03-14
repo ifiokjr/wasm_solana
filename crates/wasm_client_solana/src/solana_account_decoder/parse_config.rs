@@ -3,8 +3,8 @@ use bincode::serialized_size;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
-use serde_with::serde_as;
 use serde_with::DisplayFromStr;
+use serde_with::serde_as;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::short_vec;
 use solana_sdk::stake::config::Config as StakeConfig;
@@ -44,7 +44,7 @@ pub fn parse_config(data: &[u8], pubkey: &Pubkey) -> Result<ConfigAccountType, P
 	} else {
 		deserialize::<ConfigKeys>(data).ok().and_then(|key_list| {
 			if !key_list.keys.is_empty() && key_list.keys[0].0 == validator_info::id() {
-				parse_config_data::<String>(data, key_list.keys).and_then(|validator_info| {
+				parse_config_data::<String>(data, &key_list.keys).and_then(|validator_info| {
 					Some(ConfigAccountType::ValidatorInfo(UiConfig {
 						keys: validator_info.keys,
 						config_data: serde_json::from_str(&validator_info.config_data).ok()?,
@@ -60,7 +60,7 @@ pub fn parse_config(data: &[u8], pubkey: &Pubkey) -> Result<ConfigAccountType, P
 	))
 }
 
-fn parse_config_data<T>(data: &[u8], keys: Vec<(Pubkey, bool)>) -> Option<UiConfig<T>>
+fn parse_config_data<T>(data: &[u8], keys: &[(Pubkey, bool)]) -> Option<UiConfig<T>>
 where
 	T: serde::de::DeserializeOwned,
 {

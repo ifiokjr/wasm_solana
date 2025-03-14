@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::DisplayFromStr;
 use solana_sdk::pubkey::Pubkey;
 use spl_token_2022::extension::BaseStateWithExtensions;
 use spl_token_2022::extension::StateWithExtensions;
@@ -16,13 +16,14 @@ use spl_token_2022::state::AccountState;
 use spl_token_2022::state::Mint;
 use spl_token_2022::state::Multisig;
 
+use super::StringAmount;
+use super::StringDecimals;
 use super::parse_account_data::ParsableAccount;
 use super::parse_account_data::ParseAccountError;
 use super::parse_account_data::SplTokenAdditionalData;
-use super::parse_token_extension::parse_extension;
+use super::parse_account_data::SplTokenAdditionalDataV2;
 use super::parse_token_extension::UiExtension;
-use super::StringAmount;
-use super::StringDecimals;
+use super::parse_token_extension::parse_extension;
 
 // Returns all known SPL Token program ids
 pub fn spl_token_ids() -> Vec<Pubkey> {
@@ -34,7 +35,8 @@ pub fn is_known_spl_token_id(program_id: &Pubkey) -> bool {
 	*program_id == spl_token::id() || *program_id == spl_token_2022::id()
 }
 
-#[deprecated(since = "2.0.0", note = "Use `parse_token_v2` instead")]
+#[deprecated(since = "2.0.0", note = "Use `parse_token_v3` instead")]
+#[allow(deprecated)]
 pub fn parse_token(
 	data: &[u8],
 	decimals: Option<u8>,
@@ -43,9 +45,18 @@ pub fn parse_token(
 	parse_token_v2(data, additional_data.as_ref())
 }
 
+#[deprecated(since = "2.2.0", note = "Use `parse_token_v3` instead")]
 pub fn parse_token_v2(
 	data: &[u8],
 	additional_data: Option<&SplTokenAdditionalData>,
+) -> Result<TokenAccountType, ParseAccountError> {
+	let additional_data = additional_data.map(|v| (*v).into());
+	parse_token_v3(data, additional_data.as_ref())
+}
+
+pub fn parse_token_v3(
+	data: &[u8],
+	additional_data: Option<&SplTokenAdditionalDataV2>,
 ) -> Result<TokenAccountType, ParseAccountError> {
 	if let Ok(account) = StateWithExtensions::<Account>::unpack(data) {
 		let additional_data = additional_data.as_ref().ok_or_else(|| {
@@ -61,23 +72,23 @@ pub fn parse_token_v2(
 		return Ok(TokenAccountType::Account(UiTokenAccount {
 			mint: account.base.mint,
 			owner: account.base.owner,
-			token_amount: token_amount_to_ui_amount_v2(account.base.amount, additional_data),
+			token_amount: token_amount_to_ui_amount_v3(account.base.amount, additional_data),
 			delegate: match account.base.delegate {
 				COption::Some(pubkey) => Some(pubkey),
 				COption::None => None,
 			},
-			state: account.base.state.into(),
+			state: convert_account_state(account.base.state),
 			is_native: account.base.is_native(),
 			rent_exempt_reserve: match account.base.is_native {
 				COption::Some(reserve) => {
-					Some(token_amount_to_ui_amount_v2(reserve, additional_data))
+					Some(token_amount_to_ui_amount_v3(reserve, additional_data))
 				}
 				COption::None => None,
 			},
 			delegated_amount: if account.base.delegate.is_none() {
 				None
 			} else {
-				Some(token_amount_to_ui_amount_v2(
+				Some(token_amount_to_ui_amount_v3(
 					account.base.delegated_amount,
 					additional_data,
 				))
@@ -133,6 +144,14 @@ pub fn parse_token_v2(
 		Err(ParseAccountError::AccountNotParsable(
 			ParsableAccount::SplToken,
 		))
+	}
+}
+
+pub fn convert_account_state(state: AccountState) -> UiAccountState {
+	match state {
+		AccountState::Uninitialized => UiAccountState::Uninitialized,
+		AccountState::Initialized => UiAccountState::Initialized,
+		AccountState::Frozen => UiAccountState::Frozen,
 	}
 }
 
@@ -238,14 +257,23 @@ impl UiTokenAmount {
 	}
 }
 
-#[deprecated(since = "2.0.0", note = "Use `token_amount_to_ui_amount_v2` instead")]
+#[deprecated(since = "2.0.0", note = "Use `token_amount_to_ui_amount_v3` instead")]
+#[allow(deprecated)]
 pub fn token_amount_to_ui_amount(amount: u64, decimals: u8) -> UiTokenAmount {
 	token_amount_to_ui_amount_v2(amount, &SplTokenAdditionalData::with_decimals(decimals))
 }
 
+#[deprecated(since = "2.2.0", note = "Use `token_amount_to_ui_amount_v3` instead")]
 pub fn token_amount_to_ui_amount_v2(
 	amount: u64,
 	additional_data: &SplTokenAdditionalData,
+) -> UiTokenAmount {
+	token_amount_to_ui_amount_v3(amount, &(*additional_data).into())
+}
+
+pub fn token_amount_to_ui_amount_v3(
+	amount: u64,
+	additional_data: &SplTokenAdditionalDataV2,
 ) -> UiTokenAmount {
 	let decimals = additional_data.decimals;
 	let (ui_amount, ui_amount_string) = if let Some((interest_bearing_config, unix_timestamp)) =
@@ -253,6 +281,17 @@ pub fn token_amount_to_ui_amount_v2(
 	{
 		let ui_amount_string =
 			interest_bearing_config.amount_to_ui_amount(amount, decimals, unix_timestamp);
+		(
+			ui_amount_string
+				.as_ref()
+				.and_then(|x| f64::from_str(x).ok()),
+			ui_amount_string.unwrap_or(String::new()),
+		)
+	} else if let Some((scaled_ui_amount_config, unix_timestamp)) =
+		additional_data.scaled_ui_amount_config
+	{
+		let ui_amount_string =
+			scaled_ui_amount_config.amount_to_ui_amount(amount, decimals, unix_timestamp);
 		(
 			ui_amount_string
 				.as_ref()
@@ -326,13 +365,14 @@ pub fn get_token_account_mint(data: &[u8]) -> Option<Pubkey> {
 #[cfg(test)]
 mod test {
 	use spl_pod::optional_keys::OptionalNonZeroPubkey;
+	use spl_token_2022::extension::BaseStateWithExtensionsMut;
+	use spl_token_2022::extension::ExtensionType;
+	use spl_token_2022::extension::StateWithExtensionsMut;
 	use spl_token_2022::extension::immutable_owner::ImmutableOwner;
 	use spl_token_2022::extension::interest_bearing_mint::InterestBearingConfig;
 	use spl_token_2022::extension::memo_transfer::MemoTransfer;
 	use spl_token_2022::extension::mint_close_authority::MintCloseAuthority;
-	use spl_token_2022::extension::BaseStateWithExtensionsMut;
-	use spl_token_2022::extension::ExtensionType;
-	use spl_token_2022::extension::StateWithExtensionsMut;
+	use spl_token_2022::extension::scaled_ui_amount::ScaledUiAmountConfig;
 
 	use super::*;
 	use crate::solana_account_decoder::parse_token_extension::UiMemoTransfer;
@@ -342,28 +382,28 @@ mod test {
 
 	#[test]
 	fn test_parse_token() {
-		let mint_pubkey = Pubkey::new_from_array([2; 32]);
-		let owner_pubkey = Pubkey::new_from_array([3; 32]);
+		let mint = Pubkey::new_from_array([2; 32]);
+		let owner = Pubkey::new_from_array([3; 32]);
 		let mut account_data = vec![0; Account::get_packed_len()];
 		let mut account = Account::unpack_unchecked(&account_data).unwrap();
-		account.mint = mint_pubkey;
-		account.owner = owner_pubkey;
+		account.mint = mint;
+		account.owner = owner;
 		account.amount = 42;
 		account.state = AccountState::Initialized;
 		account.is_native = COption::None;
-		account.close_authority = COption::Some(owner_pubkey);
+		account.close_authority = COption::Some(owner);
 		Account::pack(account, &mut account_data).unwrap();
 
-		assert!(parse_token_v2(&account_data, None).is_err());
+		assert!(parse_token_v3(&account_data, None).is_err());
 		assert_eq!(
-			parse_token_v2(
+			parse_token_v3(
 				&account_data,
-				Some(&SplTokenAdditionalData::with_decimals(2))
+				Some(&SplTokenAdditionalDataV2::with_decimals(2))
 			)
 			.unwrap(),
 			TokenAccountType::Account(UiTokenAccount {
-				mint: mint_pubkey,
-				owner: owner_pubkey,
+				mint,
+				owner,
 				token_amount: UiTokenAmount {
 					ui_amount: Some(0.42),
 					decimals: 2,
@@ -375,28 +415,28 @@ mod test {
 				is_native: false,
 				rent_exempt_reserve: None,
 				delegated_amount: None,
-				close_authority: Some(owner_pubkey),
+				close_authority: Some(owner),
 				extensions: vec![],
 			}),
 		);
 
 		let mut mint_data = vec![0; Mint::get_packed_len()];
 		let mut mint = Mint::unpack_unchecked(&mint_data).unwrap();
-		mint.mint_authority = COption::Some(owner_pubkey);
+		mint.mint_authority = COption::Some(owner);
 		mint.supply = 42;
 		mint.decimals = 3;
 		mint.is_initialized = true;
-		mint.freeze_authority = COption::Some(owner_pubkey);
+		mint.freeze_authority = COption::Some(owner);
 		Mint::pack(mint, &mut mint_data).unwrap();
 
 		assert_eq!(
-			parse_token_v2(&mint_data, None).unwrap(),
+			parse_token_v3(&mint_data, None).unwrap(),
 			TokenAccountType::Mint(UiMint {
-				mint_authority: Some(owner_pubkey),
+				mint_authority: Some(owner),
 				supply: 42.to_string(),
 				decimals: 3,
 				is_initialized: true,
-				freeze_authority: Some(owner_pubkey),
+				freeze_authority: Some(owner),
 				extensions: vec![],
 			}),
 		);
@@ -405,19 +445,19 @@ mod test {
 		let signer2 = Pubkey::new_from_array([2; 32]);
 		let signer3 = Pubkey::new_from_array([3; 32]);
 		let mut multisig_data = vec![0; Multisig::get_packed_len()];
-		let mut signer_pubkeys = [Pubkey::default(); 11];
-		signer_pubkeys[0] = signer1;
-		signer_pubkeys[1] = signer2;
-		signer_pubkeys[2] = signer3;
+		let mut all_signers = [Pubkey::default(); 11];
+		all_signers[0] = signer1;
+		all_signers[1] = signer2;
+		all_signers[2] = signer3;
 		let mut multisig = Multisig::unpack_unchecked(&multisig_data).unwrap();
 		multisig.m = 2;
 		multisig.n = 3;
 		multisig.is_initialized = true;
-		multisig.signers = signer_pubkeys;
+		multisig.signers = all_signers;
 		Multisig::pack(multisig, &mut multisig_data).unwrap();
 
 		assert_eq!(
-			parse_token_v2(&multisig_data, None).unwrap(),
+			parse_token_v3(&multisig_data, None).unwrap(),
 			TokenAccountType::Multisig(UiMultisig {
 				num_required_signers: 2,
 				num_valid_signers: 3,
@@ -431,7 +471,7 @@ mod test {
 		);
 
 		let bad_data = vec![0; 4];
-		assert!(parse_token_v2(&bad_data, None).is_err());
+		assert!(parse_token_v3(&bad_data, None).is_err());
 	}
 
 	#[test]
@@ -455,7 +495,7 @@ mod test {
 		assert_eq!(&real_number_string(1, 0), "1");
 		assert_eq!(&real_number_string_trimmed(1, 0), "1");
 		let token_amount =
-			token_amount_to_ui_amount_v2(1, &SplTokenAdditionalData::with_decimals(0));
+			token_amount_to_ui_amount_v3(1, &SplTokenAdditionalDataV2::with_decimals(0));
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(1, 0)
@@ -464,7 +504,7 @@ mod test {
 		assert_eq!(&real_number_string(10, 0), "10");
 		assert_eq!(&real_number_string_trimmed(10, 0), "10");
 		let token_amount =
-			token_amount_to_ui_amount_v2(10, &SplTokenAdditionalData::with_decimals(0));
+			token_amount_to_ui_amount_v3(10, &SplTokenAdditionalDataV2::with_decimals(0));
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(10, 0)
@@ -473,7 +513,7 @@ mod test {
 		assert_eq!(&real_number_string(1, 9), "0.000000001");
 		assert_eq!(&real_number_string_trimmed(1, 9), "0.000000001");
 		let token_amount =
-			token_amount_to_ui_amount_v2(1, &SplTokenAdditionalData::with_decimals(9));
+			token_amount_to_ui_amount_v3(1, &SplTokenAdditionalDataV2::with_decimals(9));
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(1, 9)
@@ -481,8 +521,10 @@ mod test {
 		assert_eq!(token_amount.ui_amount, Some(0.000_000_001));
 		assert_eq!(&real_number_string(1_000_000_000, 9), "1.000000000");
 		assert_eq!(&real_number_string_trimmed(1_000_000_000, 9), "1");
-		let token_amount =
-			token_amount_to_ui_amount_v2(1_000_000_000, &SplTokenAdditionalData::with_decimals(9));
+		let token_amount = token_amount_to_ui_amount_v3(
+			1_000_000_000,
+			&SplTokenAdditionalDataV2::with_decimals(9),
+		);
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(1_000_000_000, 9)
@@ -490,8 +532,10 @@ mod test {
 		assert_eq!(token_amount.ui_amount, Some(1.0));
 		assert_eq!(&real_number_string(1_234_567_890, 3), "1234567.890");
 		assert_eq!(&real_number_string_trimmed(1_234_567_890, 3), "1234567.89");
-		let token_amount =
-			token_amount_to_ui_amount_v2(1_234_567_890, &SplTokenAdditionalData::with_decimals(3));
+		let token_amount = token_amount_to_ui_amount_v3(
+			1_234_567_890,
+			&SplTokenAdditionalDataV2::with_decimals(3),
+		);
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(1_234_567_890, 3)
@@ -505,8 +549,10 @@ mod test {
 			&real_number_string_trimmed(1_234_567_890, 25),
 			"0.000000000000000123456789"
 		);
-		let token_amount =
-			token_amount_to_ui_amount_v2(1_234_567_890, &SplTokenAdditionalData::with_decimals(20));
+		let token_amount = token_amount_to_ui_amount_v3(
+			1_234_567_890,
+			&SplTokenAdditionalDataV2::with_decimals(20),
+		);
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(1_234_567_890, 20)
@@ -524,19 +570,30 @@ mod test {
 			current_rate: 500.into(),
 			..Default::default()
 		};
-		let additional_data = SplTokenAdditionalData {
-			decimals: 0,
+		let additional_data = SplTokenAdditionalDataV2 {
+			decimals: 18,
 			interest_bearing_config: Some((config, INT_SECONDS_PER_YEAR)),
+			..Default::default()
 		};
-		let token_amount = token_amount_to_ui_amount_v2(1, &additional_data);
-		assert_eq!(token_amount.ui_amount_string, "1.0512710963760241");
+		const ONE: u64 = 1_000_000_000_000_000_000;
+		const TEN: u64 = 10_000_000_000_000_000_000;
+		let token_amount = token_amount_to_ui_amount_v3(ONE, &additional_data);
+		assert!(
+			token_amount
+				.ui_amount_string
+				.starts_with("1.051271096376024117")
+		);
 		assert!(
 			(token_amount.ui_amount.unwrap() - 1.051_271_096_376_024_1_f64).abs() < f64::EPSILON
 		);
-		let token_amount = token_amount_to_ui_amount_v2(10, &additional_data);
-		assert_eq!(token_amount.ui_amount_string, "10.512710963760242");
+		let token_amount = token_amount_to_ui_amount_v3(TEN, &additional_data);
 		assert!(
-			(token_amount.ui_amount.unwrap() - 10.512_710_963_760_241_f64).abs() < f64::EPSILON
+			token_amount
+				.ui_amount_string
+				.starts_with("10.512710963760241611")
+		);
+		assert!(
+			(token_amount.ui_amount.unwrap() - 10.512_710_963_760_242_f64).abs() < f64::EPSILON
 		);
 
 		// huge case
@@ -547,11 +604,49 @@ mod test {
 			current_rate: 32767.into(),
 			..Default::default()
 		};
-		let additional_data = SplTokenAdditionalData {
+		let additional_data = SplTokenAdditionalDataV2 {
 			decimals: 0,
 			interest_bearing_config: Some((config, INT_SECONDS_PER_YEAR * 1_000)),
+			..Default::default()
 		};
-		let token_amount = token_amount_to_ui_amount_v2(u64::MAX, &additional_data);
+		let token_amount = token_amount_to_ui_amount_v3(u64::MAX, &additional_data);
+		assert_eq!(token_amount.ui_amount, Some(f64::INFINITY));
+		assert_eq!(token_amount.ui_amount_string, "inf");
+	}
+
+	#[test]
+	fn test_ui_token_amount_with_multiplier() {
+		// 2x multiplier
+		let config = ScaledUiAmountConfig {
+			new_multiplier: 2f64.into(),
+			..Default::default()
+		};
+		let additional_data = SplTokenAdditionalDataV2 {
+			decimals: 18,
+			scaled_ui_amount_config: Some((config, 0)),
+			..Default::default()
+		};
+		const ONE: u64 = 1_000_000_000_000_000_000;
+		const TEN: u64 = 10_000_000_000_000_000_000;
+		let token_amount = token_amount_to_ui_amount_v3(ONE, &additional_data);
+		assert_eq!(token_amount.ui_amount_string, "2");
+		assert!(token_amount.ui_amount_string.starts_with("2"));
+		assert!((token_amount.ui_amount.unwrap() - 2.0).abs() < f64::EPSILON);
+		let token_amount = token_amount_to_ui_amount_v3(TEN, &additional_data);
+		assert!(token_amount.ui_amount_string.starts_with("20"));
+		assert!((token_amount.ui_amount.unwrap() - 20.0).abs() < f64::EPSILON);
+
+		// huge case
+		let config = ScaledUiAmountConfig {
+			new_multiplier: f64::INFINITY.into(),
+			..Default::default()
+		};
+		let additional_data = SplTokenAdditionalDataV2 {
+			decimals: 0,
+			scaled_ui_amount_config: Some((config, 0)),
+			..Default::default()
+		};
+		let token_amount = token_amount_to_ui_amount_v3(u64::MAX, &additional_data);
 		assert_eq!(token_amount.ui_amount, Some(f64::INFINITY));
 		assert_eq!(token_amount.ui_amount_string, "inf");
 	}
@@ -561,7 +656,7 @@ mod test {
 		assert_eq!(&real_number_string(0, 0), "0");
 		assert_eq!(&real_number_string_trimmed(0, 0), "0");
 		let token_amount =
-			token_amount_to_ui_amount_v2(0, &SplTokenAdditionalData::with_decimals(0));
+			token_amount_to_ui_amount_v3(0, &SplTokenAdditionalDataV2::with_decimals(0));
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(0, 0)
@@ -570,7 +665,7 @@ mod test {
 		assert_eq!(&real_number_string(0, 9), "0.000000000");
 		assert_eq!(&real_number_string_trimmed(0, 9), "0");
 		let token_amount =
-			token_amount_to_ui_amount_v2(0, &SplTokenAdditionalData::with_decimals(9));
+			token_amount_to_ui_amount_v3(0, &SplTokenAdditionalDataV2::with_decimals(9));
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(0, 9)
@@ -579,7 +674,7 @@ mod test {
 		assert_eq!(&real_number_string(0, 25), "0.0000000000000000000000000");
 		assert_eq!(&real_number_string_trimmed(0, 25), "0");
 		let token_amount =
-			token_amount_to_ui_amount_v2(0, &SplTokenAdditionalData::with_decimals(20));
+			token_amount_to_ui_amount_v3(0, &SplTokenAdditionalDataV2::with_decimals(20));
 		assert_eq!(
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(0, 20)
@@ -589,16 +684,16 @@ mod test {
 
 	#[test]
 	fn test_parse_token_account_with_extensions() {
-		let mint_pubkey = Pubkey::new_from_array([2; 32]);
-		let owner_pubkey = Pubkey::new_from_array([3; 32]);
+		let mint = Pubkey::new_from_array([2; 32]);
+		let owner = Pubkey::new_from_array([3; 32]);
 
 		let account_base = Account {
-			mint: mint_pubkey,
-			owner: owner_pubkey,
+			mint,
+			owner,
 			amount: 42,
 			state: AccountState::Initialized,
 			is_native: COption::None,
-			close_authority: COption::Some(owner_pubkey),
+			close_authority: COption::Some(owner),
 			delegate: COption::None,
 			delegated_amount: 0,
 		};
@@ -615,16 +710,16 @@ mod test {
 		account_state.pack_base();
 		account_state.init_account_type().unwrap();
 
-		assert!(parse_token_v2(&account_data, None).is_err());
+		assert!(parse_token_v3(&account_data, None).is_err());
 		assert_eq!(
-			parse_token_v2(
+			parse_token_v3(
 				&account_data,
-				Some(&SplTokenAdditionalData::with_decimals(2))
+				Some(&SplTokenAdditionalDataV2::with_decimals(2))
 			)
 			.unwrap(),
 			TokenAccountType::Account(UiTokenAccount {
-				mint: mint_pubkey,
-				owner: owner_pubkey,
+				mint,
+				owner,
 				token_amount: UiTokenAmount {
 					ui_amount: Some(0.42),
 					decimals: 2,
@@ -636,7 +731,7 @@ mod test {
 				is_native: false,
 				rent_exempt_reserve: None,
 				delegated_amount: None,
-				close_authority: Some(owner_pubkey),
+				close_authority: Some(owner),
 				extensions: vec![],
 			}),
 		);
@@ -655,16 +750,16 @@ mod test {
 		let memo_transfer = account_state.init_extension::<MemoTransfer>(true).unwrap();
 		memo_transfer.require_incoming_transfer_memos = true.into();
 
-		assert!(parse_token_v2(&account_data, None).is_err());
+		assert!(parse_token_v3(&account_data, None).is_err());
 		assert_eq!(
-			parse_token_v2(
+			parse_token_v3(
 				&account_data,
-				Some(&SplTokenAdditionalData::with_decimals(2))
+				Some(&SplTokenAdditionalDataV2::with_decimals(2))
 			)
 			.unwrap(),
 			TokenAccountType::Account(UiTokenAccount {
-				mint: mint_pubkey,
-				owner: owner_pubkey,
+				mint,
+				owner,
 				token_amount: UiTokenAmount {
 					ui_amount: Some(0.42),
 					decimals: 2,
@@ -676,7 +771,7 @@ mod test {
 				is_native: false,
 				rent_exempt_reserve: None,
 				delegated_amount: None,
-				close_authority: Some(owner_pubkey),
+				close_authority: Some(owner),
 				extensions: vec![
 					UiExtension::ImmutableOwner,
 					UiExtension::MemoTransfer(UiMemoTransfer {
@@ -689,16 +784,16 @@ mod test {
 
 	#[test]
 	fn test_parse_token_mint_with_extensions() {
-		let owner_pubkey = Pubkey::new_from_array([3; 32]);
+		let owner = Pubkey::new_from_array([3; 32]);
 		let mint_size =
 			ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::MintCloseAuthority])
 				.unwrap();
 		let mint_base = Mint {
-			mint_authority: COption::Some(owner_pubkey),
+			mint_authority: COption::Some(owner),
 			supply: 42,
 			decimals: 3,
 			is_initialized: true,
-			freeze_authority: COption::Some(owner_pubkey),
+			freeze_authority: COption::Some(owner),
 		};
 		let mut mint_data = vec![0; mint_size];
 		let mut mint_state =
@@ -709,13 +804,13 @@ mod test {
 		mint_state.init_account_type().unwrap();
 
 		assert_eq!(
-			parse_token_v2(&mint_data, None).unwrap(),
+			parse_token_v3(&mint_data, None).unwrap(),
 			TokenAccountType::Mint(UiMint {
-				mint_authority: Some(owner_pubkey),
+				mint_authority: Some(owner),
 				supply: 42.to_string(),
 				decimals: 3,
 				is_initialized: true,
-				freeze_authority: Some(owner_pubkey),
+				freeze_authority: Some(owner),
 				extensions: vec![],
 			}),
 		);
@@ -728,21 +823,22 @@ mod test {
 			.init_extension::<MintCloseAuthority>(true)
 			.unwrap();
 		mint_close_authority.close_authority =
-			OptionalNonZeroPubkey::try_from(Some(owner_pubkey)).unwrap();
+			OptionalNonZeroPubkey::try_from(Some(owner)).unwrap();
+
 		mint_state.base = mint_base;
 		mint_state.pack_base();
 		mint_state.init_account_type().unwrap();
 
 		assert_eq!(
-			parse_token_v2(&mint_data, None).unwrap(),
+			parse_token_v3(&mint_data, None).unwrap(),
 			TokenAccountType::Mint(UiMint {
-				mint_authority: Some(owner_pubkey),
+				mint_authority: Some(owner),
 				supply: 42.to_string(),
 				decimals: 3,
 				is_initialized: true,
-				freeze_authority: Some(owner_pubkey),
+				freeze_authority: Some(owner),
 				extensions: vec![UiExtension::MintCloseAuthority(UiMintCloseAuthority {
-					close_authority: Some(owner_pubkey),
+					close_authority: Some(owner),
 				})],
 			}),
 		);

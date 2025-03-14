@@ -38,6 +38,7 @@
       cargo bin anchor $@
     '';
     description = "The `anchor` executable";
+		binary = "bash";
   };
   scripts."release-plz" = {
     exec = ''
@@ -45,6 +46,7 @@
       cargo bin release-plz $@
     '';
     description = "The `release-plz` executable";
+		binary = "bash";
   };
   scripts."wasm-bindgen-test-runner" = {
     exec = ''
@@ -52,6 +54,7 @@
       cargo bin wasm-bindgen-test-runner $@
     '';
     description = "The `wasm-bindgen-test-runner` executable";
+		binary = "bash";
   };
   scripts."install:all" = {
     exec = ''
@@ -60,6 +63,7 @@
       install:solana
     '';
     description = "Install all packages.";
+		binary = "bash";
   };
   scripts."generate:keypair" = {
     exec = ''
@@ -67,6 +71,7 @@
       solana-keygen new -s -o $DEVENV_ROOT/$1.json --no-bip39-passphrase || true
     '';
     description = "Generate a local solana keypair. Must provide a name.";
+		binary = "bash";
   };
   scripts."install:cargo:bin" = {
     exec = ''
@@ -74,6 +79,7 @@
       cargo bin --install
     '';
     description = "Install cargo binaries locally.";
+		binary = "bash";
   };
   scripts."update:deps" = {
     exec = ''
@@ -82,6 +88,7 @@
       devenv update
     '';
     description = "Update dependencies.";
+		binary = "bash";
   };
   scripts."build:all" = {
     exec = ''
@@ -95,12 +102,14 @@
       fi
     '';
     description = "Build all crates with all features activated.";
+		binary = "bash";
   };
   scripts."build:docs" = {
     exec = ''
       RUSTDOCFLAGS="--cfg docsrs" cargo doc --workspace --exclude example_program --exclude example_client --exclude test_utils_solana --exclude test_utils_anchor
     '';
     description = "Build documentation site.";
+		binary = "bash";
   };
   scripts."test:all" = {
     exec = ''
@@ -114,6 +123,7 @@
       test:validator
     '';
     description = "Run all tests across the crates";
+		binary = "bash";
   };
   scripts."test:validator" = {
     exec = ''
@@ -136,6 +146,7 @@
       GECKODRIVER=$DEVENV_DOTFILE/profile/bin/geckodriver cargo test_wasm
     '';
     description = "Run tests with a validator in the background.";
+		binary = "bash";
   };
   scripts."coverage:all" = {
     exec = ''
@@ -149,6 +160,7 @@
       cargo coverage_codecov_report
     '';
     description = "Run coverage across the crates";
+		binary = "bash";
   };
   scripts."fix:all" = {
     exec = ''
@@ -157,6 +169,7 @@
       fix:format
     '';
     description = "Fix all autofixable problems.";
+		binary = "bash";
   };
   scripts."fix:format" = {
     exec = ''
@@ -164,6 +177,7 @@
       dprint fmt --config "$DEVENV_ROOT/dprint.json"
     '';
     description = "Format files with dprint.";
+		binary = "bash";
   };
   scripts."fix:clippy" = {
     exec = ''
@@ -171,6 +185,7 @@
       cargo clippy --fix --allow-dirty --allow-staged --all-features
     '';
     description = "Fix clippy lints for rust.";
+		binary = "bash";
   };
   scripts."lint:all" = {
     exec = ''
@@ -179,6 +194,7 @@
       lint:format
     '';
     description = "Run all checks.";
+		binary = "bash";
   };
   scripts."lint:format" = {
     exec = ''
@@ -186,6 +202,7 @@
       dprint check
     '';
     description = "Check that all files are formatted.";
+		binary = "bash";
   };
   scripts."lint:clippy" = {
     exec = ''
@@ -193,6 +210,7 @@
       cargo clippy --all-features
     '';
     description = "Check that all rust lints are passing.";
+		binary = "bash";
   };
   scripts."validator:run" = {
     exec = ''
@@ -200,6 +218,7 @@
       solana-test-validator --warp-slot 1000 --reset --quiet
     '';
     description = "Run the solana validator.";
+		binary = "bash";
   };
   scripts."validator:bg" = {
     exec = ''
@@ -208,6 +227,7 @@
       validator:run
     '';
     description = "Run the solana validator in the background";
+		binary = "bash";
   };
   scripts."validator:kill" = {
     exec = ''
@@ -221,6 +241,7 @@
       fi
     '';
     description = "Kill any running validator";
+		binary = "bash";
   };
   scripts."setup:vscode" = {
     exec = ''
@@ -229,6 +250,7 @@
       cp -r $DEVENV_ROOT/setup/editors/vscode .vscode
     '';
     description = "Setup the environment for vscode.";
+		binary = "bash";
   };
   scripts."setup:helix" = {
     exec = ''
@@ -237,6 +259,7 @@
       cp -r $DEVENV_ROOT/setup/editors/helix .helix
     '';
     description = "Setup for the helix editor.";
+		binary = "bash";
   };
   scripts."setup:ci" = {
     exec = ''
@@ -267,6 +290,7 @@
       echo "ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> $GITHUB_ENV
     '';
     description = "Setup devenv for GitHub Actions";
+		binary = "bash";
   };
   scripts."setup:docker" = {
     exec = ''
@@ -292,6 +316,7 @@
       echo "export ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> /etc/profile
     '';
     description = "Setup devenv shell for docker.";
+		binary = "bash";
   };
   scripts."install:solana" = {
     exec = ''
@@ -334,5 +359,6 @@
       fi
     '';
     description = "Install the version of solana or use one from the cache.";
+		binary = "bash";
   };
 }

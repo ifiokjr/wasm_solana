@@ -72,7 +72,7 @@ impl<T: Event> Stream for EventSubscription<T> {
 					*this.stack = None;
 				}
 			}
-		};
+		}
 
 		let Some(result) = ready!(this.subscription.as_mut().poll_next(cx)) else {
 			return Poll::Ready(None);

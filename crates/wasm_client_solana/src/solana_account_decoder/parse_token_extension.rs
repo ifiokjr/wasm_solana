@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::DisplayFromStr;
 use solana_sdk::clock::UnixTimestamp;
 use solana_sdk::program_pack::Pack;
 use spl_token_2022::extension::BaseState;
@@ -34,6 +34,7 @@ pub enum UiExtension {
 	CpiGuard(UiCpiGuard),
 	PermanentDelegate(UiPermanentDelegate),
 	NonTransferableAccount,
+	ConfidentialMintBurn(UiConfidentialMintBurn),
 	ConfidentialTransferFeeConfig(UiConfidentialTransferFeeConfig),
 	ConfidentialTransferFeeAmount(UiConfidentialTransferFeeAmount),
 	TransferHook(UiTransferHook),
@@ -45,6 +46,9 @@ pub enum UiExtension {
 	TokenGroup(UiTokenGroup),
 	TokenGroupMember(UiTokenGroupMember),
 	UnparseableExtension,
+	ScaledUiAmountConfig(UiScaledUiAmountConfig),
+	PausableConfig(UiPausableConfig),
+	PausableAccount,
 }
 
 pub fn parse_extension<S: BaseState + Pack>(
@@ -178,7 +182,25 @@ pub fn parse_extension<S: BaseState + Pack>(
 				.map(|&extension| UiExtension::TokenGroupMember(extension.into()))
 				.unwrap_or(UiExtension::UnparseableExtension)
 		}
-		ExtensionType::ConfidentialMintBurn => todo!(),
+		ExtensionType::ConfidentialMintBurn => {
+			account
+				.get_extension::<extension::confidential_mint_burn::ConfidentialMintBurn>()
+				.map(|&extension| UiExtension::ConfidentialMintBurn(extension.into()))
+				.unwrap_or(UiExtension::UnparseableExtension)
+		}
+		ExtensionType::ScaledUiAmount => {
+			account
+				.get_extension::<extension::scaled_ui_amount::ScaledUiAmountConfig>()
+				.map(|&extension| UiExtension::ScaledUiAmountConfig(extension.into()))
+				.unwrap_or(UiExtension::UnparseableExtension)
+		}
+		ExtensionType::Pausable => {
+			account
+				.get_extension::<extension::pausable::PausableConfig>()
+				.map(|&extension| UiExtension::PausableConfig(extension.into()))
+				.unwrap_or(UiExtension::UnparseableExtension)
+		}
+		ExtensionType::PausableAccount => UiExtension::PausableAccount,
 	}
 }
 
@@ -387,6 +409,28 @@ impl From<extension::confidential_transfer::ConfidentialTransferMint>
 
 				auditor_elgamal_pubkey.map(|pubkey| pubkey.to_string())
 			},
+		}
+	}
+}
+
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct UiConfidentialMintBurn {
+	pub confidential_supply: String,
+	pub decryptable_supply: String,
+	pub supply_elgamal_pubkey: String,
+}
+
+impl From<extension::confidential_mint_burn::ConfidentialMintBurn> for UiConfidentialMintBurn {
+	fn from(
+		confidential_mint_burn: extension::confidential_mint_burn::ConfidentialMintBurn,
+	) -> Self {
+		UiConfidentialMintBurn {
+			confidential_supply: confidential_mint_burn.confidential_supply.to_string(),
+			decryptable_supply: confidential_mint_burn.decryptable_supply.to_string(),
+			supply_elgamal_pubkey: confidential_mint_burn.supply_elgamal_pubkey.to_string(),
 		}
 	}
 }
@@ -674,6 +718,56 @@ impl From<TokenGroupMember> for UiTokenGroupMember {
 			mint: member.mint,
 			group: member.group,
 			member_number: member.member_number.into(),
+		}
+	}
+}
+
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct UiScaledUiAmountConfig {
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
+	pub multiplier: String,
+	pub new_multiplier_effective_timestamp: i64,
+	pub new_multiplier: String,
+}
+
+impl From<extension::scaled_ui_amount::ScaledUiAmountConfig> for UiScaledUiAmountConfig {
+	fn from(scaled_ui_amount_config: extension::scaled_ui_amount::ScaledUiAmountConfig) -> Self {
+		let authority: Option<Pubkey> = scaled_ui_amount_config.authority.into();
+		let multiplier: f64 = scaled_ui_amount_config.multiplier.into();
+		let new_multiplier_effective_timestamp: i64 = scaled_ui_amount_config
+			.new_multiplier_effective_timestamp
+			.into();
+		let new_multiplier: f64 = scaled_ui_amount_config.new_multiplier.into();
+
+		Self {
+			authority,
+			multiplier: multiplier.to_string(),
+			new_multiplier_effective_timestamp,
+			new_multiplier: new_multiplier.to_string(),
+		}
+	}
+}
+
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct UiPausableConfig {
+	#[serde_as(as = "Option<DisplayFromStr>")]
+	pub authority: Option<Pubkey>,
+	pub paused: bool,
+}
+
+impl From<extension::pausable::PausableConfig> for UiPausableConfig {
+	fn from(pausable_config: extension::pausable::PausableConfig) -> Self {
+		let authority: Option<Pubkey> = pausable_config.authority.into();
+		Self {
+			authority,
+			paused: pausable_config.paused.into(),
 		}
 	}
 }

@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.81", ""]
+        version: ["", "nightly"]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
@@ -157,7 +157,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        version: ["1.81", ""]
+        version: ["", "nightly"]
     env:
       RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:

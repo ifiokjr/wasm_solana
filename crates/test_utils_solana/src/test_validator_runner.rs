@@ -10,9 +10,9 @@ use std::sync::Mutex;
 
 use anyhow::Result;
 use crossbeam_channel::unbounded;
-use futures::future::Shared;
 use futures::Future;
 use futures::FutureExt;
+use futures::future::Shared;
 use lazy_static::lazy_static;
 use port_check::is_local_ipv4_port_free;
 use rand::Rng;
@@ -386,13 +386,13 @@ fn free_port(port: u16) {
 }
 
 fn find_ports() -> Option<(u16, u16, u16)> {
-	let mut rng = rand::thread_rng();
+	let mut rng = rand::rng();
 	let max = u16::MAX - 2;
 	let mut attempts = 100;
 
 	loop {
 		attempts -= 1;
-		let port: u16 = rng.gen_range(1000..max);
+		let port: u16 = rng.random_range(1000..max);
 		let ports = (port, port + 1, port + 2);
 
 		if is_port_available(ports.0) && is_port_available(ports.1) && is_port_available(ports.2) {

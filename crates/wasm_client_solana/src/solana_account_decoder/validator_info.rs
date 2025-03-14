@@ -1,8 +1,6 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::solana_config_program::ConfigState;
-
 pub const MAX_SHORT_FIELD_LENGTH: usize = 80;
 pub const MAX_LONG_FIELD_LENGTH: usize = 300;
 pub const MAX_VALIDATOR_INFO: u64 = 576;
@@ -14,8 +12,8 @@ pub struct ValidatorInfo {
 	pub info: String,
 }
 
-impl ConfigState for ValidatorInfo {
-	fn max_space() -> u64 {
+impl ValidatorInfo {
+	pub fn max_space() -> u64 {
 		MAX_VALIDATOR_INFO
 	}
 }

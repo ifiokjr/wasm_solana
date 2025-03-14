@@ -313,7 +313,7 @@ pub fn maybe_map_filters(
 	filters: &mut [RpcFilterType],
 ) -> Result<(), String> {
 	let version_reqs = VersionReq::from_strs(&["<1.11.2", "~1.13"])?;
-	let needs_mapping = node_version.map_or(true, |version| version_reqs.matches_any(&version));
+	let needs_mapping = node_version.is_none_or(|version| version_reqs.matches_any(&version));
 	if needs_mapping {
 		for filter in filters.iter_mut() {
 			if let RpcFilterType::Memcmp(memcmp) = filter {

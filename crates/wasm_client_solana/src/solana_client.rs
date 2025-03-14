@@ -17,6 +17,16 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
 
+use crate::ClientError;
+use crate::ClientResponse;
+use crate::ClientResult;
+use crate::HttpProvider;
+use crate::MAX_RETRIES;
+use crate::RpcError;
+use crate::RpcProvider;
+use crate::SLEEP_MS;
+use crate::Subscription;
+use crate::WebSocketProvider;
 use crate::methods::*;
 use crate::rpc_config::BlockSubscribeRequest;
 use crate::rpc_config::GetConfirmedSignaturesForAddress2Config;
@@ -53,28 +63,18 @@ use crate::rpc_response::RpcPrioritizationFee;
 use crate::rpc_response::RpcSupply;
 use crate::rpc_response::RpcVersionInfo;
 use crate::rpc_response::RpcVoteAccountStatus;
-use crate::solana_account_decoder::parse_address_lookup_table::parse_address_lookup_table;
+use crate::solana_account_decoder::UiAccountData;
+use crate::solana_account_decoder::UiAccountEncoding;
 use crate::solana_account_decoder::parse_address_lookup_table::LookupTableAccountType;
+use crate::solana_account_decoder::parse_address_lookup_table::parse_address_lookup_table;
 use crate::solana_account_decoder::parse_token::TokenAccountType;
 use crate::solana_account_decoder::parse_token::UiTokenAccount;
 use crate::solana_account_decoder::parse_token::UiTokenAmount;
-use crate::solana_account_decoder::UiAccountData;
-use crate::solana_account_decoder::UiAccountEncoding;
 use crate::solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use crate::solana_transaction_status::TransactionConfirmationStatus;
 use crate::solana_transaction_status::TransactionStatus;
 use crate::solana_transaction_status::UiConfirmedBlock;
 use crate::solana_transaction_status::UiTransactionEncoding;
-use crate::ClientError;
-use crate::ClientResponse;
-use crate::ClientResult;
-use crate::HttpProvider;
-use crate::RpcError;
-use crate::RpcProvider;
-use crate::Subscription;
-use crate::WebSocketProvider;
-use crate::MAX_RETRIES;
-use crate::SLEEP_MS;
 
 /// A client of a remote Solana node.
 ///
@@ -480,7 +480,7 @@ impl SolanaRpcClient {
 									| TransactionConfirmationStatus::Confirmed
 							)
 						}
-						_ => true,
+						CommitmentLevel::Processed => true,
 					};
 					if commitment_matches {
 						is_success = signature_status.err.is_none();

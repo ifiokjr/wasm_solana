@@ -9,16 +9,16 @@ use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::signature::Keypair;
 use test_utils_keypairs::get_wallet_keypair;
 use wasm_bindgen_test::*;
+use wasm_client_solana::LOCALNET;
+use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::prelude::*;
 use wasm_client_solana::rpc_config::LogsSubscribeRequest;
 use wasm_client_solana::rpc_config::RpcTransactionLogsFilter;
-use wasm_client_solana::SolanaRpcClient;
-use wasm_client_solana::LOCALNET;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-async fn request_airdrop() -> Result<()> {
+pub async fn request_airdrop() -> Result<()> {
 	let rpc = SolanaRpcClient::new(LOCALNET);
 	let pubkey = Keypair::new().pubkey();
 	let lamports = sol_to_lamports(1.0);
@@ -33,7 +33,7 @@ async fn request_airdrop() -> Result<()> {
 }
 
 #[wasm_bindgen_test]
-async fn log_subscription() -> Result<()> {
+pub async fn log_subscription() -> Result<()> {
 	let rpc = SolanaRpcClient::new(LOCALNET);
 	let subscription = rpc
 		.logs_subscribe(
@@ -61,7 +61,7 @@ async fn log_subscription() -> Result<()> {
 // updates are processed, but nothing happens in the subscription since it has
 // already been dropped.
 #[wasm_bindgen_test]
-async fn account_subscription() -> Result<()> {
+pub async fn account_subscription() -> Result<()> {
 	let date = js_sys::Date::new_0();
 	console_log!("initial: {}", date.to_iso_string());
 	let rpc = SolanaRpcClient::new(LOCALNET);

@@ -4,15 +4,15 @@ resolver = "2"
 
 [workspace.package]
 authors = ["Ifiok Jr. <ifiokotung@gmail.com>"]
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/ifiokjr/wasm_solana"
 license = "Unlicense"
 repository = "https://github.com/ifiokjr/wasm_solana"
-rust-version = "1.79.0"
+rust-version = "1.85.0"
 
 [workspace.dependencies]
-anchor-lang = { git = "https://github.com/coral-xyz/anchor", rev = "955e7ea" }
-anchor-spl = { git = "https://github.com/coral-xyz/anchor", rev = "955e7ea" }
+anchor-lang = "0.31.0"
+anchor-spl = "0.31.0"
 anyhow = "1"
 assert2 = "0.3"
 async-trait = "0.1"
@@ -25,7 +25,7 @@ bytemuck = "1"
 cfg-if = "1"
 chrono-humanize = "0.2"
 crossbeam-channel = "0.5"
-derive_more = "1"
+derive_more = "2"
 fork_stream = "0.1"
 futures = "0.3"
 futures-timeout = "0.1"
@@ -41,7 +41,7 @@ nacl = "0.5"
 paste = "1"
 pin-project = "1"
 port_check = "0.2"
-rand = "0.8"
+rand = "0.9"
 regex = "1"
 reqwest = "0.12"
 reqwest-websocket = "0.4"
@@ -69,12 +69,11 @@ solana-zk-token-sdk = "^2.1"
 spl-associated-token-account = "6"
 spl-memo = "6"
 spl-pod = "0.5"
-spl-tlv-account-resolution = "0.9"
 spl-token = "7"
-spl-token-2022 = "6"
+spl-token-2022 = "7"
 spl-token-group-interface = "0.5"
 spl-token-metadata-interface = "0.6"
-strum = "0.26"
+strum = "0.27"
 tarpc = "0.29"
 test-log = "0.2"
 thiserror = "2"
@@ -102,12 +101,12 @@ wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.8.0" }
 wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.7.5" }
 
 [workspace.metadata.bin]
-anchor-cli = { git = "https://github.com/coral-xyz/anchor", rev = "955e7ea", version = "0.30.1", bins = ["anchor"] }
-cargo-insta = { version = "1.41.1" }
-cargo-llvm-cov = { version = "0.6.15" }
-cargo-nextest = { version = "0.9.87" }
-cargo-semver-checks = { version = "0.38.0" }
-release-plz = { version = "0.3.112", bins = ["release-plz"] }
+anchor-cli = { version = "0.31.0", bins = ["anchor"] }
+cargo-insta = { version = "1.42.2" }
+cargo-llvm-cov = { version = "0.6.16" }
+cargo-nextest = { version = "0.9.92" }
+cargo-semver-checks = { version = "0.40.0" }
+release-plz = { version = "0.3.125", bins = ["release-plz"] }
 wait-for-them = { version = "0.5.0", bins = ["wait-for-them"] }
 wasm-bindgen-cli = { version = "0.2.100", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 

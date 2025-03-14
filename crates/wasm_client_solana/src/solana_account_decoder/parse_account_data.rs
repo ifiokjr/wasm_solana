@@ -14,6 +14,7 @@ use solana_sdk::system_program;
 use solana_sdk::sysvar;
 use solana_sdk::vote;
 use spl_token_2022::extension::interest_bearing_mint::InterestBearingConfig;
+use spl_token_2022::extension::scaled_ui_amount::ScaledUiAmountConfig;
 use thiserror::Error;
 
 use super::parse_address_lookup_table::parse_address_lookup_table;
@@ -22,6 +23,7 @@ use super::parse_config::parse_config;
 use super::parse_nonce::parse_nonce;
 use super::parse_stake::parse_stake;
 use super::parse_sysvar::parse_sysvar;
+#[allow(deprecated)]
 use super::parse_token::parse_token_v2;
 use super::parse_vote::parse_vote;
 
@@ -120,6 +122,32 @@ impl SplTokenAdditionalData {
 	}
 }
 
+#[derive(Clone, Copy, Default)]
+pub struct SplTokenAdditionalDataV2 {
+	pub decimals: u8,
+	pub interest_bearing_config: Option<(InterestBearingConfig, UnixTimestamp)>,
+	pub scaled_ui_amount_config: Option<(ScaledUiAmountConfig, UnixTimestamp)>,
+}
+
+impl From<SplTokenAdditionalData> for SplTokenAdditionalDataV2 {
+	fn from(v: SplTokenAdditionalData) -> Self {
+		Self {
+			decimals: v.decimals,
+			interest_bearing_config: v.interest_bearing_config,
+			scaled_ui_amount_config: None,
+		}
+	}
+}
+
+impl SplTokenAdditionalDataV2 {
+	pub fn with_decimals(decimals: u8) -> Self {
+		Self {
+			decimals,
+			..Default::default()
+		}
+	}
+}
+
 #[deprecated(since = "2.0.0", note = "Use `parse_account_data_v2` instead")]
 #[allow(deprecated)]
 pub fn parse_account_data(
@@ -142,6 +170,7 @@ pub fn parse_account_data(
 	)
 }
 
+#[allow(deprecated)]
 pub fn parse_account_data_v2(
 	pubkey: &Pubkey,
 	program_id: &Pubkey,
@@ -180,9 +209,9 @@ pub fn parse_account_data_v2(
 
 #[cfg(test)]
 mod test {
+	use solana_sdk::nonce::State;
 	use solana_sdk::nonce::state::Data;
 	use solana_sdk::nonce::state::Versions;
-	use solana_sdk::nonce::State;
 	use solana_sdk::vote::program::id as vote_program_id;
 	use solana_sdk::vote::state::VoteState;
 	use solana_sdk::vote::state::VoteStateVersions;
