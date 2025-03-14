@@ -32,19 +32,6 @@ jobs:
         with:
           args: --all-features
 
-  formatting:
-    timeout-minutes: 60
-    runs-on: ubuntu-24.04
-    steps:
-      - name: checkout repository
-        uses: actions/checkout@v4
-
-      - name: setup
-        uses: ./.github/actions/devenv
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          nix-cache: /tmp/nixcache
-
       - name: install nightly rustfmt
         run: rustup toolchain install nightly --component rustfmt
         shell: bash
@@ -75,12 +62,6 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        # TODO: enable `nightly` when solana builds work with nightly again
-        version: [""]
-    env:
-      RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -179,12 +160,6 @@ jobs:
   build:
     timeout-minutes: 60
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        # TODO: enable `nightly` when solana builds work with nightly again
-        version: [""]
-    env:
-      RUSTUP_TOOLCHAIN: ${{ matrix.version }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
