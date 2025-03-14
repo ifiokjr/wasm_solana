@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.22](https://github.com/ifiokjr/wasm_solana/compare/memory_wallet@v0.1.21...memory_wallet@v0.1.22) - 2025-03-14
+
+### <!-- 0 -->🎉 Added
+
+- update anchor dependencies and improve configuration
+
+### <!-- 5 -->🎨 Styling
+
+- update formatting
+
 ## [0.1.21](https://github.com/ifiokjr/wasm_solana/compare/memory_wallet@v0.1.20...memory_wallet@v0.1.21) - 2025-01-17
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
