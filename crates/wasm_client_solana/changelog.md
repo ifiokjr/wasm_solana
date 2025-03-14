@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.5...wasm_client_solana@v0.8.0) - 2025-03-14
+
+### <!-- 0 -->🎉 Added
+
+- update anchor dependencies and improve configuration
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- improve HTTP and WebSocket provider implementations
+- rollaback to solana-program `=2.1`
+
+### <!-- 5 -->🎨 Styling
+
+- update formatting
+
 ## [0.7.5](https://github.com/ifiokjr/wasm_solana/compare/wasm_client_solana@v0.7.4...wasm_client_solana@v0.7.5) - 2025-01-17
 
 ### <!-- 0 -->🎉 Added
