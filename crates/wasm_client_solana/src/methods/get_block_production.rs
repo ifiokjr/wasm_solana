@@ -42,10 +42,10 @@ mod tests {
 	use assert2::check;
 
 	use super::*;
-	use crate::methods::HttpMethod;
-	use crate::rpc_response::RpcBlockProductionRange;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
+	use crate::methods::HttpMethod;
+	use crate::rpc_response::RpcBlockProductionRange;
 
 	#[test]
 	fn request() {

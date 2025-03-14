@@ -4,18 +4,18 @@ use std::marker::PhantomData;
 use std::task::Poll;
 
 use anchor_lang::Event;
-use futures::ready;
 use futures::Stream;
+use futures::ready;
 use pin_project::pin_project;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_with::serde_as;
 use serde_with::DisplayFromStr;
+use serde_with::serde_as;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use typed_builder::TypedBuilder;
-use wasm_client_solana::rpc_response::LogsNotificationResponse;
 use wasm_client_solana::Subscription;
+use wasm_client_solana::rpc_response::LogsNotificationResponse;
 
 use crate::AnchorClientError;
 use crate::AnchorClientResult;
@@ -241,8 +241,8 @@ pub fn handle_program_log<T: Event>(
 	log: &str,
 ) -> AnchorClientResult<ParsedLogEntry<T>> {
 	use anchor_lang::__private::base64;
-	use base64::engine::general_purpose::STANDARD;
 	use base64::Engine;
+	use base64::engine::general_purpose::STANDARD;
 
 	// Log emitted from the current program.
 	if let Some(log) = log

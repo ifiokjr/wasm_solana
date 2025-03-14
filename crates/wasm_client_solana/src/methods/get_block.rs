@@ -46,6 +46,8 @@ mod tests {
 	use solana_sdk::message::MessageHeader;
 
 	use super::*;
+	use crate::ClientRequest;
+	use crate::ClientResponse;
 	use crate::methods::HttpMethod;
 	use crate::solana_transaction_status::EncodedTransaction;
 	use crate::solana_transaction_status::EncodedTransactionWithStatusMeta;
@@ -56,8 +58,6 @@ mod tests {
 	use crate::solana_transaction_status::UiTransaction;
 	use crate::solana_transaction_status::UiTransactionEncoding;
 	use crate::solana_transaction_status::UiTransactionStatusMeta;
-	use crate::ClientRequest;
-	use crate::ClientResponse;
 
 	#[test]
 	fn request() {

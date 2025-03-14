@@ -13,15 +13,15 @@ use solana_sdk::system_instruction::transfer;
 use solana_sdk::transaction::VersionedTransaction;
 use test_log::test;
 use test_utils_keypairs::get_wallet_keypair;
-use test_utils_solana::prelude::*;
 use test_utils_solana::ProgramTest;
 use test_utils_solana::ProgramTestContext;
 use test_utils_solana::TestValidatorRunner;
 use test_utils_solana::TestValidatorRunnerProps;
+use test_utils_solana::prelude::*;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
-use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::LOCALNET;
+use wasm_client_solana::SolanaRpcClient;
 
 #[test(tokio::test)]
 async fn sign_transaction() -> Result<()> {

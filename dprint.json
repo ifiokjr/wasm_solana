@@ -5,7 +5,7 @@
 	"exec": {
 		"commands": [
 			{
-				"command": "rustfmt +nightly --unstable-features --edition 2021",
+				"command": "rustfmt +nightly --unstable-features --edition 2024",
 				"exts": ["rs"]
 			},
 			{

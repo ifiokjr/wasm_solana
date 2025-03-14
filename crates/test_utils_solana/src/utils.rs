@@ -20,8 +20,8 @@ use solana_sdk::bpf_loader_upgradeable::UpgradeableLoaderState;
 use solana_sdk::clock::Clock;
 use solana_sdk::clock::Slot;
 use solana_sdk::commitment_config::CommitmentLevel;
-use solana_sdk::message::v0;
 use solana_sdk::message::VersionedMessage;
+use solana_sdk::message::v0;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::program_option::COption;
 use solana_sdk::program_pack::Pack;
@@ -31,9 +31,9 @@ use solana_sdk::signature::Signer;
 use solana_sdk::sysvar::rent::Rent;
 use solana_sdk::transaction::VersionedTransaction;
 use spl_associated_token_account::get_associated_token_address;
-use wallet_standard::prelude::*;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
+use wallet_standard::prelude::*;
 use wasm_client_solana::prelude::*;
 
 #[async_trait(?Send)]

@@ -379,60 +379,74 @@ mod tests {
 		let data = vec![1, 2, 3, 4, 5];
 
 		// Exact match of data succeeds
-		assert!(Memcmp {
-			offset: 0,
-			bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![1, 2, 3, 4, 5]).into_string()),
-			encoding: None,
-		}
-		.bytes_match(&data));
+		assert!(
+			Memcmp {
+				offset: 0,
+				bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![1, 2, 3, 4, 5]).into_string()),
+				encoding: None,
+			}
+			.bytes_match(&data)
+		);
 
 		// Partial match of data succeeds
-		assert!(Memcmp {
-			offset: 0,
-			bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![1, 2]).into_string()),
-			encoding: None,
-		}
-		.bytes_match(&data));
+		assert!(
+			Memcmp {
+				offset: 0,
+				bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![1, 2]).into_string()),
+				encoding: None,
+			}
+			.bytes_match(&data)
+		);
 
 		// Offset partial match of data succeeds
-		assert!(Memcmp {
-			offset: 2,
-			bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![3, 4]).into_string()),
-			encoding: None,
-		}
-		.bytes_match(&data));
+		assert!(
+			Memcmp {
+				offset: 2,
+				bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![3, 4]).into_string()),
+				encoding: None,
+			}
+			.bytes_match(&data)
+		);
 
 		// Incorrect partial match of data fails
-		assert!(!Memcmp {
-			offset: 0,
-			bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![2]).into_string()),
-			encoding: None,
-		}
-		.bytes_match(&data));
+		assert!(
+			!Memcmp {
+				offset: 0,
+				bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![2]).into_string()),
+				encoding: None,
+			}
+			.bytes_match(&data)
+		);
 
 		// Bytes overrun data fails
-		assert!(!Memcmp {
-			offset: 2,
-			bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![3, 4, 5, 6]).into_string()),
-			encoding: None,
-		}
-		.bytes_match(&data));
+		assert!(
+			!Memcmp {
+				offset: 2,
+				bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![3, 4, 5, 6]).into_string()),
+				encoding: None,
+			}
+			.bytes_match(&data)
+		);
 
 		// Offset outside data fails
-		assert!(!Memcmp {
-			offset: 6,
-			bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![5]).into_string()),
-			encoding: None,
-		}
-		.bytes_match(&data));
+		assert!(
+			!Memcmp {
+				offset: 6,
+				bytes: MemcmpEncodedBytes::Base58(bs58::encode(vec![5]).into_string()),
+				encoding: None,
+			}
+			.bytes_match(&data)
+		);
 
 		// Invalid base-58 fails
-		assert!(!Memcmp {
-			offset: 0,
-			bytes: MemcmpEncodedBytes::Base58("III".to_string()),
-			encoding: None,
-		}
-		.bytes_match(&data));
+		assert!(
+			!Memcmp {
+				offset: 0,
+				bytes: MemcmpEncodedBytes::Base58("III".to_string()),
+				encoding: None,
+			}
+			.bytes_match(&data)
+		);
 	}
 
 	#[test]

@@ -55,9 +55,9 @@ mod tests {
 	use solana_sdk::pubkey::Pubkey;
 
 	use super::*;
-	use crate::methods::HttpMethod;
 	use crate::ClientRequest;
 	use crate::ClientResponse;
+	use crate::methods::HttpMethod;
 
 	#[test]
 	fn request() {

@@ -34,8 +34,8 @@ The memory wallet is a simple wallet that stores all accounts in memory and conf
 
 ```rust
 use anyhow::Result;
-use memory_wallet::prelude::*;
 use memory_wallet::MemoryWallet;
+use memory_wallet::prelude::*;
 use solana_sdk::native_token::sol_to_lamports;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -43,8 +43,8 @@ use solana_sdk::signature::Signature;
 use solana_sdk::system_instruction;
 use solana_sdk::transaction::VersionedTransaction;
 use wallet_standard::SolanaSignTransactionProps;
-use wasm_client_solana::SolanaRpcClient;
 use wasm_client_solana::DEVNET;
+use wasm_client_solana::SolanaRpcClient;
 
 async fn run() -> Result<()> {
 	let keypair = Keypair::new();

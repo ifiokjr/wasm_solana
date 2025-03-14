@@ -1,10 +1,10 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::DisplayFromStr;
-use solana_sdk::address_lookup_table::state::AddressLookupTable;
 use solana_sdk::address_lookup_table::AddressLookupTableAccount;
+use solana_sdk::address_lookup_table::state::AddressLookupTable;
 use solana_sdk::instruction::InstructionError;
 use solana_sdk::pubkey::Pubkey;
 
@@ -86,8 +86,8 @@ impl From<AddressLookupTable<'_>> for UiLookupTable {
 mod test {
 	use std::borrow::Cow;
 
-	use solana_sdk::address_lookup_table::state::LookupTableMeta;
 	use solana_sdk::address_lookup_table::state::LOOKUP_TABLE_META_SIZE;
+	use solana_sdk::address_lookup_table::state::LookupTableMeta;
 	use solana_sdk::pubkey::Pubkey;
 
 	use super::*;

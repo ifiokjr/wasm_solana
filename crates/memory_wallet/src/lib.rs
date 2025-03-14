@@ -12,12 +12,6 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::VersionedTransaction;
-use wallet_standard::create_sign_in_message_text;
-use wallet_standard::prelude::*;
-use wallet_standard::SolanaSignAndSendTransactionProps;
-use wallet_standard::SolanaSignInInput;
-use wallet_standard::SolanaSignTransactionProps;
-use wallet_standard::StandardConnectInput;
 use wallet_standard::SOLANA_SIGN_AND_SEND_TRANSACTION;
 use wallet_standard::SOLANA_SIGN_IN;
 use wallet_standard::SOLANA_SIGN_MESSAGE;
@@ -25,8 +19,14 @@ use wallet_standard::SOLANA_SIGN_TRANSACTION;
 use wallet_standard::STANDARD_CONNECT;
 use wallet_standard::STANDARD_DISCONNECT;
 use wallet_standard::STANDARD_EVENTS;
-use wasm_client_solana::prelude::*;
+use wallet_standard::SolanaSignAndSendTransactionProps;
+use wallet_standard::SolanaSignInInput;
+use wallet_standard::SolanaSignTransactionProps;
+use wallet_standard::StandardConnectInput;
+use wallet_standard::create_sign_in_message_text;
+use wallet_standard::prelude::*;
 use wasm_client_solana::SolanaRpcClient;
+use wasm_client_solana::prelude::*;
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct MemoryWalletAccountInfo {
