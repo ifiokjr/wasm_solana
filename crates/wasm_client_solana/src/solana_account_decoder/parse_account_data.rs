@@ -14,6 +14,7 @@ use solana_sdk::system_program;
 use solana_sdk::sysvar;
 use solana_sdk::vote;
 use spl_token_2022::extension::interest_bearing_mint::InterestBearingConfig;
+use spl_token_2022::extension::scaled_ui_amount::ScaledUiAmountConfig;
 use thiserror::Error;
 
 use super::parse_address_lookup_table::parse_address_lookup_table;
@@ -113,6 +114,32 @@ pub struct SplTokenAdditionalData {
 }
 
 impl SplTokenAdditionalData {
+	pub fn with_decimals(decimals: u8) -> Self {
+		Self {
+			decimals,
+			..Default::default()
+		}
+	}
+}
+
+#[derive(Clone, Copy, Default)]
+pub struct SplTokenAdditionalDataV2 {
+	pub decimals: u8,
+	pub interest_bearing_config: Option<(InterestBearingConfig, UnixTimestamp)>,
+	pub scaled_ui_amount_config: Option<(ScaledUiAmountConfig, UnixTimestamp)>,
+}
+
+impl From<SplTokenAdditionalData> for SplTokenAdditionalDataV2 {
+	fn from(v: SplTokenAdditionalData) -> Self {
+		Self {
+			decimals: v.decimals,
+			interest_bearing_config: v.interest_bearing_config,
+			scaled_ui_amount_config: None,
+		}
+	}
+}
+
+impl SplTokenAdditionalDataV2 {
 	pub fn with_decimals(decimals: u8) -> Self {
 		Self {
 			decimals,
