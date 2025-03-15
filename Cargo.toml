@@ -92,7 +92,7 @@ example_client = { path = "./programs/example_client" }
 example_program = { path = "./programs/example_program" }
 
 # publishable crates
-memory_wallet = { path = "./crates/memory_wallet", version = "0.1.22" }
+memory_wallet = { path = "./crates/memory_wallet", version = "0.1.23" }
 test_utils_anchor = { path = "./crates/test_utils_anchor" }
 test_utils_insta = { path = "./crates/test_utils_insta" }
 test_utils_keypairs = { path = "./crates/test_utils_keypairs" }
