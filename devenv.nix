@@ -27,7 +27,10 @@
         frameworks.System
         frameworks.SystemConfiguration
       ]
-    );
+    )
+		++ lib.optionals pkgs.stdenv.isLinux [
+			pkgs.systemd
+		];
 
   # disable dotenv since it breaks the variable interpolation supported by `direnv`
   dotenv.disableHint = true;
