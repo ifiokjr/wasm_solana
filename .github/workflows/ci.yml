@@ -28,7 +28,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           nix-cache: /tmp/nixcache
 
-      - uses: clechasseur/rs-clippy-check@v3
+      - uses: clechasseur/rs-clippy-check@v4
         with:
           args: --all-features
 
