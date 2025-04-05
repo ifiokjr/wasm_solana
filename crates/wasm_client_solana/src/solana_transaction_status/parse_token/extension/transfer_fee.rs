@@ -46,13 +46,13 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_transfer_fee_inst
 			fee,
 		} => {
 			check_num_token_accounts(account_indexes, 4)?;
-			let additional_data = SplTokenAdditionalData::with_decimals(decimals);
+			let additional_data = SplTokenAdditionalDataV2::with_decimals(decimals);
 			let mut value = json!({
 				"source": account_keys[account_indexes[0] as usize].to_string(),
 				"mint": account_keys[account_indexes[1] as usize].to_string(),
 				"destination": account_keys[account_indexes[2] as usize].to_string(),
-				"tokenAmount": token_amount_to_ui_amount_v2(amount, &additional_data),
-				"feeAmount": token_amount_to_ui_amount_v2(fee, &additional_data),
+				"tokenAmount": token_amount_to_ui_amount_v3(amount, &additional_data),
+				"feeAmount": token_amount_to_ui_amount_v3(fee, &additional_data),
 			});
 			let map = value.as_object_mut().unwrap();
 			parse_signers(
@@ -161,9 +161,9 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_transfer_fee_inst
 
 #[cfg(test)]
 mod test {
+	use solana_program::message::Message;
 	use solana_sdk::pubkey::Pubkey;
 	use spl_token_2022::extension::transfer_fee::instruction::*;
-	use spl_token_2022::solana_program::message::Message;
 
 	use super::*;
 

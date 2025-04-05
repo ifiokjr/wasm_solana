@@ -1,5 +1,5 @@
-use spl_token_2022::solana_program::program_option::COption;
-use spl_token_2022::solana_program::pubkey::Pubkey;
+use solana_program::program_option::COption;
+use solana_program::pubkey::Pubkey;
 
 use super::*;
 
@@ -21,9 +21,9 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_initialize_mint_c
 #[cfg(test)]
 mod test {
 	use serde_json::Value;
+	use solana_program::message::Message;
 	use solana_sdk::pubkey::Pubkey;
 	use spl_token_2022::instruction::*;
-	use spl_token_2022::solana_program::message::Message;
 
 	use super::*;
 
