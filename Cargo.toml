@@ -69,16 +69,15 @@ solana-zk-token-sdk = "^2.1"
 spl-associated-token-account = "6"
 spl-memo = "6"
 spl-pod = "0.5"
-spl-token = "7"
-spl-token-2022 = "7"
-spl-token-group-interface = "0.5"
-spl-token-metadata-interface = "0.6"
-strum = "0.27"
+spl-token = "8"
+spl-token-2022 = "8.0.1"
+spl-token-group-interface = "0.6"
+spl-token-metadata-interface = "0.7"
 tarpc = "0.29"
 test-log = "0.2"
 thiserror = "2"
 tokio = "1"
-typed-builder = "0.20"
+typed-builder = "0.21"
 wallet_standard = "0.4"
 wallet_standard_browser = "0.4"
 wasm-bindgen = "0.2"
@@ -104,9 +103,9 @@ wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.8.0" }
 anchor-cli = { version = "0.31.0", bins = ["anchor"] }
 cargo-insta = { version = "1.42.2" }
 cargo-llvm-cov = { version = "0.6.16" }
-cargo-nextest = { version = "0.9.92" }
+cargo-nextest = { version = "0.9.93" }
 cargo-semver-checks = { version = "0.40.0" }
-release-plz = { version = "0.3.125", bins = ["release-plz"] }
+release-plz = { version = "0.3.130", bins = ["release-plz"] }
 wait-for-them = { version = "0.5.0", bins = ["wait-for-them"] }
 wasm-bindgen-cli = { version = "0.2.100", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 

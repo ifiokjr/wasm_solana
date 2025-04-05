@@ -35,10 +35,10 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_cpi_guard_instruc
 
 #[cfg(test)]
 mod test {
+	use solana_program::message::Message;
 	use solana_sdk::pubkey::Pubkey;
 	use spl_token_2022::extension::cpi_guard::instruction::disable_cpi_guard;
 	use spl_token_2022::extension::cpi_guard::instruction::enable_cpi_guard;
-	use spl_token_2022::solana_program::message::Message;
 
 	use super::*;
 

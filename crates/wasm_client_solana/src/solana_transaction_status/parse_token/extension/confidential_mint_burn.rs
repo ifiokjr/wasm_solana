@@ -252,5 +252,6 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_confidential_mint
 				info: value,
 			})
 		}
+		ConfidentialMintBurnInstruction::ApplyPendingBurn => todo!(),
 	}
 }

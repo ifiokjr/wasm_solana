@@ -104,8 +104,8 @@ pub(in crate::solana_transaction_status::parse_token) fn parse_token_metadata_in
 
 #[cfg(test)]
 mod test {
+	use solana_program::message::Message;
 	use solana_sdk::pubkey::Pubkey;
-	use spl_token_2022::solana_program::message::Message;
 
 	use super::*;
 

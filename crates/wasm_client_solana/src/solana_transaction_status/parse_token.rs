@@ -22,6 +22,9 @@ use serde::Serialize;
 use serde_json::Map;
 use serde_json::Value;
 use serde_json::json;
+use solana_program::instruction::Instruction as SplTokenInstruction;
+use solana_program::program_option::COption;
+use solana_program::pubkey::Pubkey;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::instruction::Instruction;
@@ -29,9 +32,6 @@ use solana_sdk::message::AccountKeys;
 use spl_token_2022::extension::ExtensionType;
 use spl_token_2022::instruction::AuthorityType;
 use spl_token_2022::instruction::TokenInstruction;
-use spl_token_2022::solana_program::instruction::Instruction as SplTokenInstruction;
-use spl_token_2022::solana_program::program_option::COption;
-use spl_token_2022::solana_program::pubkey::Pubkey;
 use spl_token_group_interface::instruction::TokenGroupInstruction;
 use spl_token_metadata_interface::instruction::TokenMetadataInstruction;
 
@@ -39,9 +39,9 @@ use super::parse_instruction::ParsableProgram;
 use super::parse_instruction::ParseInstructionError;
 use super::parse_instruction::ParsedInstructionEnum;
 use super::parse_instruction::check_num_accounts;
-use crate::solana_account_decoder::parse_account_data::SplTokenAdditionalData;
+use crate::solana_account_decoder::parse_account_data::SplTokenAdditionalDataV2;
 use crate::solana_account_decoder::parse_token::UiAccountState;
-use crate::solana_account_decoder::parse_token::token_amount_to_ui_amount_v2;
+use crate::solana_account_decoder::parse_token::token_amount_to_ui_amount_v3;
 
 mod extension;
 
@@ -386,12 +386,12 @@ pub fn parse_token(
 			}
 			TokenInstruction::TransferChecked { amount, decimals } => {
 				check_num_token_accounts(&instruction.accounts, 4)?;
-				let additional_data = SplTokenAdditionalData::with_decimals(decimals);
+				let additional_data = SplTokenAdditionalDataV2::with_decimals(decimals);
 				let mut value = json!({
 					"source": account_keys[instruction.accounts[0] as usize].to_string(),
 					"mint": account_keys[instruction.accounts[1] as usize].to_string(),
 					"destination": account_keys[instruction.accounts[2] as usize].to_string(),
-					"tokenAmount": token_amount_to_ui_amount_v2(amount, &additional_data),
+					"tokenAmount": token_amount_to_ui_amount_v3(amount, &additional_data),
 				});
 				let map = value.as_object_mut().unwrap();
 				parse_signers(
@@ -409,12 +409,12 @@ pub fn parse_token(
 			}
 			TokenInstruction::ApproveChecked { amount, decimals } => {
 				check_num_token_accounts(&instruction.accounts, 4)?;
-				let additional_data = SplTokenAdditionalData::with_decimals(decimals);
+				let additional_data = SplTokenAdditionalDataV2::with_decimals(decimals);
 				let mut value = json!({
 					"source": account_keys[instruction.accounts[0] as usize].to_string(),
 					"mint": account_keys[instruction.accounts[1] as usize].to_string(),
 					"delegate": account_keys[instruction.accounts[2] as usize].to_string(),
-					"tokenAmount": token_amount_to_ui_amount_v2(amount, &additional_data),
+					"tokenAmount": token_amount_to_ui_amount_v3(amount, &additional_data),
 				});
 				let map = value.as_object_mut().unwrap();
 				parse_signers(
@@ -432,11 +432,11 @@ pub fn parse_token(
 			}
 			TokenInstruction::MintToChecked { amount, decimals } => {
 				check_num_token_accounts(&instruction.accounts, 3)?;
-				let additional_data = SplTokenAdditionalData::with_decimals(decimals);
+				let additional_data = SplTokenAdditionalDataV2::with_decimals(decimals);
 				let mut value = json!({
 					"mint": account_keys[instruction.accounts[0] as usize].to_string(),
 					"account": account_keys[instruction.accounts[1] as usize].to_string(),
-					"tokenAmount": token_amount_to_ui_amount_v2(amount, &additional_data),
+					"tokenAmount": token_amount_to_ui_amount_v3(amount, &additional_data),
 				});
 				let map = value.as_object_mut().unwrap();
 				parse_signers(
@@ -454,11 +454,11 @@ pub fn parse_token(
 			}
 			TokenInstruction::BurnChecked { amount, decimals } => {
 				check_num_token_accounts(&instruction.accounts, 3)?;
-				let additional_data = SplTokenAdditionalData::with_decimals(decimals);
+				let additional_data = SplTokenAdditionalDataV2::with_decimals(decimals);
 				let mut value = json!({
 					"account": account_keys[instruction.accounts[0] as usize].to_string(),
 					"mint": account_keys[instruction.accounts[1] as usize].to_string(),
-					"tokenAmount": token_amount_to_ui_amount_v2(amount, &additional_data),
+					"tokenAmount": token_amount_to_ui_amount_v3(amount, &additional_data),
 				});
 				let map = value.as_object_mut().unwrap();
 				parse_signers(
