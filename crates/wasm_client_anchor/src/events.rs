@@ -250,7 +250,7 @@ pub fn handle_program_log<T: Event>(
 		.or_else(|| log.strip_prefix(PROGRAM_DATA))
 	{
 		let Ok(log_bytes) = STANDARD.decode(log) else {
-			log::warn!("Could not base64 decode log: {}", log);
+			log::warn!("Could not base64 decode log: {log}");
 			return Ok(ParsedLogEntry::builder().build());
 		};
 
