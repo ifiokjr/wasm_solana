@@ -53,3 +53,13 @@ node_modules/
 **/*.pem
 lcov.info
 codecov.json
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
