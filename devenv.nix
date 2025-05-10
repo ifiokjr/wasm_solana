@@ -17,20 +17,14 @@
       pkgs.protobuf # needed for `solana-test-validator` in tests
       pkgs.rustup
       pkgs.shfmt
-      pkgs.apple-sdk_15
     ]
-    ++ lib.optionals pkgs.stdenv.isDarwin (
-      with pkgs.darwin.apple_sdk;
-      [
-        pkgs.coreutils
-        frameworks.CoreFoundation
-        frameworks.Security
-        frameworks.System
-        frameworks.SystemConfiguration
-      ]
-    )
+    ++ lib.optionals pkgs.stdenv.isDarwin [
+			pkgs.apple-sdk_15
+			pkgs.coreutils
+		]
 		++ lib.optionals pkgs.stdenv.isLinux [
-			pkgs.systemd
+			pkgs.libusb1
+			pkgs.udev
 		];
 
   # disable dotenv since it breaks the variable interpolation supported by `direnv`
