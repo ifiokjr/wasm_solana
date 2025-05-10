@@ -17,6 +17,7 @@
       pkgs.protobuf # needed for `solana-test-validator` in tests
       pkgs.rustup
       pkgs.shfmt
+      pkgs.apple-sdk_15
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin (
       with pkgs.darwin.apple_sdk;
