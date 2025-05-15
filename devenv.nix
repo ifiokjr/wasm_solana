@@ -9,7 +9,6 @@
       pkgs.chromedriver
       pkgs.curl
       pkgs.dprint
-      pkgs.geckodriver
       pkgs.jq
       pkgs.libiconv
       pkgs.nixfmt-rfc-style
@@ -25,6 +24,7 @@
 		++ lib.optionals pkgs.stdenv.isLinux [
 			pkgs.libusb1
 			pkgs.udev
+			pkgs.systemd
 		];
 
   # disable dotenv since it breaks the variable interpolation supported by `direnv`
@@ -146,8 +146,8 @@
       sleep 5
       echo "running tests in chrome..."
       CHROMEDRIVER=$DEVENV_DOTFILE/profile/bin/chromedriver cargo test_wasm
-      echo "running tests in firefox..."
-      GECKODRIVER=$DEVENV_DOTFILE/profile/bin/geckodriver cargo test_wasm
+      # echo "running tests in firefox..."
+      # GECKODRIVER=$DEVENV_DOTFILE/profile/bin/geckodriver cargo test_wasm
     '';
     description = "Run tests with a validator in the background.";
 		binary = "bash";

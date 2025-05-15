@@ -11,8 +11,8 @@ repository = "https://github.com/ifiokjr/wasm_solana"
 rust-version = "1.85.0"
 
 [workspace.dependencies]
-anchor-lang = "0.31.0"
-anchor-spl = "0.31.0"
+anchor-lang = "0.31"
+anchor-spl = "0.31"
 anyhow = "1"
 assert2 = "0.3"
 async-trait = "0.1"
@@ -53,19 +53,19 @@ serde_bytes = "0.11"
 serde_json = "1"
 serde_tuple = "1"
 serde_with = "3"
-solana-banks-client = "^2.2"
-solana-banks-interface = "^2.2"
-solana-client = "^2.2"
-solana-config-program = "^2.2"
-solana-faucet = "^2.2"
-solana-program = "^2.2"
-solana-program-runtime = "^2.2"
-solana-program-test = "^2.2"
-solana-rpc = "^2.2"
-solana-sdk = "^2.2"
-solana-test-validator = "^2.2"
-solana-version = "^2.2"
-solana-zk-token-sdk = "^2.2"
+solana-banks-client = "2.2"
+solana-banks-interface = "2.2"
+solana-client = "2.2"
+solana-config-program = "2.2"
+solana-faucet = "2.2"
+solana-program = "2.2"
+solana-program-runtime = "2.2"
+solana-program-test = "2.2"
+solana-rpc = "2.2"
+solana-sdk = "2.2"
+solana-test-validator = "2.2"
+solana-version = "2.2"
+solana-zk-token-sdk = "2.2"
 spl-associated-token-account = "7"
 spl-memo = "6"
 spl-pod = "0.5"
@@ -100,7 +100,7 @@ wasm_client_anchor = { path = "./crates/wasm_client_anchor", version = "0.8.1" }
 wasm_client_solana = { path = "./crates/wasm_client_solana", version = "0.8.0" }
 
 [workspace.metadata.bin]
-anchor-cli = { version = "0.31.0", bins = ["anchor"] }
+anchor-cli = { version = "0.31.1", bins = ["anchor"] }
 cargo-insta = { version = "1.42.2" }
 cargo-llvm-cov = { version = "0.6.16" }
 cargo-nextest = { version = "0.9.93" }
