@@ -265,63 +265,6 @@
     description = "Setup for the helix editor.";
 		binary = "bash";
   };
-  scripts."setup:ci" = {
-    exec = ''
-      set -e
-      # update github ci path
-      echo "$DEVENV_PROFILE/bin" >> $GITHUB_PATH
-      echo "$GITHUB_WORKSPACE/.local-cache/solana-release/bin" >> $GITHUB_PATH
-
-      # update github ci environment
-      echo "DEVENV_PROFILE=$DEVENV_PROFILE" >> $GITHUB_ENV
-
-      # prepend common compilation lookup paths
-      echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
-      echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
-      echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
-      echo "C_INCLUDE_PATH=$C_INCLUDE_PATH" >> $GITHUB_ENV
-
-      # these provide shell completions / default config options
-      echo "XDG_DATA_DIRS=$XDG_DATA_DIRS" >> $GITHUB_ENV
-      echo "XDG_CONFIG_DIRS=$XDG_CONFIG_DIRS" >> $GITHUB_ENV
-
-      echo "DEVENV_DOTFILE=$DEVENV_DOTFILE" >> $GITHUB_ENV
-      echo "DEVENV_PROFILE=$DEVENV_PROFILE" >> $GITHUB_ENV
-      echo "DEVENV_ROOT=$DEVENV_ROOT" >> $GITHUB_ENV
-      echo "DEVENV_STATE=$DEVENV_STATE" >> $GITHUB_ENV
-
-      # Temporary fix for a bug in anchor@0.30.1 https://github.com/coral-xyz/anchor/issues/3042
-      echo "ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> $GITHUB_ENV
-    '';
-    description = "Setup devenv for GitHub Actions";
-		binary = "bash";
-  };
-  scripts."setup:docker" = {
-    exec = ''
-      set -e
-      # update path
-      echo "export PATH=$DEVENV_PROFILE/bin:\$PATH" >> /etc/profile
-      echo "export PATH=$DEVENV_ROOT/.local-cache/solana-release/bin:\$PATH" >> /etc/profile
-
-      echo "export DEVENV_PROFILE=$DEVENV_PROFILE" >> /etc/profile
-      echo "export PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> /etc/profile
-      echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile
-      echo "export LIBRARY_PATH=$LIBRARY_PATH" >> /etc/profile
-      echo "export C_INCLUDE_PATH=$C_INCLUDE_PATH" >> /etc/profile
-      echo "export XDG_DATA_DIRS=$XDG_DATA_DIRS" >> /etc/profile
-      echo "export XDG_CONFIG_DIRS=$XDG_CONFIG_DIRS" >> /etc/profile
-
-      echo "export DEVENV_DOTFILE=$DEVENV_DOTFILE" >> /etc/profile
-      echo "export DEVENV_PROFILE=$DEVENV_PROFILE" >> /etc/profile
-      echo "export DEVENV_ROOT=$DEVENV_ROOT" >> /etc/profile
-      echo "export DEVENV_STATE=$DEVENV_STATE" >> /etc/profile
-
-      # Temporary fix for a bug in anchor@0.30.1 https://github.com/coral-xyz/anchor/issues/3042
-      echo "export ANCHOR_IDL_BUILD_PROGRAM_PATH=$DEVENV_ROOT/programs/example_program" >> /etc/profile
-    '';
-    description = "Setup devenv shell for docker.";
-		binary = "bash";
-  };
   scripts."install:solana" = {
     exec = ''
       set -e

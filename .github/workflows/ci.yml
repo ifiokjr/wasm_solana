@@ -57,7 +57,7 @@ jobs:
 
       - name: build docs
         run: build:docs
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
   test:
     timeout-minutes: 60
@@ -74,29 +74,29 @@ jobs:
 
       - name: test `memory_wallet` with `ssr`
         run: cargo test_memory_wallet_ssr
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: test `memory_wallet` with `docs`
         run: cargo test_memory_wallet_docs
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: test `wasm_client_solana` with `ssr`
         if: false # ignore for now until wasm is working again
         run: cargo test_wasm_client_solana_ssr
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: test `wasm_client_solana` with `docs`
         if: false # ignore for now until wasm is working again
         run: cargo test_wasm_client_solana_docs
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: test `test_utils_solana` with `ssr` and `test_validator`
         run: cargo test_streams
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: test `example_client`
         run: cargo test_example_client
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: test `wasm` with background validator
         env:
@@ -104,7 +104,7 @@ jobs:
         run: |
           rustup target add wasm32-unknown-unknown
           test:validator
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
   coverage:
     timeout-minutes: 60
@@ -125,31 +125,31 @@ jobs:
 
       - name: coverage `memory_wallet_ssr`
         run: cargo coverage_memory_wallet_ssr
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       # - name: coverage `memory_wallet_docs`
       #   run: cargo +nightly coverage_memory_wallet_docs
-      #   shell: bash
+      #   shell: devenv shell bash -- -e {0}
 
       - name: coverage `wasm_client_solana_ssr`
         run: cargo coverage_wasm_client_solana_ssr
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       # - name: coverage `wasm_client_solana_docs`
       #   run: cargo +nightly coverage_wasm_client_solana_docs
-      #   shell: bash
+      #   shell: devenv shell bash -- -e {0}
 
       - name: coverage `streams`
         run: cargo coverage_streams
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: coverage `example_client`
         run: cargo coverage_example_client
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: coverage `codecov_report`
         run: cargo coverage_codecov_report
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: upload coverage
         if: ${{ github.actor != 'dependabot[bot]' }}
@@ -174,11 +174,11 @@ jobs:
 
       - name: build
         run: cargo build --locked
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
       - name: build all features
         run: build:all
-        shell: bash
+        shell: devenv shell bash -- -e {0}
 
   release:
     timeout-minutes: 60

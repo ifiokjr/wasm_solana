@@ -53,10 +53,6 @@ runs:
       run: devenv test
       shell: bash
 
-    - name: update path with devenv
-      run: devenv shell setup:ci
-      shell: bash
-
     - name: export nix store cache
       if: steps.nix-cache.outputs.cache-hit != 'true'
       run: nix-store --export $(find /nix/store -maxdepth 1 -name '*-*')> ${{ inputs.nix-cache }}
