@@ -6,4 +6,4 @@ all = true
 
 ["anza-xyz/agave"]
 asset_filters = [".tar.bz2"]
-tag = "v3.0.10"
+tag = "v3.0.11"

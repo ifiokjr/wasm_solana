@@ -61,6 +61,11 @@ typed-builder = { workspace = true, default-features = true }
 wallet_standard = { workspace = true, features = ["solana"], default-features = true }
 wasm_client_solana = { workspace = true, features = ["ssr"] }
 
+# FIX: these are pinned to keep solana-hash@3 throughout the codebase
+solana-blake3-hasher = { workspace = true, default-features = true }
+solana-epoch-rewards-hasher = { workspace = true, default-features = true }
+solana-keccak-hasher = { workspace = true, default-features = true }
+
 [dev-dependencies]
 assert2 = { workspace = true, default-features = true }
 insta = { workspace = true, features = ["redactions", "json"], default-features = true }
