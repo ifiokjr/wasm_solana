@@ -1,0 +1,69 @@
+name: "setup-mc"
+description: "Install the monochange CLI (mc) from the latest GitHub release"
+
+runs:
+  using: "composite"
+  steps:
+    - name: install monochange cli
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Determine OS and arch
+        os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+        arch="$(uname -m)"
+        case "$arch" in
+          x86_64) target_arch="x86_64" ;;
+          aarch64|arm64) target_arch="aarch64" ;;
+          *) echo "::error::Unsupported architecture: $arch" >&2; exit 1 ;;
+        esac
+
+        case "$os" in
+          linux) target_os="unknown-linux-musl" ;;
+          darwin) target_os="apple-darwin" ;;
+          *) echo "::error::Unsupported OS: $os" >&2; exit 1 ;;
+        esac
+
+        target="${target_arch}-${target_os}"
+
+        # Get the latest release tag
+        latest_tag="$(curl -fsSL \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ github.token }}" \
+          "https://api.github.com/repos/monochange/monochange/releases/latest" \
+          | jq -r '.tag_name')"
+
+        if [ -z "$latest_tag" ] || [ "$latest_tag" = "null" ]; then
+          echo "::error::Failed to determine latest monochange release tag" >&2
+          exit 1
+        fi
+
+        echo "Installing monochange CLI $latest_tag for $target"
+
+        archive_pattern="monochange-${target}-${latest_tag}.tar.gz"
+
+        download_url="$(curl -fsSL \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ github.token }}" \
+          "https://api.github.com/repos/monochange/monochange/releases/tags/${latest_tag}" \
+          | jq -r --arg pat "$archive_pattern" '.assets[] | select(.name | test($pat)) | .url')"
+
+        if [ -z "$download_url" ] || [ "$download_url" = "null" ]; then
+          echo "::error::No release asset matching '$archive_pattern' found" >&2
+          exit 1
+        fi
+
+        install_dir="$RUNNER_TEMP/.monochange-bin"
+        mkdir -p "$install_dir"
+
+        curl -fsSL \
+          -H "Accept: application/octet-stream" \
+          -H "Authorization: Bearer ${{ github.token }}" \
+          -o "$install_dir/mc.tar.gz" \
+          "$download_url"
+
+        tar xzf "$install_dir/mc.tar.gz" -C "$install_dir"
+        chmod +x "$install_dir/mc"
+
+        echo "$install_dir" >> "$GITHUB_PATH"
+        echo "monochange CLI installed: $($install_dir/mc --version 2>/dev/null || echo 'version check failed')"

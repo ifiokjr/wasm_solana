@@ -1,28 +1,100 @@
-name: publish
+name: "publish"
 
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (for example `v0.1.0`)."
+        required: true
+        type: string
 
-permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.tag || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
-  publish-crates:
-    if: (github.head_ref == 'knope/release' && github.event.pull_request.merged == true) || github.event_name == 'workflow_dispatch'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+  publish:
+    environment: publisher
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    if: github.repository_owner == 'pina-rs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
-      - name: checkout repository
+      - name: resolve release tag
+        id: release_tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG='${{ inputs.tag }}'
+          repo_url="https://github.com/${GITHUB_REPOSITORY}.git"
+
+          # Validate the tag exists on the remote before proceeding.
+          if ! git ls-remote --exit-code --tags "$repo_url" "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag '$TAG' does not exist on the remote" >&2
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved release tag: $TAG"
+
+      - name: checkout current workflow ref
         uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.release_tag.outputs.tag }}
+          fetch-depth: 0
 
       - name: setup
         uses: ./.github/actions/devenv
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: publish workspace packages
-        run: knope publish
-        shell: devenv shell -c -- bash -e {0}
+      - name: setup monochange cli
+        uses: ./.github/actions/setup-mc
+
+      - name: verify tag checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_tag="${{ steps.release_tag.outputs.tag }}"
+          actual_commit=$(git rev-parse HEAD)
+          tag_commit=$(git rev-list -n1 "$expected_tag")
+          if [ "$actual_commit" != "$tag_commit" ]; then
+            echo "::error::Checked-out commit $actual_commit does not match tag $expected_tag ($tag_commit)" >&2
+            exit 1
+          fi
+
+          # Ensure the tag has been merged into main
+          if ! git merge-base --is-ancestor "$actual_commit" refs/remotes/origin/main 2>/dev/null; then
+            echo "::error::Tag $expected_tag ($actual_commit) is not on the main branch" >&2
+            exit 1
+          fi
+
+          echo "Verified: checked-out commit matches tag $expected_tag and is on main"
+
+      - name: get crates.io OIDC auth token
+        uses: rust-lang/crates-io-auth-action@v1
+        id: crates-oidc
+
+      - name: check publish readiness
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-oidc.outputs.token }}
+        run: |
+          mc step:publish-readiness \
+            --from HEAD \
+            --output "$RUNNER_TEMP/publish-readiness.json" \
+            --format json
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: publish packages
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-oidc.outputs.token }}
+        run: |
+          mc step:publish-packages \
+            --log-level info \
+            --all \
+            --output "$RUNNER_TEMP/publish-result.json" \
+            --format json
+        shell: bash

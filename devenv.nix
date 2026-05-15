@@ -85,12 +85,12 @@ in
   };
 
   scripts = {
-    "knope" = {
+    "mc" = {
       exec = ''
         set -e
-        cargo bin knope $@
+        mc $@
       '';
-      description = "The `knope` executable";
+      description = "The `monochange` CLI (mc)";
       binary = "bash";
     };
     "wasm-bindgen-test-runner" = {

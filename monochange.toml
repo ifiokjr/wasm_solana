@@ -1,0 +1,111 @@
+[defaults]
+parent_bump = "patch"
+package_type = "cargo"
+
+[defaults.changelog]
+path = "{{ path }}/changelog.md"
+format = "keep_a_changelog"
+
+[changelog.types]
+feat = { bump = "minor", section = "feat", description = "New user-facing functionality" }
+fix = { bump = "patch", section = "fix", description = "Bug fixes" }
+docs = { bump = "none", section = "docs", description = "Documentation only" }
+note = { bump = "none", section = "Notes", description = "Notes" }
+
+[changelog.sections]
+feat = { heading = "Added", priority = 20 }
+fix = { heading = "Fixed", priority = 30 }
+docs = { heading = "Documentation", priority = 40 }
+note = { heading = "Notes", priority = 50 }
+
+[source]
+provider = "github"
+owner = "pina-rs"
+repo = "wasm_solana"
+
+[package.memory_wallet]
+path = "crates/memory_wallet"
+type = "cargo"
+
+[package.test_utils_insta]
+path = "crates/test_utils_insta"
+type = "cargo"
+
+[package.test_utils_keypairs]
+path = "crates/test_utils_keypairs"
+type = "cargo"
+
+[package.test_utils_solana]
+path = "crates/test_utils_solana"
+type = "cargo"
+
+[package.wasm_client_solana]
+path = "crates/wasm_client_solana"
+type = "cargo"
+
+[package.solana-account-decoder-client-types-wasm]
+path = "forks/solana-account-decoder-client-types-wasm"
+type = "cargo"
+
+[package.solana-account-decoder-wasm]
+path = "forks/solana-account-decoder-wasm"
+type = "cargo"
+
+[package.solana-transaction-status-client-types-wasm]
+path = "forks/solana-transaction-status-client-types-wasm"
+type = "cargo"
+
+[package.solana-transaction-status-wasm]
+path = "forks/solana-transaction-status-wasm"
+type = "cargo"
+
+[group.libraries]
+packages = [
+  "memory_wallet",
+  "test_utils_insta",
+  "test_utils_keypairs",
+  "test_utils_solana",
+  "wasm_client_solana",
+  "solana-account-decoder-client-types-wasm",
+  "solana-account-decoder-wasm",
+  "solana-transaction-status-client-types-wasm",
+  "solana-transaction-status-wasm",
+]
+release = true
+tag = true
+changelog = { path = "CHANGELOG.md", format = "keep_a_changelog", include = "all" }
+
+[ecosystems.cargo]
+enabled = true
+versioned_files = ["Cargo.toml"]
+lockfile_commands = ["cargo generate-lockfile"]
+
+[ecosystems.cargo.publish]
+enabled = true
+mode = "builtin"
+registry = "crates-io"
+trusted_publishing = true
+
+[cli.change]
+help_text = "Create a changeset"
+inputs = [
+  { name = "package", type = "string_list", required = true },
+  { name = "bump", type = "choice", choices = ["none", "patch", "minor", "major"], default = "patch" },
+  { name = "reason", type = "string", required = true },
+  { name = "type", type = "string" },
+]
+steps = [{ name = "create change file", type = "CreateChangeFile" }]
+
+[cli.release]
+help_text = "Prepare versioned package files"
+steps = [
+  { name = "plan release", type = "PrepareRelease" },
+  { name = "refresh lockfiles", type = "Command", command = "cargo generate-lockfile" },
+  { name = "format files", type = "Command", command = "dprint fmt" },
+]
+
+[cli.publish]
+help_text = "Publish packages to registries"
+steps = [
+  { name = "publish packages", type = "PublishPackages" },
+]
