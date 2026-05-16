@@ -5,6 +5,7 @@
   ...
 }:
 let
+  extra = inputs.ifiokjr-nixpkgs.packages.${pkgs.stdenv.system};
   llvm = pkgs.llvmPackages_19;
 in
 
@@ -13,6 +14,7 @@ in
     with pkgs;
     [
       binaryen
+      extra.monochange
       cargo-binstall
       cargo-run-bin
       chromedriver
