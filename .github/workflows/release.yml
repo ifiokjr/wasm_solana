@@ -26,9 +26,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: setup monochange cli
-        uses: ./.github/actions/setup-mc
-
       - name: validate configuration
         run: mc step:validate
         shell: devenv shell -c -- bash -e {0}

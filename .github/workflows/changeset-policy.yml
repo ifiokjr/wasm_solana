@@ -30,9 +30,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: setup monochange cli
-        uses: ./.github/actions/setup-mc
-
       - name: collect changed files
         id: changed
         uses: tj-actions/changed-files@v46

@@ -51,9 +51,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: setup monochange cli
-        uses: ./.github/actions/setup-mc
-
       - name: verify tag checkout
         shell: bash
         run: |
@@ -97,4 +94,4 @@ jobs:
             --all \
             --output "$RUNNER_TEMP/publish-result.json" \
             --format json
-        shell: bash
+        shell: devenv shell -c -- bash -e {0}
