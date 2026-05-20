@@ -61,15 +61,15 @@ type = "cargo"
 
 [group.libraries]
 packages = [
-  "memory_wallet",
-  "test_utils_insta",
-  "test_utils_keypairs",
-  "test_utils_solana",
-  "wasm_client_solana",
-  "solana-account-decoder-client-types-wasm",
-  "solana-account-decoder-wasm",
-  "solana-transaction-status-client-types-wasm",
-  "solana-transaction-status-wasm",
+	"memory_wallet",
+	"test_utils_insta",
+	"test_utils_keypairs",
+	"test_utils_solana",
+	"wasm_client_solana",
+	"solana-account-decoder-client-types-wasm",
+	"solana-account-decoder-wasm",
+	"solana-transaction-status-client-types-wasm",
+	"solana-transaction-status-wasm",
 ]
 release = true
 tag = true
@@ -89,23 +89,23 @@ trusted_publishing = true
 [cli.change]
 help_text = "Create a changeset"
 inputs = [
-  { name = "package", type = "string_list", required = true },
-  { name = "bump", type = "choice", choices = ["none", "patch", "minor", "major"], default = "patch" },
-  { name = "reason", type = "string", required = true },
-  { name = "type", type = "string" },
+	{ name = "package", type = "string_list", required = true },
+	{ name = "bump", type = "choice", choices = ["none", "patch", "minor", "major"], default = "patch" },
+	{ name = "reason", type = "string", required = true },
+	{ name = "type", type = "string" },
 ]
 steps = [{ name = "create change file", type = "CreateChangeFile" }]
 
 [cli.release]
 help_text = "Prepare versioned package files"
 steps = [
-  { name = "plan release", type = "PrepareRelease" },
-  { name = "refresh lockfiles", type = "Command", command = "cargo generate-lockfile" },
-  { name = "format files", type = "Command", command = "dprint fmt" },
+	{ name = "plan release", type = "PrepareRelease" },
+	{ name = "refresh lockfiles", type = "Command", command = "cargo generate-lockfile" },
+	{ name = "format files", type = "Command", command = "dprint fmt" },
 ]
 
 [cli.publish]
 help_text = "Publish packages to registries"
 steps = [
-  { name = "publish packages", type = "PublishPackages" },
+	{ name = "publish packages", type = "PublishPackages" },
 ]

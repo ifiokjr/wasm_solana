@@ -6,8 +6,7 @@
   ...
 }:
 let
-  monochangePkgs =
-    (inputs.ifiokjr-nixpkgs.outputs { nixpkgs = inputs.nixpkgs; }).packages.${pkgs.stdenv.system};
+  monochangePkgs = inputs.ifiokjr-nixpkgs.packages.${pkgs.stdenv.system};
   llvm = pkgs.llvmPackages_19;
 in
 

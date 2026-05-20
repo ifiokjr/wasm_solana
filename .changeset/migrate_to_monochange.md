@@ -12,6 +12,4 @@ solana-transaction-status-wasm: patch
 
 # Migrate from knope to monochange
 
-Replace knope with monochange for release planning and publishing.
-This removes `knope.toml`, adds `monochange.toml`, and replaces the
-knope-based CI workflows with monochange equivalents.
+Replace knope with monochange for release planning and publishing. This removes `knope.toml`, adds `monochange.toml`, and replaces the knope-based CI workflows with monochange equivalents.
