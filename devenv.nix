@@ -15,7 +15,7 @@ in
     with pkgs;
     [
       binaryen
-      monochangePkgs.monochange
+      (monochangePkgs.monochange)
       cargo-binstall
       cargo-run-bin
       chromedriver
