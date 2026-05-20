@@ -2,9 +2,12 @@
   pkgs,
   lib,
   config,
+  inputs,
   ...
 }:
 let
+  monochangePkgs =
+    (inputs.ifiokjr-nixpkgs.outputs { nixpkgs = inputs.nixpkgs; }).packages.${pkgs.stdenv.system};
   llvm = pkgs.llvmPackages_19;
 in
 
@@ -13,7 +16,7 @@ in
     with pkgs;
     [
       binaryen
-      monochange
+      monochangePkgs.monochange
       cargo-binstall
       cargo-run-bin
       chromedriver
