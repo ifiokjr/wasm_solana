@@ -1,0 +1,56 @@
+name: "release-pr"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1" # Mondays at 05:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-pr:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: validate configuration
+        run: mc step:validate
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: prepare release
+        run: |
+          mc step:prepare-release \
+            --output "$RUNNER_TEMP/release-result.json" \
+            --format json
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: commit release
+        run: |
+          mc step:commit-release \
+            --output "$RUNNER_TEMP/commit-result.json" \
+            --format json
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: verify release branch
+        run: mc step:verify-release-branch
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: open release request
+        run: |
+          mc step:open-release-request \
+            --output "$RUNNER_TEMP/release-request.json" \
+            --format json
+        shell: devenv shell -c -- bash -e {0}

@@ -2,9 +2,11 @@
   pkgs,
   lib,
   config,
+  inputs,
   ...
 }:
 let
+  monochangePkgs = inputs.ifiokjr-nixpkgs.packages.${pkgs.stdenv.system};
   llvm = pkgs.llvmPackages_19;
 in
 
@@ -13,6 +15,7 @@ in
     with pkgs;
     [
       binaryen
+      (monochangePkgs.monochange)
       cargo-binstall
       cargo-run-bin
       chromedriver
@@ -85,12 +88,12 @@ in
   };
 
   scripts = {
-    "knope" = {
+    "mc" = {
       exec = ''
         set -e
-        cargo bin knope $@
+        mc $@
       '';
-      description = "The `knope` executable";
+      description = "The `monochange` CLI (mc)";
       binary = "bash";
     };
     "wasm-bindgen-test-runner" = {
