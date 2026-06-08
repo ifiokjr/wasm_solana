@@ -141,7 +141,7 @@ jobs:
 
       - name: upload coverage
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: codecov.json
           fail_ci_if_error: false
