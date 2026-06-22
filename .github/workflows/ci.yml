@@ -20,7 +20,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: setup
         uses: ./.github/actions/devenv
@@ -40,7 +40,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: setup
         uses: ./.github/actions/devenv
@@ -100,7 +100,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: setup
         uses: ./.github/actions/devenv
@@ -152,7 +152,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: setup
         uses: ./.github/actions/devenv
