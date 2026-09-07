@@ -1,0 +1,17 @@
+[book]
+title = "Wasm Solana Book"
+authors = ["pina-rs contributors"]
+language = "en"
+src = "src"
+description = "The wasm compatible alternative Solana client: RPC, pubsub, wallets and testing utilities for browsers and Rust."
+
+[build]
+build-dir = "book"
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/pina-rs/wasm_solana"
+edit-url-template = "https://github.com/pina-rs/wasm_solana/edit/main/docs/{path}"
+site-url = "/wasm_solana/"

@@ -1,0 +1,40 @@
+# Development Workflow
+
+The repository uses [devenv](https://devenv.sh) for a hermetic environment. `direnv` loads it automatically.
+
+## Environment
+
+```bash
+devenv shell   # or: direnv allow
+```
+
+Provided by the environment: the pinned Rust toolchain (from `rust-toolchain.toml`), agave (validator binaries) and monochange from `ifiokjr/nixpkgs`, mdbook, chromedriver, wasm-bindgen tooling, and all lint/security tools (cargo-deny, cargo-audit, zizmor, gitleaks).
+
+## Daily commands
+
+| Command                           | Description                                          |
+| --------------------------------- | ---------------------------------------------------- |
+| `build:all`                       | Build all crates with all features.                  |
+| `test:all`                        | Run every suite (SSR, docs, streams, browser tests). |
+| `test:validator`                  | Start a local validator and run the browser tests.   |
+| `coverage:all`                    | llvm-cov coverage across the suites.                 |
+| `lint:all`                        | clippy + dprint format check.                        |
+| `fix:all`                         | Apply clippy and dprint fixes.                       |
+| `security:all`                    | cargo-deny + cargo-audit + zizmor.                   |
+| `update:deps`                     | `cargo update` + `devenv update`.                    |
+| `build:docs`                      | Build this book.                                     |
+| `validator:bg` / `validator:kill` | Manage the local validator.                          |
+
+## Formatting
+
+`dprint` formats everything — Rust via rustfmt nightly, TOML, Markdown, Nix and shell scripts. The pre-commit hook formats changed files; `lint:format` enforces it in CI.
+
+## Git hooks
+
+The devenv git-hooks integration installs gitleaks secret scanning, dprint formatting and nixfmt for Nix files.
+
+## Conventions
+
+- Branch names use Conventional Commit prefixes: `feat/`, `fix/`, `build/`, `ci/`, `docs/`, `chore/`, `test/`.
+- Work happens on feature branches with pull requests; CI must pass before merge.
+- Commits follow Conventional Commits; release automation derives versions from changesets (see [CI and Releases](./ci-and-releases.md)).
