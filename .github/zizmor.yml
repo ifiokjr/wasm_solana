@@ -10,4 +10,13 @@
 # If an ignore is ever required, add the rule below with a comment explaining
 # why the pattern is intentional and why it is safe.
 
-rules: {}
+rules:
+  # Local composite actions (`uses: ./.github/actions/...`) are reviewed in
+  # the same pull requests that modify them, so there is no third-party trust
+  # boundary to harden; the self-repository audit would otherwise flag every
+  # intentional local action reference.
+  self-repository:
+    ignore:
+      - ci.yml
+      - docs-pages.yml
+      - publish.yml
