@@ -1,9 +1,0 @@
-[global]
-show_hash = true
-upgrade_only = true
-target = ".eget/bin"
-all = true
-
-["anza-xyz/agave"]
-asset_filters = [".tar.bz2"]
-tag = "v3.0.11"

@@ -2,7 +2,6 @@ use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde_with::DisplayFromStr;
-use serde_with::serde_as;
 use solana_pubkey::Pubkey;
 use typed_builder::TypedBuilder;
 

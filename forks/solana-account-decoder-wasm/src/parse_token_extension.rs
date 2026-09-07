@@ -14,6 +14,7 @@ pub use solana_account_decoder_client_types_wasm::token::UiMetadataPointer;
 pub use solana_account_decoder_client_types_wasm::token::UiMintCloseAuthority;
 pub use solana_account_decoder_client_types_wasm::token::UiPausableConfig;
 pub use solana_account_decoder_client_types_wasm::token::UiPermanentDelegate;
+pub use solana_account_decoder_client_types_wasm::token::UiPermissionedBurnConfig;
 pub use solana_account_decoder_client_types_wasm::token::UiScaledUiAmountConfig;
 pub use solana_account_decoder_client_types_wasm::token::UiTokenGroup;
 pub use solana_account_decoder_client_types_wasm::token::UiTokenGroupMember;
@@ -26,12 +27,12 @@ pub use solana_account_decoder_client_types_wasm::token::UiTransferHookAccount;
 use solana_clock::UnixTimestamp;
 use solana_program_pack::Pack;
 use solana_pubkey::Pubkey;
+use solana_zk_sdk_pod::encryption::elgamal::PodElGamalPubkey;
 use spl_token_2022_interface::extension::BaseState;
 use spl_token_2022_interface::extension::BaseStateWithExtensions;
 use spl_token_2022_interface::extension::ExtensionType;
 use spl_token_2022_interface::extension::StateWithExtensions;
 use spl_token_2022_interface::extension::{self};
-use spl_token_2022_interface::solana_zk_sdk::encryption::pod::elgamal::PodElGamalPubkey;
 use spl_token_group_interface::state::TokenGroup;
 use spl_token_group_interface::state::TokenGroupMember;
 use spl_token_metadata_interface::state::TokenMetadata;
@@ -47,185 +48,185 @@ pub fn parse_extension<S: BaseState + Pack>(
 		ExtensionType::TransferFeeConfig => {
 			account
 				.get_extension::<extension::transfer_fee::TransferFeeConfig>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::TransferFeeConfig(convert_transfer_fee_config(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::TransferFeeAmount => {
 			account
 				.get_extension::<extension::transfer_fee::TransferFeeAmount>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::TransferFeeAmount(convert_transfer_fee_amount(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::MintCloseAuthority => {
 			account
 				.get_extension::<extension::mint_close_authority::MintCloseAuthority>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::MintCloseAuthority(convert_mint_close_authority(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::ConfidentialTransferMint => {
 			account
 				.get_extension::<extension::confidential_transfer::ConfidentialTransferMint>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::ConfidentialTransferMint(convert_confidential_transfer_mint(
 						extension,
 					))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::ConfidentialTransferFeeConfig => {
 			account
 				.get_extension::<extension::confidential_transfer_fee::ConfidentialTransferFeeConfig>(
 				)
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::ConfidentialTransferFeeConfig(
 						convert_confidential_transfer_fee_config(extension),
 					)
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::ConfidentialTransferAccount => {
 			account
 				.get_extension::<extension::confidential_transfer::ConfidentialTransferAccount>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::ConfidentialTransferAccount(convert_confidential_transfer_account(
-						&extension,
+						extension,
 					))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::ConfidentialTransferFeeAmount => {
 			account
 				.get_extension::<extension::confidential_transfer_fee::ConfidentialTransferFeeAmount>(
 				)
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::ConfidentialTransferFeeAmount(
 						convert_confidential_transfer_fee_amount(extension),
 					)
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::DefaultAccountState => {
 			account
 				.get_extension::<extension::default_account_state::DefaultAccountState>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::DefaultAccountState(convert_default_account_state(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::ImmutableOwner => UiExtension::ImmutableOwner,
 		ExtensionType::MemoTransfer => {
 			account
 				.get_extension::<extension::memo_transfer::MemoTransfer>()
-				.map(|&extension| UiExtension::MemoTransfer(convert_memo_transfer(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::MemoTransfer(convert_memo_transfer(extension))
+				})
 		}
 		ExtensionType::NonTransferable => UiExtension::NonTransferable,
 		ExtensionType::InterestBearingConfig => {
 			account
 				.get_extension::<extension::interest_bearing_mint::InterestBearingConfig>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::InterestBearingConfig(convert_interest_bearing_config(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::CpiGuard => {
 			account
 				.get_extension::<extension::cpi_guard::CpiGuard>()
-				.map(|&extension| UiExtension::CpiGuard(convert_cpi_guard(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::CpiGuard(convert_cpi_guard(extension))
+				})
 		}
 		ExtensionType::PermanentDelegate => {
 			account
 				.get_extension::<extension::permanent_delegate::PermanentDelegate>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::PermanentDelegate(convert_permanent_delegate(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::NonTransferableAccount => UiExtension::NonTransferableAccount,
 		ExtensionType::MetadataPointer => {
 			account
 				.get_extension::<extension::metadata_pointer::MetadataPointer>()
-				.map(|&extension| UiExtension::MetadataPointer(convert_metadata_pointer(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::MetadataPointer(convert_metadata_pointer(extension))
+				})
 		}
 		ExtensionType::TokenMetadata => {
 			account
 				.get_variable_len_extension::<TokenMetadata>()
-				.map(|extension| UiExtension::TokenMetadata(convert_token_metadata(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |extension| {
+					UiExtension::TokenMetadata(convert_token_metadata(extension))
+				})
 		}
 		ExtensionType::TransferHook => {
 			account
 				.get_extension::<extension::transfer_hook::TransferHook>()
-				.map(|&extension| UiExtension::TransferHook(convert_transfer_hook(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::TransferHook(convert_transfer_hook(extension))
+				})
 		}
 		ExtensionType::TransferHookAccount => {
 			account
 				.get_extension::<extension::transfer_hook::TransferHookAccount>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::TransferHookAccount(convert_transfer_hook_account(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::GroupPointer => {
 			account
 				.get_extension::<extension::group_pointer::GroupPointer>()
-				.map(|&extension| UiExtension::GroupPointer(convert_group_pointer(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::GroupPointer(convert_group_pointer(extension))
+				})
 		}
 		ExtensionType::GroupMemberPointer => {
 			account
 				.get_extension::<extension::group_member_pointer::GroupMemberPointer>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::GroupMemberPointer(convert_group_member_pointer(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::TokenGroup => {
 			account
 				.get_extension::<TokenGroup>()
-				.map(|&extension| UiExtension::TokenGroup(convert_token_group(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::TokenGroup(convert_token_group(extension))
+				})
 		}
 		ExtensionType::TokenGroupMember => {
 			account
 				.get_extension::<TokenGroupMember>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::TokenGroupMember(convert_token_group_member(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::ConfidentialMintBurn => {
 			account
 				.get_extension::<extension::confidential_mint_burn::ConfidentialMintBurn>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::ConfidentialMintBurn(convert_confidential_mint_burn(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::ScaledUiAmount => {
 			account
 				.get_extension::<extension::scaled_ui_amount::ScaledUiAmountConfig>()
-				.map(|&extension| {
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
 					UiExtension::ScaledUiAmountConfig(convert_scaled_ui_amount(extension))
 				})
-				.unwrap_or(UiExtension::UnparseableExtension)
 		}
 		ExtensionType::Pausable => {
 			account
 				.get_extension::<extension::pausable::PausableConfig>()
-				.map(|&extension| UiExtension::PausableConfig(convert_pausable_config(extension)))
-				.unwrap_or(UiExtension::UnparseableExtension)
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::PausableConfig(convert_pausable_config(extension))
+				})
 		}
 		ExtensionType::PausableAccount => UiExtension::PausableAccount,
+		ExtensionType::PermissionedBurn => {
+			account
+				.get_extension::<extension::permissioned_burn::PermissionedBurnConfig>()
+				.map_or(UiExtension::UnparseableExtension, |&extension| {
+					UiExtension::PermissionedBurnConfig(convert_permissioned_burn_config(extension))
+				})
+		}
 	}
 }
 
@@ -353,7 +354,7 @@ pub fn convert_confidential_transfer_fee_config(
 }
 
 fn convert_confidential_transfer_account(
-	confidential_transfer_account: &extension::confidential_transfer::ConfidentialTransferAccount,
+	confidential_transfer_account: extension::confidential_transfer::ConfidentialTransferAccount,
 ) -> UiConfidentialTransferAccount {
 	UiConfidentialTransferAccount {
 		approved: confidential_transfer_account.approved.into(),
@@ -507,5 +508,14 @@ fn convert_pausable_config(
 	UiPausableConfig {
 		authority: authority.map(|pubkey| pubkey.to_string()),
 		paused: pausable_config.paused.into(),
+	}
+}
+
+fn convert_permissioned_burn_config(
+	permissioned_burn_config: extension::permissioned_burn::PermissionedBurnConfig,
+) -> UiPermissionedBurnConfig {
+	let authority: Option<Pubkey> = permissioned_burn_config.authority.into();
+	UiPermissionedBurnConfig {
+		authority: authority.map(|pubkey| pubkey.to_string()),
 	}
 }

@@ -17,7 +17,8 @@ use solana_clock::Slot;
 use solana_commitment_config::CommitmentConfig;
 use solana_commitment_config::CommitmentLevel;
 use solana_epoch_schedule::EpochSchedule;
-use solana_faucet::faucet::run_local_faucet_with_port;
+use solana_faucet::faucet::LocalFaucetConfig;
+use solana_faucet::faucet::run_local_faucet_with_config;
 use solana_keypair::Keypair;
 use solana_native_token::sol_str_to_lamports;
 use solana_pubkey::Pubkey;
@@ -208,8 +209,18 @@ impl TestValidatorRunner {
 
 		let (sender, receiver) = unbounded();
 		let faucet_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), ports.faucet);
-		// run the faucet in a seperate thread
-		run_local_faucet_with_port(faucet_keypair, sender, None, None, None, ports.faucet);
+		// run the faucet in a separate thread
+		run_local_faucet_with_config(
+			sender,
+			LocalFaucetConfig {
+				keypair: faucet_keypair,
+				address: Ipv4Addr::LOCALHOST,
+				port: ports.faucet,
+				time_input: None,
+				per_time_cap: None,
+				per_request_cap: None,
+			},
+		);
 
 		let _ = receiver
 			.recv()
@@ -257,9 +268,9 @@ impl TestValidatorRunner {
 			CommitmentConfig { commitment },
 		);
 
-		// waiting for fees to stablize doesn't seem to work, so here waiting for this
-		// random airdrop to succeed seems to work. An alternative is a 15 second daily.
-		// The validator to be warmed up.
+		// waiting for fees to stablize doesn't seem to work, so here waiting
+		// for this random airdrop to succeed seems to work. An alternative is
+		// a 15 second daily. The validator to be warmed up.
 		rpc.request_airdrop(
 			&mint_keypair.pubkey(),
 			sol_str_to_lamports("500.0").unwrap(),

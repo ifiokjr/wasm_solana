@@ -3,6 +3,8 @@ use std::str::Utf8Error;
 use std::str::from_utf8;
 
 use inflector::Inflector;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::Value;
 use solana_account_decoder_wasm::parse_token::spl_token_ids;
 use solana_message::AccountKeys;
@@ -37,6 +39,7 @@ static PARSABLE_PROGRAM_IDS: std::sync::LazyLock<HashMap<Pubkey, ParsableProgram
 			),
 			(spl_memo_interface::v1::id(), ParsableProgram::SplMemo),
 			(spl_memo_interface::v3::id(), ParsableProgram::SplMemo),
+			(spl_memo_interface::v4::id(), ParsableProgram::SplMemo),
 			(solana_sdk_ids::bpf_loader::id(), ParsableProgram::BpfLoader),
 			(
 				solana_sdk_ids::bpf_loader_upgradeable::id(),
@@ -123,7 +126,7 @@ pub fn parse(
 	};
 	Ok(ParsedInstruction {
 		program: format!("{program_name:?}").to_kebab_case(),
-		program_id: *program_id,
+		program_id: program_id.to_string(),
 		parsed: parsed_json,
 		stack_height,
 	})
@@ -177,7 +180,7 @@ mod test {
 			.unwrap(),
 			ParsedInstruction {
 				program: "spl-memo".to_string(),
-				program_id: spl_memo_interface::v1::id(),
+				program_id: spl_memo_interface::v1::id().to_string(),
 				parsed: json!("🦖"),
 				stack_height: None,
 			}
@@ -192,7 +195,22 @@ mod test {
 			.unwrap(),
 			ParsedInstruction {
 				program: "spl-memo".to_string(),
-				program_id: spl_memo_interface::v3::id(),
+				program_id: spl_memo_interface::v3::id().to_string(),
+				parsed: json!("🦖"),
+				stack_height: Some(1),
+			}
+		);
+		assert_eq!(
+			parse(
+				&spl_memo_interface::v4::id(),
+				&memo_instruction,
+				&no_keys,
+				Some(1)
+			)
+			.unwrap(),
+			ParsedInstruction {
+				program: "spl-memo".to_string(),
+				program_id: spl_memo_interface::v4::id().to_string(),
 				parsed: json!("🦖"),
 				stack_height: Some(1),
 			}

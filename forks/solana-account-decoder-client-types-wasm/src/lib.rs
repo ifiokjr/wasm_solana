@@ -1,17 +1,19 @@
 //! Core RPC client types for solana-account-decoder
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #[cfg(feature = "zstd")]
 use std::io::Read;
+use std::sync::Arc;
 
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::Value;
 use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use solana_account::WritableAccount;
+use solana_account::Account;
+use solana_account::AccountSharedData;
 use solana_pubkey::Pubkey;
 use typed_builder::TypedBuilder;
 
@@ -27,10 +29,9 @@ pub struct UiAccount {
 	pub data: UiAccountData,
 	#[serde_as(as = "DisplayFromStr")]
 	pub owner: Pubkey,
-	#[builder(setter(into, strip_bool(fallback = executable_bool)))]
 	pub executable: bool,
 	pub rent_epoch: u64,
-	#[builder(default, setter(into, strip_option(fallback = space_opt)))]
+	#[builder(default, setter(into, strip_option))]
 	pub space: Option<u64>,
 }
 
@@ -83,15 +84,26 @@ pub enum UiAccountEncoding {
 }
 
 impl UiAccount {
-	pub fn decode<T: WritableAccount>(&self) -> Option<T> {
-		let data = self.data.decode()?;
-		Some(T::create(
+	pub fn to_account_shared_data(&self) -> Option<AccountSharedData> {
+		let data = Arc::new(self.data.decode()?);
+		Some(AccountSharedData::create_from_existing_shared_data(
 			self.lamports,
 			data,
 			self.owner,
 			self.executable,
 			self.rent_epoch,
 		))
+	}
+
+	pub fn to_account(&self) -> Option<Account> {
+		let data = self.data.decode()?;
+		Some(Account {
+			lamports: self.lamports,
+			data,
+			owner: self.owner,
+			executable: self.executable,
+			rent_epoch: self.rent_epoch,
+		})
 	}
 }
 

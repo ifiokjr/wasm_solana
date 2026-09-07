@@ -7,6 +7,7 @@ edition = { workspace = true }
 homepage = { workspace = true }
 keywords = ["solana", "wallet", "web3", "blockchain"]
 license = { workspace = true }
+publish = false
 readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }

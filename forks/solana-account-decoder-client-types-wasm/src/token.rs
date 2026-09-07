@@ -1,7 +1,7 @@
 use core::str::FromStr;
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -126,6 +126,7 @@ pub enum UiExtension {
 	ScaledUiAmountConfig(UiScaledUiAmountConfig),
 	PausableConfig(UiPausableConfig),
 	PausableAccount,
+	PermissionedBurnConfig(UiPermissionedBurnConfig),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -338,4 +339,10 @@ pub struct UiScaledUiAmountConfig {
 pub struct UiPausableConfig {
 	pub authority: Option<String>,
 	pub paused: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct UiPermissionedBurnConfig {
+	pub authority: Option<String>,
 }

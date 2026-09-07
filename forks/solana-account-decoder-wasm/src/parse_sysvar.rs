@@ -65,25 +65,29 @@ pub fn parse_sysvar(data: &[u8], pubkey: &Pubkey) -> Result<SysvarAccountType, P
 				.ok()
 				.map(|rewards| SysvarAccountType::Rewards(rewards.into()))
 		} else if pubkey == &sysvar::slot_hashes::id() {
-			deserialize::<SlotHashes>(data).ok().map(|slot_hashes| {
-				let slot_hashes = slot_hashes
-					.iter()
-					.map(|slot_hash| {
-						UiSlotHashEntry {
-							slot: slot_hash.0,
-							hash: slot_hash.1.to_string(),
-						}
-					})
-					.collect();
-				SysvarAccountType::SlotHashes(slot_hashes)
-			})
-		} else if pubkey == &sysvar::slot_history::id() {
-			deserialize::<SlotHistory>(data).ok().map(|slot_history| {
-				SysvarAccountType::SlotHistory(UiSlotHistory {
-					next_slot: slot_history.next_slot,
-					bits: format!("{:?}", SlotHistoryBits(slot_history.bits)),
+			wincode::deserialize::<SlotHashes>(data)
+				.ok()
+				.map(|slot_hashes| {
+					let slot_hashes = slot_hashes
+						.iter()
+						.map(|slot_hash| {
+							UiSlotHashEntry {
+								slot: slot_hash.0,
+								hash: slot_hash.1.to_string(),
+							}
+						})
+						.collect();
+					SysvarAccountType::SlotHashes(slot_hashes)
 				})
-			})
+		} else if pubkey == &sysvar::slot_history::id() {
+			wincode::deserialize::<SlotHistory>(data)
+				.ok()
+				.map(|slot_history| {
+					SysvarAccountType::SlotHistory(UiSlotHistory {
+						next_slot: slot_history.next_slot,
+						bits: format!("{:?}", SlotHistoryBits(slot_history.bits)),
+					})
+				})
 		} else if pubkey == &sysvar::stake_history::id() {
 			deserialize::<StakeHistory>(data).ok().map(|stake_history| {
 				let stake_history = stake_history
@@ -174,17 +178,13 @@ impl From<Fees> for UiFees {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UiRent {
-	pub lamports_per_byte_year: StringAmount,
-	pub exemption_threshold: f64,
-	pub burn_percent: u8,
+	pub lamports_per_byte: StringAmount,
 }
 
 impl From<Rent> for UiRent {
 	fn from(rent: Rent) -> Self {
 		Self {
-			lamports_per_byte_year: rent.lamports_per_byte_year.to_string(),
-			exemption_threshold: rent.exemption_threshold,
-			burn_percent: rent.burn_percent,
+			lamports_per_byte: rent.lamports_per_byte.to_string(),
 		}
 	}
 }
@@ -280,9 +280,11 @@ impl From<EpochRewards> for UiEpochRewards {
 
 #[cfg(test)]
 mod test {
+	use solana_account::Account;
 	use solana_account::create_account_for_test;
 	use solana_fee_calculator::FeeCalculator;
 	use solana_hash::Hash;
+	use solana_stake_interface::stake_history::SIZE;
 	#[allow(deprecated)]
 	use solana_sysvar::recent_blockhashes::IterItem;
 
@@ -336,9 +338,8 @@ mod test {
 		}
 
 		let rent = Rent {
-			lamports_per_byte_year: 10,
-			exemption_threshold: 2.0,
-			burn_percent: 5,
+			lamports_per_byte: 10,
+			..Default::default()
 		};
 		let rent_sysvar = create_account_for_test(&rent);
 		assert_eq!(
@@ -381,7 +382,8 @@ mod test {
 			deactivating: 3,
 		};
 		stake_history.add(1, stake_history_entry.clone());
-		let stake_history_sysvar = create_account_for_test(&stake_history);
+		let stake_history_sysvar =
+			Account::new_data_with_space(1, &stake_history, SIZE, &sysvar::id()).unwrap();
 		assert_eq!(
 			parse_sysvar(&stake_history_sysvar.data, &sysvar::stake_history::id()).unwrap(),
 			SysvarAccountType::StakeHistory(vec![UiStakeHistoryEntry {

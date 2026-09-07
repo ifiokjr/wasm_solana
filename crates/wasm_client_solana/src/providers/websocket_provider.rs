@@ -392,8 +392,6 @@ mod websocket_provider_reqwest {
 		websocket: Option<WebSocket>,
 		#[pin]
 		initiator: BoxFuture<'static, ReqwestResult>,
-		#[builder(default)]
-		ended: bool,
 	}
 
 	impl WebSocketStream {
@@ -420,7 +418,6 @@ mod websocket_provider_reqwest {
 
 			if let Some(websocket) = this.websocket.as_mut().as_pin_mut() {
 				let Some(next) = ready!(websocket.poll_next(cx)) else {
-					this.ended = &mut true;
 					return Poll::Ready(None);
 				};
 
@@ -431,7 +428,6 @@ mod websocket_provider_reqwest {
 			let result = ready!(initiator.poll(cx));
 
 			let Ok(websocket) = result else {
-				this.ended = &mut true;
 				return Poll::Ready(None);
 			};
 

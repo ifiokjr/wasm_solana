@@ -6,6 +6,8 @@ use serde_with::DisplayFromStr;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
 use solana_signature::Signature;
+#[cfg(test)]
+use solana_transaction_status_client_types_wasm::option_serializer::OptionSerializer;
 
 use crate::impl_http_method;
 use crate::rpc_config::RpcTransactionConfig;
@@ -106,6 +108,7 @@ mod tests {
             response.result.0 ==
             Some(EncodedConfirmedTransactionWithStatusMeta {
                 block_time: None,
+                transaction_index: None,
                 slot: 430,
                 transaction:
                     crate::solana_transaction_status::EncodedTransactionWithStatusMeta {
@@ -130,7 +133,8 @@ mod tests {
                                     "SysvarS1otHashes111111111111111111111111111".parse().unwrap(),
                                     "SysvarC1ock11111111111111111111111111111111".parse().unwrap(),
                                     "Vote111111111111111111111111111111111111111".parse().unwrap(),
-                                ]
+                                ],
+                                transaction_config: None,
                             }),
                             signatures: vec!["2nBhEBYYvfaAe16UMNqRHre4YNSskvuYgx3M6E4JP1oDYvZEJHvoPzyUidNgNX5r9sTyN1J9UxtbCXy2rqYcuyuv".parse().unwrap()]
                         }),
@@ -138,18 +142,18 @@ mod tests {
                         meta: Some(UiTransactionStatusMeta {
                             err: None,
                             fee: 5000,
-                            inner_instructions: Some(vec![]),
+                            inner_instructions: OptionSerializer::Some(vec![]),
                             post_balances: vec![499_998_932_500, 26_858_640, 1, 1, 1],
-                            post_token_balances: Some(vec![]),
+                            post_token_balances: OptionSerializer::Some(vec![]),
                             pre_balances: vec![499_998_937_500, 26_858_640, 1, 1, 1],
-                            pre_token_balances: Some(vec![]),
-                            rewards: Some(vec![]),
+                            pre_token_balances: OptionSerializer::Some(vec![]),
+                            rewards: OptionSerializer::Some(vec![]),
                             status: Ok(()),
-                            loaded_addresses: None,
-                            log_messages: None,
-                            return_data: None,
-														compute_units_consumed: None,
-														cost_units: None,
+                            loaded_addresses: OptionSerializer::Skip,
+                            log_messages: OptionSerializer::None,
+                            return_data: OptionSerializer::Skip,
+														compute_units_consumed: OptionSerializer::Skip,
+														cost_units: OptionSerializer::Skip,
                         }),
                     }
             })

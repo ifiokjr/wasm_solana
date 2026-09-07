@@ -255,7 +255,7 @@ impl SolanaRpcClient {
 		let response: ClientResponse<GetAccountInfoResponse> = self.send(request).await?;
 
 		match response.result.value {
-			Some(ui_account) => Ok(ui_account.decode()),
+			Some(ui_account) => Ok(ui_account.to_account()),
 			None => Ok(None),
 		}
 	}
@@ -425,10 +425,11 @@ impl SolanaRpcClient {
 		let response: ClientResponse<SendTransactionResponse> = self.send(request).await?;
 		let signature: Signature = response.result.into();
 
-		// A mismatching RPC response signature indicates an issue with the RPC node,
-		// and should not be passed along to confirmation methods. The transaction may
-		// or may not have been submitted to the cluster, so callers should verify the
-		// success of the correct transaction signature independently.
+		// A mismatching RPC response signature indicates an issue with the RPC
+		// node, and should not be passed along to confirmation methods. The
+		// transaction may or may not have been submitted to the cluster, so
+		// callers should verify the success of the correct transaction
+		// signature independently.
 		if signature == transaction_signature {
 			Ok(signature)
 		} else {
@@ -465,27 +466,27 @@ impl SolanaRpcClient {
 		for _ in 0..MAX_RETRIES {
 			let signature_statuses = self.get_signature_statuses(&[*signature]).await?;
 
-			if let Some(signature_status) = signature_statuses[0].as_ref() {
-				if signature_status.confirmation_status.is_some() {
-					let current_commitment = signature_status.confirmation_status.as_ref().unwrap();
+			if let Some(signature_status) = signature_statuses[0].as_ref()
+				&& signature_status.confirmation_status.is_some()
+			{
+				let current_commitment = signature_status.confirmation_status.as_ref().unwrap();
 
-					let commitment_matches = match commitment_config.commitment {
-						CommitmentLevel::Finalized => {
-							matches!(current_commitment, TransactionConfirmationStatus::Finalized)
-						}
-						CommitmentLevel::Confirmed => {
-							matches!(
-								current_commitment,
-								TransactionConfirmationStatus::Finalized
-									| TransactionConfirmationStatus::Confirmed
-							)
-						}
-						CommitmentLevel::Processed => true,
-					};
-					if commitment_matches {
-						is_success = signature_status.err.is_none();
-						break;
+				let commitment_matches = match commitment_config.commitment {
+					CommitmentLevel::Finalized => {
+						matches!(current_commitment, TransactionConfirmationStatus::Finalized)
 					}
+					CommitmentLevel::Confirmed => {
+						matches!(
+							current_commitment,
+							TransactionConfirmationStatus::Finalized
+								| TransactionConfirmationStatus::Confirmed
+						)
+					}
+					CommitmentLevel::Processed => true,
+				};
+				if commitment_matches {
+					is_success = signature_status.err.is_none();
+					break;
 				}
 			}
 
@@ -573,7 +574,7 @@ impl SolanaRpcClient {
 			pubkey_accounts.push((
 				*pubkey,
 				account
-					.decode()
+					.to_account()
 					.ok_or_else(|| RpcError::new(format!("Unable to decode {pubkey}")))?,
 			));
 		}
@@ -847,7 +848,7 @@ impl SolanaRpcClient {
 			.value
 			.iter()
 			.filter(|maybe_acc| maybe_acc.is_some())
-			.map(|acc| acc.clone().unwrap().decode())
+			.map(|acc| acc.clone().unwrap().to_account())
 			.collect())
 	}
 
@@ -1081,17 +1082,17 @@ impl SolanaRpcClient {
 			.build();
 		let response: ClientResponse<GetAccountInfoResponse> = self.send(request).await?;
 
-		if let Some(acc) = response.result.value {
-			if let UiAccountData::Json(account_data) = acc.data {
-				let token_account_type: TokenAccountType =
-					match serde_json::from_value(account_data.parsed) {
-						Ok(t) => t,
-						Err(e) => return Err(RpcError::new(e.to_string()).into()),
-					};
+		if let Some(acc) = response.result.value
+			&& let UiAccountData::Json(account_data) = acc.data
+		{
+			let token_account_type: TokenAccountType =
+				match serde_json::from_value(account_data.parsed) {
+					Ok(t) => t,
+					Err(e) => return Err(RpcError::new(e.to_string()).into()),
+				};
 
-				if let TokenAccountType::Account(token_account) = token_account_type {
-					return Ok(Some(token_account));
-				}
+			if let TokenAccountType::Account(token_account) = token_account_type {
+				return Ok(Some(token_account));
 			}
 		}
 

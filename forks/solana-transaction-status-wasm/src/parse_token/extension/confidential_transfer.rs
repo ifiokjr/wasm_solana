@@ -1,7 +1,7 @@
+use solana_zk_sdk_pod::encryption::elgamal::PodElGamalPubkey;
 use spl_token_2022_interface::extension::confidential_transfer::instruction::*;
 use spl_token_2022_interface::instruction::decode_instruction_data;
 use spl_token_2022_interface::instruction::decode_instruction_type;
-use spl_token_2022_interface::solana_zk_sdk::encryption::pod::elgamal::PodElGamalPubkey;
 
 use super::*;
 
@@ -79,8 +79,9 @@ pub(in crate::parse_token) fn parse_confidential_transfer_instruction(
 					"instructionsSysvar".to_string(),
 					json!(account_keys[account_indexes[2] as usize].to_string()),
 				);
-				// Assume that the extra account is a proof account and not a multisig
-				// signer. This might be wrong, but it's the best possible option.
+				// Assume that the extra account is a proof account and not a
+				// multisig signer. This might be wrong, but it's the best
+				// possible option.
 				if account_indexes.len() > 4 {
 					map.insert(
 						"recordAccount".to_string(),
@@ -140,8 +141,9 @@ pub(in crate::parse_token) fn parse_confidential_transfer_instruction(
 					json!(account_keys[account_indexes[1] as usize].to_string()),
 				);
 				if account_indexes.len() > 3 {
-					// Assume that the extra account is a proof account and not a multisig
-					// signer. This might be wrong, but it's the best possible option.
+					// Assume that the extra account is a proof account and not
+					// a multisig signer. This might be wrong, but it's the
+					// best possible option.
 					map.insert(
 						"recordAccount".to_string(),
 						json!(account_keys[account_indexes[2] as usize].to_string()),
@@ -165,16 +167,15 @@ pub(in crate::parse_token) fn parse_confidential_transfer_instruction(
 			})
 		}
 		ConfidentialTransferInstruction::Deposit => {
-			check_num_token_accounts(account_indexes, 4)?;
+			check_num_token_accounts(account_indexes, 3)?;
 			let deposit_data: DepositInstructionData = *decode_instruction_data(instruction_data)
 				.map_err(|_| {
 				ParseInstructionError::InstructionNotParsable(ParsableProgram::SplToken)
 			})?;
 			let amount: u64 = deposit_data.amount.into();
 			let mut value = json!({
-				"source": account_keys[account_indexes[0] as usize].to_string(),
-				"destination": account_keys[account_indexes[1] as usize].to_string(),
-				"mint": account_keys[account_indexes[2] as usize].to_string(),
+				"account": account_keys[account_indexes[0] as usize].to_string(),
+				"mint": account_keys[account_indexes[1] as usize].to_string(),
 				"amount": amount,
 				"decimals": deposit_data.decimals,
 
@@ -182,7 +183,7 @@ pub(in crate::parse_token) fn parse_confidential_transfer_instruction(
 			let map = value.as_object_mut().unwrap();
 			parse_signers(
 				map,
-				3,
+				2,
 				account_keys,
 				account_indexes,
 				"owner",
@@ -194,16 +195,15 @@ pub(in crate::parse_token) fn parse_confidential_transfer_instruction(
 			})
 		}
 		ConfidentialTransferInstruction::Withdraw => {
-			check_num_token_accounts(account_indexes, 5)?;
+			check_num_token_accounts(account_indexes, 4)?;
 			let withdrawal_data: WithdrawInstructionData =
 				*decode_instruction_data(instruction_data).map_err(|_| {
 					ParseInstructionError::InstructionNotParsable(ParsableProgram::SplToken)
 				})?;
 			let amount: u64 = withdrawal_data.amount.into();
 			let mut value = json!({
-				"source": account_keys[account_indexes[0] as usize].to_string(),
-				"destination": account_keys[account_indexes[1] as usize].to_string(),
-				"mint": account_keys[account_indexes[2] as usize].to_string(),
+				"account": account_keys[account_indexes[0] as usize].to_string(),
+				"mint": account_keys[account_indexes[1] as usize].to_string(),
 				"amount": amount,
 				"decimals": withdrawal_data.decimals,
 				"newDecryptableAvailableBalance": format!("{}", withdrawal_data.new_decryptable_available_balance),
@@ -211,7 +211,7 @@ pub(in crate::parse_token) fn parse_confidential_transfer_instruction(
 				"rangeProofInstructionOffset": withdrawal_data.range_proof_instruction_offset,
 
 			});
-			let mut offset = 3;
+			let mut offset = 2;
 			let map = value.as_object_mut().unwrap();
 			if offset < account_indexes.len() - 1
 				&& (withdrawal_data.equality_proof_instruction_offset != 0
@@ -590,322 +590,340 @@ pub(in crate::parse_token) fn parse_confidential_transfer_instruction(
 	}
 }
 
-// #[cfg(test)]
-// mod test {
-// 	use std::num::NonZero;
+#[cfg(test)]
+mod test {
+	use std::num::NonZero;
 
-// 	use bytemuck::Zeroable;
-// 	use solana_instruction::AccountMeta;
-// 	use solana_instruction::Instruction;
-// 	use solana_message::Message;
-// 	use solana_pubkey::Pubkey;
-// 	use spl_token_2022_interface::extension::confidential_transfer::instruction::initialize_mint;
-// 	use spl_token_2022_interface::extension::confidential_transfer::instruction::inner_configure_account;
-// 	use spl_token_2022_interface::extension::confidential_transfer::instruction::inner_empty_account;
-// 	use spl_token_2022_interface::extension::confidential_transfer::instruction::update_mint;
-// 	use spl_token_2022_interface::solana_zk_sdk::encryption::pod::auth_encryption::PodAeCiphertext;
-// 	use spl_token_2022_interface::solana_zk_sdk::encryption::pod::elgamal::PodElGamalCiphertext;
-// 	use spl_token_2022_interface::solana_zk_sdk::zk_elgamal_proof_program::proof_data::BatchedGroupedCiphertext3HandlesValidityProofData;
-// 	use spl_token_2022_interface::solana_zk_sdk::zk_elgamal_proof_program::proof_data::BatchedRangeProofU128Data;
-// 	use spl_token_2022_interface::solana_zk_sdk::zk_elgamal_proof_program::proof_data::CiphertextCommitmentEqualityProofData;
-// 	use spl_token_2022_interface::solana_zk_sdk::zk_elgamal_proof_program::proof_data::ZeroCiphertextProofData;
-// 	use spl_token_confidential_transfer_proof_extraction::instruction::ProofData;
-// 	use spl_token_confidential_transfer_proof_extraction::instruction::ProofLocation;
+	use bytemuck::Zeroable;
+	use solana_instruction::AccountMeta;
+	use solana_instruction::Instruction;
+	use solana_message::Message;
+	use solana_pubkey::Pubkey;
+	use solana_zk_sdk_pod::encryption::auth_encryption::PodAeCiphertext;
+	use solana_zk_sdk_pod::encryption::elgamal::PodElGamalCiphertext;
+	use spl_token_2022_interface::extension::confidential_transfer::instruction::initialize_mint;
+	use spl_token_2022_interface::extension::confidential_transfer::instruction::inner_configure_account;
+	use spl_token_2022_interface::extension::confidential_transfer::instruction::inner_empty_account;
+	use spl_token_2022_interface::extension::confidential_transfer::instruction::update_mint;
+	use spl_token_2022_interface::solana_zk_elgamal_proof_interface::proof_data::BatchedGroupedCiphertext3HandlesValidityProofData;
+	use spl_token_2022_interface::solana_zk_elgamal_proof_interface::proof_data::BatchedRangeProofU128Data;
+	use spl_token_2022_interface::solana_zk_elgamal_proof_interface::proof_data::CiphertextCommitmentEqualityProofData;
+	use spl_token_2022_interface::solana_zk_elgamal_proof_interface::proof_data::ZeroCiphertextProofData;
+	use spl_token_confidential_transfer_proof_extraction::instruction::ProofLocation;
 
-// 	use super::*;
+	use super::*;
 
-// 	fn check_no_panic(mut instruction: Instruction) {
-// 		let account_meta = AccountMeta::new_readonly(Pubkey::new_unique(), false);
-// 		for i in 0..20 {
-// 			instruction.accounts = vec![account_meta.clone(); i];
-// 			let message = Message::new(&[instruction.clone()], None);
-// 			let compiled_instruction = &message.instructions[0];
-// 			let _ = parse_token(
-// 				compiled_instruction,
-// 				&AccountKeys::new(&message.account_keys, None),
-// 			);
-// 		}
-// 	}
+	fn check_no_panic(mut instruction: Instruction) {
+		let account_meta = AccountMeta::new_readonly(Pubkey::new_unique(), false);
+		for i in 0..20 {
+			instruction.accounts = vec![account_meta.clone(); i];
+			let message = Message::new(&[instruction.clone()], None);
+			let compiled_instruction = &message.instructions[0];
+			let _ = parse_token(
+				compiled_instruction,
+				&AccountKeys::new(&message.account_keys, None),
+			);
+		}
+	}
 
-// 	#[test]
-// 	fn test_initialize() {
-// 		let instruction = initialize_mint(
-// 			&spl_token_2022_interface::id(),
-// 			&Pubkey::new_unique(),
-// 			Some(Pubkey::new_unique()),
-// 			true,
-// 			None,
-// 		)
-// 		.unwrap();
-// 		check_no_panic(instruction);
-// 	}
+	#[test]
+	fn test_initialize() {
+		let instruction = initialize_mint(
+			&spl_token_2022_interface::id(),
+			&Pubkey::new_unique(),
+			Some(Pubkey::new_unique()),
+			true,
+			None,
+		)
+		.unwrap();
+		check_no_panic(instruction);
+	}
 
-// 	#[test]
-// 	fn test_approve() {
-// 		let instruction = approve_account(
-// 			&spl_token_2022_interface::id(),
-// 			&Pubkey::new_unique(),
-// 			&Pubkey::new_unique(),
-// 			&Pubkey::new_unique(),
-// 			&[],
-// 		)
-// 		.unwrap();
-// 		check_no_panic(instruction);
-// 	}
+	#[test]
+	fn test_approve() {
+		let instruction = approve_account(
+			&spl_token_2022_interface::id(),
+			&Pubkey::new_unique(),
+			&Pubkey::new_unique(),
+			&Pubkey::new_unique(),
+			&[],
+		)
+		.unwrap();
+		check_no_panic(instruction);
+	}
 
-// 	#[test]
-// 	fn test_update() {
-// 		let instruction = update_mint(
-// 			&spl_token_2022_interface::id(),
-// 			&Pubkey::new_unique(),
-// 			&Pubkey::new_unique(),
-// 			&[],
-// 			true,
-// 			None,
-// 		)
-// 		.unwrap();
-// 		check_no_panic(instruction);
-// 	}
+	#[test]
+	fn test_update() {
+		let instruction = update_mint(
+			&spl_token_2022_interface::id(),
+			&Pubkey::new_unique(),
+			&Pubkey::new_unique(),
+			&[],
+			true,
+			None,
+		)
+		.unwrap();
+		check_no_panic(instruction);
+	}
 
-// 	#[test]
-// 	fn test_configure() {
-// 		for location in [
-// 			ProofLocation::InstructionOffset(
-// 				NonZero::new(1).unwrap(),
-// 				ProofData::InstructionData(&PubkeyValidityProofData::zeroed()),
-// 			),
-// 			ProofLocation::InstructionOffset(
-// 				NonZero::new(1).unwrap(),
-// 				ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 			),
-// 			ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 		] {
-// 			let instruction = inner_configure_account(
-// 				&spl_token_2022_interface::id(),
-// 				&Pubkey::new_unique(),
-// 				&Pubkey::new_unique(),
-// 				&PodAeCiphertext::default(),
-// 				10_000,
-// 				&Pubkey::new_unique(),
-// 				&[],
-// 				location,
-// 			)
-// 			.unwrap();
-// 			check_no_panic(instruction);
-// 		}
-// 	}
+	#[test]
+	fn test_configure() {
+		for location in [
+			ProofLocation::InstructionOffset(
+				NonZero::new(1).unwrap(),
+				&PubkeyValidityProofData::zeroed(),
+			),
+			ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+		] {
+			let instruction = inner_configure_account(
+				&spl_token_2022_interface::id(),
+				&Pubkey::new_unique(),
+				&Pubkey::new_unique(),
+				&PodAeCiphertext::default(),
+				10_000,
+				&Pubkey::new_unique(),
+				&[],
+				location,
+			)
+			.unwrap();
+			check_no_panic(instruction);
+		}
+	}
 
-// 	#[test]
-// 	fn test_empty_account() {
-// 		for location in [
-// 			ProofLocation::InstructionOffset(
-// 				NonZero::new(1).unwrap(),
-// 				ProofData::InstructionData(&ZeroCiphertextProofData::zeroed()),
-// 			),
-// 			ProofLocation::InstructionOffset(
-// 				NonZero::new(1).unwrap(),
-// 				ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 			),
-// 			ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 		] {
-// 			let instruction = inner_empty_account(
-// 				&spl_token_2022_interface::id(),
-// 				&Pubkey::new_unique(),
-// 				&Pubkey::new_unique(),
-// 				&[],
-// 				location,
-// 			)
-// 			.unwrap();
-// 			check_no_panic(instruction);
-// 		}
-// 	}
+	#[test]
+	fn test_empty_account() {
+		for location in [
+			ProofLocation::InstructionOffset(
+				NonZero::new(1).unwrap(),
+				&ZeroCiphertextProofData::zeroed(),
+			),
+			ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+		] {
+			let instruction = inner_empty_account(
+				&spl_token_2022_interface::id(),
+				&Pubkey::new_unique(),
+				&Pubkey::new_unique(),
+				&[],
+				location,
+			)
+			.unwrap();
+			check_no_panic(instruction);
+		}
+	}
 
-// 	#[test]
-// 	fn test_withdraw() {
-// 		for (equality_proof_location, range_proof_location) in [
-// 			(
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(1).unwrap(),
-// 					ProofData::InstructionData(&
-// CiphertextCommitmentEqualityProofData::zeroed()), 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(3).unwrap(),
-// 					ProofData::InstructionData(&BatchedRangeProofU64Data::zeroed()),
-// 				),
-// 			),
-// 			(
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(1).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(2).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 			),
-// 			(
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 			),
-// 		] {
-// 			let instruction = inner_withdraw(
-// 				&spl_token_2022_interface::id(),
-// 				&Pubkey::new_unique(),
-// 				&Pubkey::new_unique(),
-// 				1,
-// 				2,
-// 				&PodAeCiphertext::default(),
-// 				&Pubkey::new_unique(),
-// 				&[],
-// 				equality_proof_location,
-// 				range_proof_location,
-// 			)
-// 			.unwrap();
-// 			check_no_panic(instruction);
-// 		}
-// 	}
+	#[test]
+	fn test_deposit() {
+		let token_account = Pubkey::new_unique();
+		let mint = Pubkey::new_unique();
+		let owner = Pubkey::new_unique();
+		let instruction = deposit(
+			&spl_token_2022_interface::id(),
+			&token_account,
+			&mint,
+			42,
+			9,
+			&owner,
+			&[],
+		)
+		.unwrap();
+		let message = Message::new(&[instruction], None);
+		let compiled_instruction = &message.instructions[0];
+		assert_eq!(
+			parse_token(
+				compiled_instruction,
+				&AccountKeys::new(&message.account_keys, None)
+			)
+			.unwrap(),
+			ParsedInstructionEnum {
+				instruction_type: "depositConfidentialTransfer".to_string(),
+				info: json!({
+					"account": token_account.to_string(),
+					"mint": mint.to_string(),
+					"amount": 42,
+					"decimals": 9,
+					"owner": owner.to_string(),
+				}),
+			}
+		);
+	}
 
-// 	#[test]
-// 	fn test_transfer() {
-// 		for (equality_proof_location, ciphertext_validity_proof_location,
-// range_proof_location) in [ 			(
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(1).unwrap(),
-// 					ProofData::InstructionData(&
-// CiphertextCommitmentEqualityProofData::zeroed()), 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(2).unwrap(),
-// 					ProofData::InstructionData(
-// 						&BatchedGroupedCiphertext3HandlesValidityProofData::zeroed(),
-// 					),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(3).unwrap(),
-// 					ProofData::InstructionData(&BatchedRangeProofU128Data::zeroed()),
-// 				),
-// 			),
-// 			(
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(1).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(2).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(3).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 			),
-// 			(
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 			),
-// 		] {
-// 			let instruction = inner_transfer(
-// 				&spl_token_2022_interface::id(),
-// 				&Pubkey::new_unique(),
-// 				&Pubkey::new_unique(),
-// 				&Pubkey::new_unique(),
-// 				&PodAeCiphertext::default(),
-// 				&PodElGamalCiphertext::default(),
-// 				&PodElGamalCiphertext::default(),
-// 				&Pubkey::new_unique(),
-// 				&[],
-// 				equality_proof_location,
-// 				ciphertext_validity_proof_location,
-// 				range_proof_location,
-// 			)
-// 			.unwrap();
-// 			check_no_panic(instruction);
-// 		}
-// 	}
+	#[test]
+	fn test_withdraw_account_mapping() {
+		let token_account = Pubkey::new_unique();
+		let mint = Pubkey::new_unique();
+		let owner = Pubkey::new_unique();
+		let equality_context = Pubkey::new_unique();
+		let range_context = Pubkey::new_unique();
+		let instruction = inner_withdraw(
+			&spl_token_2022_interface::id(),
+			&token_account,
+			&mint,
+			1,
+			2,
+			&PodAeCiphertext::default(),
+			&owner,
+			&[],
+			ProofLocation::ContextStateAccount(&equality_context),
+			ProofLocation::ContextStateAccount(&range_context),
+		)
+		.unwrap();
+		let message = Message::new(&[instruction], None);
+		let compiled_instruction = &message.instructions[0];
+		let parsed = parse_token(
+			compiled_instruction,
+			&AccountKeys::new(&message.account_keys, None),
+		)
+		.unwrap();
+		assert_eq!(parsed.instruction_type, "withdrawConfidentialTransfer");
+		assert_eq!(parsed.info["account"], json!(token_account.to_string()));
+		assert_eq!(parsed.info["mint"], json!(mint.to_string()));
+		assert_eq!(parsed.info["owner"], json!(owner.to_string()));
+		assert_eq!(
+			parsed.info["equalityProofContextStateAccount"],
+			json!(equality_context.to_string())
+		);
+		assert_eq!(
+			parsed.info["rangeProofContextStateAccount"],
+			json!(range_context.to_string())
+		);
+		assert!(parsed.info.get("destination").is_none());
+		assert_ne!(parsed.info["mint"], parsed.info["owner"]);
+	}
 
-// 	#[test]
-// 	fn test_transfer_with_fee() {
-// 		for (
-// 			equality_proof_location,
-// 			transfer_amount_ciphertext_validity_proof_location,
-// 			fee_sigma_proof_location,
-// 			fee_ciphertext_validity_proof_location,
-// 			range_proof_location,
-// 		) in [
-// 			(
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(1).unwrap(),
-// 					ProofData::InstructionData(&
-// CiphertextCommitmentEqualityProofData::zeroed()), 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(2).unwrap(),
-// 					ProofData::InstructionData(
-// 						&BatchedGroupedCiphertext3HandlesValidityProofData::zeroed(),
-// 					),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(3).unwrap(),
-// 					ProofData::InstructionData(&PercentageWithCapProofData::zeroed()),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(4).unwrap(),
-// 					ProofData::InstructionData(
-// 						&BatchedGroupedCiphertext2HandlesValidityProofData::zeroed(),
-// 					),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(5).unwrap(),
-// 					ProofData::InstructionData(&BatchedRangeProofU256Data::zeroed()),
-// 				),
-// 			),
-// 			(
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(1).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(2).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(3).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(4).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 				ProofLocation::InstructionOffset(
-// 					NonZero::new(5).unwrap(),
-// 					ProofData::RecordAccount(&Pubkey::new_unique(), 0),
-// 				),
-// 			),
-// 			(
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
-// 			),
-// 		] {
-// 			let instruction = inner_transfer_with_fee(
-// 				&spl_token_2022_interface::id(),
-// 				&Pubkey::new_unique(),
-// 				&Pubkey::new_unique(),
-// 				&Pubkey::new_unique(),
-// 				&PodAeCiphertext::default(),
-// 				&PodElGamalCiphertext::default(),
-// 				&PodElGamalCiphertext::default(),
-// 				&Pubkey::new_unique(),
-// 				&[],
-// 				equality_proof_location,
-// 				transfer_amount_ciphertext_validity_proof_location,
-// 				fee_sigma_proof_location,
-// 				fee_ciphertext_validity_proof_location,
-// 				range_proof_location,
-// 			)
-// 			.unwrap();
-// 			check_no_panic(instruction);
-// 		}
-// 	}
-// }
+	#[test]
+	fn test_withdraw() {
+		for (equality_proof_location, range_proof_location) in [
+			(
+				ProofLocation::InstructionOffset(
+					NonZero::new(1).unwrap(),
+					&CiphertextCommitmentEqualityProofData::zeroed(),
+				),
+				ProofLocation::InstructionOffset(
+					NonZero::new(3).unwrap(),
+					&BatchedRangeProofU64Data::zeroed(),
+				),
+			),
+			(
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+			),
+		] {
+			let instruction = inner_withdraw(
+				&spl_token_2022_interface::id(),
+				&Pubkey::new_unique(),
+				&Pubkey::new_unique(),
+				1,
+				2,
+				&PodAeCiphertext::default(),
+				&Pubkey::new_unique(),
+				&[],
+				equality_proof_location,
+				range_proof_location,
+			)
+			.unwrap();
+			check_no_panic(instruction);
+		}
+	}
+
+	#[test]
+	fn test_transfer() {
+		for (equality_proof_location, ciphertext_validity_proof_location, range_proof_location) in [
+			(
+				ProofLocation::InstructionOffset(
+					NonZero::new(1).unwrap(),
+					&CiphertextCommitmentEqualityProofData::zeroed(),
+				),
+				ProofLocation::InstructionOffset(
+					NonZero::new(2).unwrap(),
+					&BatchedGroupedCiphertext3HandlesValidityProofData::zeroed(),
+				),
+				ProofLocation::InstructionOffset(
+					NonZero::new(3).unwrap(),
+					&BatchedRangeProofU128Data::zeroed(),
+				),
+			),
+			(
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+			),
+		] {
+			let instruction = inner_transfer(
+				&spl_token_2022_interface::id(),
+				&Pubkey::new_unique(),
+				&Pubkey::new_unique(),
+				&Pubkey::new_unique(),
+				&PodAeCiphertext::default(),
+				&PodElGamalCiphertext::default(),
+				&PodElGamalCiphertext::default(),
+				&Pubkey::new_unique(),
+				&[],
+				equality_proof_location,
+				ciphertext_validity_proof_location,
+				range_proof_location,
+			)
+			.unwrap();
+			check_no_panic(instruction);
+		}
+	}
+
+	#[test]
+	fn test_transfer_with_fee() {
+		for (
+			equality_proof_location,
+			transfer_amount_ciphertext_validity_proof_location,
+			fee_sigma_proof_location,
+			fee_ciphertext_validity_proof_location,
+			range_proof_location,
+		) in [
+			(
+				ProofLocation::InstructionOffset(
+					NonZero::new(1).unwrap(),
+					&CiphertextCommitmentEqualityProofData::zeroed(),
+				),
+				ProofLocation::InstructionOffset(
+					NonZero::new(2).unwrap(),
+					&BatchedGroupedCiphertext3HandlesValidityProofData::zeroed(),
+				),
+				ProofLocation::InstructionOffset(
+					NonZero::new(3).unwrap(),
+					&PercentageWithCapProofData::zeroed(),
+				),
+				ProofLocation::InstructionOffset(
+					NonZero::new(4).unwrap(),
+					&BatchedGroupedCiphertext2HandlesValidityProofData::zeroed(),
+				),
+				ProofLocation::InstructionOffset(
+					NonZero::new(5).unwrap(),
+					&BatchedRangeProofU256Data::zeroed(),
+				),
+			),
+			(
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+				ProofLocation::ContextStateAccount(&Pubkey::new_unique()),
+			),
+		] {
+			let instruction = inner_transfer_with_fee(
+				&spl_token_2022_interface::id(),
+				&Pubkey::new_unique(),
+				&Pubkey::new_unique(),
+				&Pubkey::new_unique(),
+				&PodAeCiphertext::default(),
+				&PodElGamalCiphertext::default(),
+				&PodElGamalCiphertext::default(),
+				&Pubkey::new_unique(),
+				&[],
+				equality_proof_location,
+				transfer_amount_ciphertext_validity_proof_location,
+				fee_sigma_proof_location,
+				fee_ciphertext_validity_proof_location,
+				range_proof_location,
+			)
+			.unwrap();
+			check_no_panic(instruction);
+		}
+	}
+}

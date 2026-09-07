@@ -1,8 +1,18 @@
 [target.wasm32-unknown-unknown]
 runner = 'wasm-bindgen-test-runner'
+# `getrandom` 0.3+ requires an explicit backend on wasm32-unknown-unknown.
+# The matching `wasm_js` crate features are enabled via target-specific
+# dependencies in the crate manifests.
 rustflags = [
 	"--cfg",
-	"get_random_backend=\"wasm_js\"",
+	"getrandom_backend=\"wasm_js\"",
+]
+
+[target.wasm32-wasip1]
+runner = 'wasm-bindgen-test-runner'
+rustflags = [
+	"--cfg",
+	"getrandom_backend=\"wasm_js\"",
 ]
 
 [alias]

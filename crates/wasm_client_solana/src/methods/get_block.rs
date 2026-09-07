@@ -4,6 +4,8 @@ use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 use serde_with::skip_serializing_none;
 use solana_clock::Slot;
+#[cfg(test)]
+use solana_transaction_status_client_types_wasm::option_serializer::OptionSerializer;
 
 use crate::impl_http_method;
 use crate::rpc_config::RpcBlockConfig;
@@ -106,19 +108,9 @@ mod tests {
 
 		check!(value.block_height == Some(428));
 		check!(value.block_time.is_none());
-		check!(
-			value.blockhash
-				== "3Eq21vXNB5s86c62bVuUfTeaMif1N2kUqRPBmGRJhyTA"
-					.parse()
-					.unwrap()
-		);
+		check!(value.blockhash == "3Eq21vXNB5s86c62bVuUfTeaMif1N2kUqRPBmGRJhyTA");
 		check!(value.parent_slot == 429);
-		check!(
-			value.previous_blockhash
-				== "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B"
-					.parse()
-					.unwrap()
-		);
+		check!(value.previous_blockhash == "mfcyqEXB3DnHXki6KjjmZck6YjmZLvpAByy2fj4nh6B");
 
 		let encoded = EncodedTransactionWithStatusMeta {
 			version: None,
@@ -128,15 +120,15 @@ mod tests {
 					fee: 5000,
 					pre_balances: vec![499_998_937_500, 26_858_640, 1, 1, 1],
 					post_balances: vec![499_998_932_500, 26_858_640, 1, 1, 1],
-					inner_instructions: Some(vec![]),
-					log_messages: Some(vec![]),
-					pre_token_balances: Some(vec![]),
-					post_token_balances: Some(vec![]),
-					rewards: None,
-					loaded_addresses: None,
-					return_data: None,
-					compute_units_consumed: None,
-					cost_units: None,
+					inner_instructions: OptionSerializer::Some(vec![]),
+					log_messages: OptionSerializer::Some(vec![]),
+					pre_token_balances: OptionSerializer::Some(vec![]),
+					post_token_balances: OptionSerializer::Some(vec![]),
+					rewards: OptionSerializer::None,
+					loaded_addresses: OptionSerializer::Skip,
+					return_data: OptionSerializer::Skip,
+					compute_units_consumed: OptionSerializer::Skip,
+					cost_units: OptionSerializer::Skip,
 
 			}),
 			transaction: EncodedTransaction::Json(UiTransaction {
@@ -159,7 +151,8 @@ mod tests {
 									program_id_index: 4,
 									stack_height: None,
 							}],
-							address_table_lookups: None
+							address_table_lookups: None,
+							transaction_config: None
 					})
 			})
 		};

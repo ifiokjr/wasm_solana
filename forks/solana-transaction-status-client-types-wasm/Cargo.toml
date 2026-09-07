@@ -6,6 +6,7 @@ documentation = "https://docs.rs/solana-transaction-status-client-types"
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
+publish = false
 repository = { workspace = true }
 description = "Core RPC client types for solana-transaction-status"
 
@@ -29,10 +30,11 @@ solana-message = { workspace = true, default-features = true }
 solana-pubkey = { workspace = true, features = ["serde", "bytemuck", "borsh"], default-features = true }
 solana-reward-info = { workspace = true, features = ["serde"], default-features = true }
 solana-signature = { workspace = true, default-features = false }
-solana-transaction = { workspace = true, features = ["serde"], default-features = true }
+solana-transaction = { workspace = true, features = ["serde", "wincode"], default-features = true }
 solana-transaction-context = { workspace = true, default-features = true }
 solana-transaction-error = { workspace = true, features = ["serde"], default-features = true }
 thiserror = { workspace = true, default-features = true }
+wincode = { workspace = true, default-features = true }
 
 [dev-dependencies]
 test-case = { workspace = true, default-features = true }
