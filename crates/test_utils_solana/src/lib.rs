@@ -1,5 +1,6 @@
 pub use solana_banks_client::BanksClientExt;
 pub use solana_banks_interface::BanksTransactionResultWithSimulation;
+pub use solana_program_binaries as programs;
 pub use solana_program_runtime;
 pub use solana_program_test::BanksClient;
 pub use solana_program_test::BanksClientError;
@@ -8,7 +9,6 @@ pub use solana_program_test::ProgramTestBanksClientExt;
 pub use solana_program_test::ProgramTestContext;
 pub use solana_program_test::ProgramTestError;
 pub use solana_program_test::processor;
-pub use solana_program_test::programs;
 pub use test_rpc_provider::*;
 #[cfg(feature = "test_validator")]
 pub use test_validator_runner::*;

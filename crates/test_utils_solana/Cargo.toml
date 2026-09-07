@@ -5,6 +5,7 @@ authors = { workspace = true }
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
+publish = false
 readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
@@ -35,11 +36,12 @@ solana-banks-interface = { workspace = true, default-features = true }
 solana-clock = { workspace = true, default-features = true }
 solana-commitment-config = { workspace = true, default-features = true }
 solana-epoch-schedule = { workspace = true, default-features = true, optional = true }
-solana-faucet = { workspace = true, optional = true, default-features = true }
+solana-faucet = { workspace = true, optional = true, default-features = true, features = ["dev-context-only-utils"] }
 solana-keypair = { workspace = true, default-features = true }
 solana-loader-v3-interface = { workspace = true, default-features = true }
 solana-message = { workspace = true, default-features = true }
 solana-native-token = { workspace = true, default-features = true }
+solana-program-binaries = { workspace = true, default-features = true }
 solana-program-option = { workspace = true, default-features = true }
 solana-program-pack = { workspace = true, default-features = true }
 solana-program-runtime = { workspace = true, default-features = true }

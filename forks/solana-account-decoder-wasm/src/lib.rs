@@ -1,7 +1,5 @@
 #![allow(clippy::arithmetic_side_effects)]
 
-use serde::Deserialize;
-use serde::Serialize;
 pub mod parse_account_data;
 pub mod parse_address_lookup_table;
 pub mod parse_bpf_loader;
@@ -15,8 +13,12 @@ pub mod parse_token_extension;
 pub mod parse_vote;
 pub mod validator_info;
 
+use std::io::Write;
+
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use serde::Deserialize;
+use serde::Serialize;
 use solana_account::ReadableAccount;
 pub use solana_account_decoder_client_types_wasm::UiAccount;
 pub use solana_account_decoder_client_types_wasm::UiAccountData;
@@ -68,7 +70,14 @@ pub fn encode_ui_account<T: ReadableAccount>(
 			)
 		}
 		#[cfg(not(feature = "zstd"))]
-		UiAccountEncoding::Base64Zstd => todo!("Currently zstd is not supported unless specified"),
+		UiAccountEncoding::Base64Zstd => {
+			// zstd support is optional in the wasm fork; fall back to plain
+			// base64 rather than compiling native zstd on wasm targets.
+			UiAccountData::Binary(
+				BASE64_STANDARD.encode(slice_data(account.data(), data_slice_config)),
+				UiAccountEncoding::Base64,
+			)
+		}
 		#[cfg(feature = "zstd")]
 		UiAccountEncoding::Base64Zstd => {
 			use std::io::Write;
@@ -220,8 +229,8 @@ mod test {
 			"error: data too large for bs58 encoding"
 		);
 
-		// Slice of account that's too large, but whose intersection with the account
-		// still fits
+		// Slice of account that's too large, but whose intersection with the
+		// account still fits
 		assert_ne!(
 			encode_bs58(
 				&account,
@@ -252,9 +261,9 @@ mod test {
 			UiAccountData::Binary(_, UiAccountEncoding::Base64Zstd)
 		);
 
-		let decoded_account = encoded_account.decode::<Account>().unwrap();
+		let decoded_account = encoded_account.to_account_shared_data().unwrap();
 		assert_eq!(decoded_account.data(), &vec![0; 1024]);
-		let decoded_account = encoded_account.decode::<AccountSharedData>().unwrap();
+		let decoded_account = encoded_account.to_account().unwrap();
 		assert_eq!(decoded_account.data(), &vec![0; 1024]);
 	}
 }

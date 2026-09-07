@@ -1,3 +1,5 @@
+use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use bincode::deserialize;
 use serde_json::json;
 use solana_message::AccountKeys;
@@ -274,6 +276,62 @@ pub fn parse_vote(
 				}),
 			})
 		}
+		VoteInstruction::InitializeAccountV2(vote_init) => {
+			check_num_vote_accounts(&instruction.accounts, 4)?;
+			Ok(ParsedInstructionEnum {
+				instruction_type: "initializeV2".to_string(),
+				info: json!({
+					"voteAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+					"node": account_keys[instruction.accounts[1] as usize].to_string(),
+					"inflationRewardsCollector": account_keys[instruction.accounts[2] as usize].to_string(),
+					"blockRevenueCollector": account_keys[instruction.accounts[3] as usize].to_string(),
+					"authorizedVoter": vote_init.authorized_voter.to_string(),
+					"authorizedVoterBlsPubkey": BASE64_STANDARD.encode(vote_init.authorized_voter_bls_pubkey),
+					"authorizedVoterBlsProofOfPossession": BASE64_STANDARD.encode(vote_init.authorized_voter_bls_proof_of_possession),
+					"authorizedWithdrawer": vote_init.authorized_withdrawer.to_string(),
+					"inflationRewardsCommissionBps": vote_init.inflation_rewards_commission_bps,
+					"blockRevenueCommissionBps": vote_init.block_revenue_commission_bps,
+				}),
+			})
+		}
+		VoteInstruction::UpdateCommissionCollector(kind) => {
+			check_num_vote_accounts(&instruction.accounts, 3)?;
+			Ok(ParsedInstructionEnum {
+				instruction_type: "updateCommissionCollector".to_string(),
+				info: json!({
+					"voteAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+					"newCollector": account_keys[instruction.accounts[1] as usize].to_string(),
+					"withdrawAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
+					"commissionKind": kind,
+				}),
+			})
+		}
+		VoteInstruction::UpdateCommissionBps {
+			commission_bps,
+			kind,
+		} => {
+			check_num_vote_accounts(&instruction.accounts, 2)?;
+			Ok(ParsedInstructionEnum {
+				instruction_type: "updateCommissionBps".to_string(),
+				info: json!({
+					"voteAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+					"withdrawAuthority": account_keys[instruction.accounts[1] as usize].to_string(),
+					"commissionBps": commission_bps,
+					"commissionKind": kind,
+				}),
+			})
+		}
+		VoteInstruction::DepositDelegatorRewards { deposit } => {
+			check_num_vote_accounts(&instruction.accounts, 2)?;
+			Ok(ParsedInstructionEnum {
+				instruction_type: "depositDelegatorRewards".to_string(),
+				info: json!({
+					"voteAccount": account_keys[instruction.accounts[0] as usize].to_string(),
+					"source": account_keys[instruction.accounts[1] as usize].to_string(),
+					"deposit": deposit,
+				}),
+			})
+		}
 	}
 }
 
@@ -287,13 +345,15 @@ mod test {
 	use solana_message::Message;
 	use solana_pubkey::Pubkey;
 	use solana_sdk_ids::sysvar;
-	use solana_vote_interface::instruction as vote_instruction;
+	use solana_vote_interface::instruction::CommissionKind;
+	use solana_vote_interface::instruction::{self as vote_instruction};
 	use solana_vote_interface::state::TowerSync;
 	use solana_vote_interface::state::Vote;
 	use solana_vote_interface::state::VoteAuthorize;
 	use solana_vote_interface::state::VoteInit;
+	use solana_vote_interface::state::VoteInitV2;
 	use solana_vote_interface::state::VoteStateUpdate;
-	use solana_vote_interface::state::VoteStateVersions;
+	use solana_vote_interface::state::VoteStateV4;
 
 	use super::*;
 
@@ -319,7 +379,7 @@ mod test {
 			&vote_init,
 			lamports,
 			vote_instruction::CreateVoteAccountConfig {
-				space: VoteStateVersions::vote_state_size_of(true) as u64,
+				space: VoteStateV4::size_of() as u64,
 				..vote_instruction::CreateVoteAccountConfig::default()
 			},
 		);
@@ -1003,6 +1063,190 @@ mod test {
 						"blockId": Hash::default().to_string(),
 					},
 					"hash": proof_hash.to_string(),
+				}),
+			}
+		);
+		assert!(
+			parse_vote(
+				&message.instructions[0],
+				&AccountKeys::new(&message.account_keys[0..1], None)
+			)
+			.is_err()
+		);
+		let keys = message.account_keys.clone();
+		message.instructions[0].accounts.pop();
+		assert!(parse_vote(&message.instructions[0], &AccountKeys::new(&keys, None)).is_err());
+	}
+
+	#[test]
+	fn test_parse_vote_initialize_v2_ix() {
+		let lamports = 55;
+
+		let node_pubkey = Pubkey::new_unique();
+		let vote_pubkey = Pubkey::new_unique();
+		let authorized_voter = Pubkey::new_unique();
+		let authorized_withdrawer = Pubkey::new_unique();
+		let inflation_rewards_collector = Pubkey::new_unique();
+		let block_revenue_collector = Pubkey::new_unique();
+		let authorized_voter_bls_pubkey = [7u8; 48];
+		let authorized_voter_bls_proof_of_possession = [9u8; 96];
+		let vote_init = VoteInitV2 {
+			node_pubkey,
+			authorized_voter,
+			authorized_voter_bls_pubkey,
+			authorized_voter_bls_proof_of_possession,
+			authorized_withdrawer,
+			inflation_rewards_commission_bps: 500,
+			block_revenue_commission_bps: 1000,
+		};
+
+		let instructions = vote_instruction::create_account_with_config_v2(
+			&Pubkey::new_unique(),
+			&vote_pubkey,
+			&vote_init,
+			&inflation_rewards_collector,
+			&block_revenue_collector,
+			lamports,
+			vote_instruction::CreateVoteAccountConfig {
+				space: VoteStateV4::size_of() as u64,
+				..vote_instruction::CreateVoteAccountConfig::default()
+			},
+		);
+		let mut message = Message::new(&instructions, None);
+		assert_eq!(
+			parse_vote(
+				&message.instructions[1],
+				&AccountKeys::new(&message.account_keys, None)
+			)
+			.unwrap(),
+			ParsedInstructionEnum {
+				instruction_type: "initializeV2".to_string(),
+				info: json!({
+					"voteAccount": vote_pubkey.to_string(),
+					"node": node_pubkey.to_string(),
+					"inflationRewardsCollector": inflation_rewards_collector.to_string(),
+					"blockRevenueCollector": block_revenue_collector.to_string(),
+					"authorizedVoter": authorized_voter.to_string(),
+					"authorizedVoterBlsPubkey": BASE64_STANDARD.encode(authorized_voter_bls_pubkey),
+					"authorizedVoterBlsProofOfPossession": BASE64_STANDARD.encode(authorized_voter_bls_proof_of_possession),
+					"authorizedWithdrawer": authorized_withdrawer.to_string(),
+					"inflationRewardsCommissionBps": 500,
+					"blockRevenueCommissionBps": 1000,
+				}),
+			}
+		);
+		assert!(
+			parse_vote(
+				&message.instructions[1],
+				&AccountKeys::new(&message.account_keys[0..1], None)
+			)
+			.is_err()
+		);
+		let keys = message.account_keys.clone();
+		message.instructions[0].accounts.pop();
+		assert!(parse_vote(&message.instructions[0], &AccountKeys::new(&keys, None)).is_err());
+	}
+
+	#[test]
+	fn test_parse_vote_update_commission_collector_ix() {
+		let vote_pubkey = Pubkey::new_unique();
+		let authorized_withdrawer_pubkey = Pubkey::new_unique();
+		let new_collector_pubkey = Pubkey::new_unique();
+		let instruction = vote_instruction::update_commission_collector(
+			&vote_pubkey,
+			&authorized_withdrawer_pubkey,
+			&new_collector_pubkey,
+			CommissionKind::InflationRewards,
+		);
+		let mut message = Message::new(&[instruction], None);
+		assert_eq!(
+			parse_vote(
+				&message.instructions[0],
+				&AccountKeys::new(&message.account_keys, None)
+			)
+			.unwrap(),
+			ParsedInstructionEnum {
+				instruction_type: "updateCommissionCollector".to_string(),
+				info: json!({
+					"voteAccount": vote_pubkey.to_string(),
+					"newCollector": new_collector_pubkey.to_string(),
+					"withdrawAuthority": authorized_withdrawer_pubkey.to_string(),
+					"commissionKind": CommissionKind::InflationRewards,
+				}),
+			}
+		);
+		assert!(
+			parse_vote(
+				&message.instructions[0],
+				&AccountKeys::new(&message.account_keys[0..2], None)
+			)
+			.is_err()
+		);
+		let keys = message.account_keys.clone();
+		message.instructions[0].accounts.pop();
+		assert!(parse_vote(&message.instructions[0], &AccountKeys::new(&keys, None)).is_err());
+	}
+
+	#[test]
+	fn test_parse_vote_update_commission_bps_ix() {
+		let vote_pubkey = Pubkey::new_unique();
+		let authorized_withdrawer_pubkey = Pubkey::new_unique();
+		let commission_bps = 500;
+		let instruction = vote_instruction::update_commission_bps(
+			&vote_pubkey,
+			&authorized_withdrawer_pubkey,
+			CommissionKind::BlockRevenue,
+			commission_bps,
+		);
+		let mut message = Message::new(&[instruction], None);
+		assert_eq!(
+			parse_vote(
+				&message.instructions[0],
+				&AccountKeys::new(&message.account_keys, None)
+			)
+			.unwrap(),
+			ParsedInstructionEnum {
+				instruction_type: "updateCommissionBps".to_string(),
+				info: json!({
+					"voteAccount": vote_pubkey.to_string(),
+					"withdrawAuthority": authorized_withdrawer_pubkey.to_string(),
+					"commissionBps": commission_bps,
+					"commissionKind": CommissionKind::BlockRevenue,
+				}),
+			}
+		);
+		assert!(
+			parse_vote(
+				&message.instructions[0],
+				&AccountKeys::new(&message.account_keys[0..1], None)
+			)
+			.is_err()
+		);
+		let keys = message.account_keys.clone();
+		message.instructions[0].accounts.pop();
+		assert!(parse_vote(&message.instructions[0], &AccountKeys::new(&keys, None)).is_err());
+	}
+
+	#[test]
+	fn test_parse_vote_deposit_delegator_rewards_ix() {
+		let vote_pubkey = Pubkey::new_unique();
+		let source_pubkey = Pubkey::new_unique();
+		let deposit = 1_000_000;
+		let instruction =
+			vote_instruction::deposit_delegator_rewards(&vote_pubkey, &source_pubkey, deposit);
+		let mut message = Message::new(&[instruction], None);
+		assert_eq!(
+			parse_vote(
+				&message.instructions[0],
+				&AccountKeys::new(&message.account_keys, None)
+			)
+			.unwrap(),
+			ParsedInstructionEnum {
+				instruction_type: "depositDelegatorRewards".to_string(),
+				info: json!({
+					"voteAccount": vote_pubkey.to_string(),
+					"source": source_pubkey.to_string(),
+					"deposit": deposit,
 				}),
 			}
 		);

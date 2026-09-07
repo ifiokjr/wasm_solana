@@ -3,39 +3,35 @@ use core::fmt;
 
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use serde::Deserialize;
 use serde::Deserializer;
+use serde::Serialize;
 use serde::de::Deserialize as DeserializeTrait;
 use serde::de::Error as DeserializeError;
 use serde::de::{self};
 use serde::ser::Serialize as SerializeTrait;
 use serde::ser::SerializeTupleVariant;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
 use serde_json::Value;
 use serde_json::from_value;
-use serde_with::DisplayFromStr;
-use serde_with::serde_as;
-use serde_with::skip_serializing_none;
 use solana_account_decoder_client_types_wasm::token::UiTokenAmount;
-use solana_clock::Slot;
-use solana_clock::UnixTimestamp;
 use solana_commitment_config::CommitmentConfig;
-use solana_hash::Hash;
 use solana_instruction::error::InstructionError;
 use solana_message::MessageHeader;
 use solana_message::compiled_instruction::CompiledInstruction;
 use solana_message::v0::LoadedAddresses;
 use solana_message::v0::MessageAddressTableLookup;
-use solana_pubkey::Pubkey;
 use solana_reward_info::RewardType;
 use solana_signature::Signature;
+use solana_transaction::SchemaRead;
+use solana_transaction::SchemaWrite;
 use solana_transaction::versioned::TransactionVersion;
 use solana_transaction::versioned::VersionedTransaction;
-use solana_transaction_context::TransactionReturnData;
+use solana_transaction_context::transaction::TransactionReturnData;
 use solana_transaction_error::TransactionError;
 use solana_transaction_error::TransactionResult;
 use thiserror::Error;
 
+use crate::option_serializer::OptionSerializer;
 pub mod option_serializer;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -73,19 +69,14 @@ impl fmt::Display for UiTransactionEncoding {
 	}
 }
 
-#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, Eq, Hash, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum TransactionDetails {
+	#[default]
 	Full,
 	Signatures,
 	None,
 	Accounts,
-}
-
-impl Default for TransactionDetails {
-	fn default() -> Self {
-		Self::Full
-	}
 }
 
 #[derive(Error, Debug, PartialEq, Eq, Clone)]
@@ -94,16 +85,14 @@ pub enum EncodeError {
 	UnsupportedTransactionVersion(u8),
 }
 
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ConfirmedTransactionStatusWithSignature {
-	#[serde_as(as = "DisplayFromStr")]
 	pub signature: Signature,
 	pub slot: u64,
 	pub err: Option<TransactionError>,
 	pub memo: Option<String>,
 	pub block_time: Option<i64>,
+	pub index: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -114,57 +103,50 @@ pub enum TransactionConfirmationStatus {
 	Finalized,
 }
 
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfirmedBlock {
-	#[serde_as(as = "DisplayFromStr")]
-	pub previous_blockhash: Hash,
-	#[serde_as(as = "DisplayFromStr")]
-	pub blockhash: Hash,
+	pub previous_blockhash: String,
+	pub blockhash: String,
 	pub parent_slot: u64,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub transactions: Option<Vec<EncodedTransactionWithStatusMeta>>,
-	#[serde_as(as = "Option<Vec<DisplayFromStr>>")]
-	pub signatures: Option<Vec<Signature>>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub signatures: Option<Vec<String>>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub rewards: Option<Rewards>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub num_reward_partitions: Option<u64>,
 	pub block_time: Option<i64>,
 	pub block_height: Option<u64>,
 }
 
 /// A duplicate representation of a Transaction for pretty JSON serialization
-#[serde_as]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransaction {
-	#[serde_as(as = "Vec<DisplayFromStr>")]
-	pub signatures: Vec<Signature>,
+	pub signatures: Vec<String>,
 	pub message: UiMessage,
 }
 
 /// A duplicate representation of a Message, in parsed format, for pretty JSON
 /// serialization
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiParsedMessage {
 	pub account_keys: Vec<ParsedAccount>,
-	#[serde_as(as = "DisplayFromStr")]
-	pub recent_blockhash: Hash,
+	pub recent_blockhash: String,
 	pub instructions: Vec<UiInstruction>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub address_table_lookups: Option<Vec<UiAddressTableLookup>>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub transaction_config: Option<UiTransactionConfig>,
 }
 
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParsedAccount {
-	#[serde_as(as = "DisplayFromStr")]
-	pub pubkey: Pubkey,
+	pub pubkey: String,
 	pub writable: bool,
 	pub signer: bool,
 	pub source: Option<ParsedAccountSource>,
@@ -207,13 +189,13 @@ impl EncodedTransaction {
 				bs58::decode(blob)
 					.into_vec()
 					.ok()
-					.and_then(|bytes| bincode::deserialize(&bytes).ok())
+					.and_then(|bytes| wincode::deserialize(&bytes).ok())
 			}
 			TransactionBinaryEncoding::Base64 => {
 				BASE64_STANDARD
 					.decode(blob)
 					.ok()
-					.and_then(|bytes| bincode::deserialize(&bytes).ok())
+					.and_then(|bytes| wincode::deserialize(&bytes).ok())
 			}
 		};
 
@@ -230,31 +212,27 @@ pub struct EncodedTransactionWithStatusMeta {
 	pub version: Option<TransactionVersion>,
 }
 
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Reward {
-	#[serde_as(as = "DisplayFromStr")]
-	pub pubkey: Pubkey,
+	pub pubkey: String,
 	pub lamports: i64,
 	pub post_balance: u64, // Account balance in lamports after `lamports` was applied
 	pub reward_type: Option<RewardType>,
 	pub commission: Option<u8>, /* Vote account commission when the reward was credited, only
 	                             * present for voting and staking rewards */
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub commission_bps: Option<u16>, // Vote account commission in basis points (SIMD-0291)
 }
 
 pub type Rewards = Vec<Reward>;
 
 /// A duplicate representation of a MessageAddressTableLookup, in raw format,
 /// for pretty JSON serialization
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiAddressTableLookup {
-	#[serde_as(as = "DisplayFromStr")]
-	pub account_key: Pubkey,
+	pub account_key: String,
 	pub writable_indexes: Vec<u8>,
 	pub readonly_indexes: Vec<u8>,
 }
@@ -262,9 +240,31 @@ pub struct UiAddressTableLookup {
 impl From<&MessageAddressTableLookup> for UiAddressTableLookup {
 	fn from(lookup: &MessageAddressTableLookup) -> Self {
 		Self {
-			account_key: lookup.account_key,
+			account_key: lookup.account_key.to_string(),
 			writable_indexes: lookup.writable_indexes.clone(),
 			readonly_indexes: lookup.readonly_indexes.clone(),
+		}
+	}
+}
+
+/// A duplicate representation of a TransactionConfig, in raw format, for pretty
+/// JSON serialization.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiTransactionConfig {
+	pub priority_fee: Option<u64>,
+	pub compute_unit_limit: Option<u32>,
+	pub loaded_accounts_data_size_limit: Option<u32>,
+	pub heap_size: Option<u32>,
+}
+
+impl From<&solana_message::v1::TransactionConfig> for UiTransactionConfig {
+	fn from(config: &solana_message::v1::TransactionConfig) -> Self {
+		Self {
+			priority_fee: config.priority_fee,
+			compute_unit_limit: config.compute_unit_limit,
+			loaded_accounts_data_size_limit: config.loaded_accounts_data_size_limit,
+			heap_size: config.heap_size,
 		}
 	}
 }
@@ -353,16 +353,12 @@ impl<'de> DeserializeTrait<'de> for UiTransactionError {
 				err,
 			)));
 		}
-
 		let err = TransactionError::deserialize(value).map_err(de::Error::custom)?;
-
 		Ok(UiTransactionError(err))
 	}
 }
 
 /// A duplicate representation of TransactionStatusMeta with `err` field
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransactionStatusMeta {
@@ -371,15 +367,51 @@ pub struct UiTransactionStatusMeta {
 	pub fee: u64,
 	pub pre_balances: Vec<u64>,
 	pub post_balances: Vec<u64>,
-	pub inner_instructions: Option<Vec<UiInnerInstructions>>,
-	pub log_messages: Option<Vec<String>>,
-	pub pre_token_balances: Option<Vec<TransactionTokenBalance>>,
-	pub post_token_balances: Option<Vec<TransactionTokenBalance>>,
-	pub rewards: Option<Rewards>,
-	pub loaded_addresses: Option<UiLoadedAddresses>,
-	pub return_data: Option<UiTransactionReturnData>,
-	pub compute_units_consumed: Option<u64>,
-	pub cost_units: Option<u64>,
+	#[serde(
+		default = "OptionSerializer::none",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub inner_instructions: OptionSerializer<Vec<UiInnerInstructions>>,
+	#[serde(
+		default = "OptionSerializer::none",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub log_messages: OptionSerializer<Vec<String>>,
+	#[serde(
+		default = "OptionSerializer::none",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub pre_token_balances: OptionSerializer<Vec<UiTransactionTokenBalance>>,
+	#[serde(
+		default = "OptionSerializer::none",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub post_token_balances: OptionSerializer<Vec<UiTransactionTokenBalance>>,
+	#[serde(
+		default = "OptionSerializer::none",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub rewards: OptionSerializer<Rewards>,
+	#[serde(
+		default = "OptionSerializer::skip",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub loaded_addresses: OptionSerializer<UiLoadedAddresses>,
+	#[serde(
+		default = "OptionSerializer::skip",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub return_data: OptionSerializer<UiTransactionReturnData>,
+	#[serde(
+		default = "OptionSerializer::skip",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub compute_units_consumed: OptionSerializer<u64>,
+	#[serde(
+		default = "OptionSerializer::skip",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub cost_units: OptionSerializer<u64>,
 }
 
 impl From<TransactionStatusMeta> for UiTransactionStatusMeta {
@@ -392,37 +424,48 @@ impl From<TransactionStatusMeta> for UiTransactionStatusMeta {
 			post_balances: meta.post_balances,
 			inner_instructions: meta
 				.inner_instructions
-				.map(|ixs| ixs.into_iter().map(Into::into).collect()),
-			log_messages: meta.log_messages,
+				.map(|ixs| ixs.into_iter().map(Into::into).collect())
+				.into(),
+			log_messages: meta.log_messages.into(),
 			pre_token_balances: meta
 				.pre_token_balances
-				.map(|balance| balance.into_iter().collect()),
+				.map(|balance| balance.into_iter().map(Into::into).collect())
+				.into(),
 			post_token_balances: meta
 				.post_token_balances
-				.map(|balance| balance.into_iter().collect()),
-			rewards: meta.rewards,
-			loaded_addresses: Some(UiLoadedAddresses::from(&meta.loaded_addresses)),
-			return_data: meta.return_data.map(Into::into),
-			compute_units_consumed: meta.compute_units_consumed,
-			cost_units: meta.cost_units,
+				.map(|balance| balance.into_iter().map(Into::into).collect())
+				.into(),
+			rewards: meta.rewards.into(),
+			loaded_addresses: Some(UiLoadedAddresses::from(&meta.loaded_addresses)).into(),
+			return_data: OptionSerializer::or_skip(
+				meta.return_data.map(|return_data| return_data.into()),
+			),
+			compute_units_consumed: OptionSerializer::or_skip(meta.compute_units_consumed),
+			cost_units: OptionSerializer::or_skip(meta.cost_units),
 		}
 	}
 }
 
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UiTransactionReturnData {
-	#[serde_as(as = "DisplayFromStr")]
-	pub program_id: Pubkey,
+	pub program_id: String,
 	pub data: (String, UiReturnDataEncoding),
+}
+
+impl Default for UiTransactionReturnData {
+	fn default() -> Self {
+		Self {
+			program_id: String::default(),
+			data: (String::default(), UiReturnDataEncoding::Base64),
+		}
+	}
 }
 
 impl From<TransactionReturnData> for UiTransactionReturnData {
 	fn from(return_data: TransactionReturnData) -> Self {
 		Self {
-			program_id: return_data.program_id,
+			program_id: return_data.program_id.to_string(),
 			data: (
 				BASE64_STANDARD.encode(return_data.data),
 				UiReturnDataEncoding::Base64,
@@ -431,61 +474,93 @@ impl From<TransactionReturnData> for UiTransactionReturnData {
 	}
 }
 
-#[derive(Default, Serialize, Deserialize, Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum UiReturnDataEncoding {
-	#[default]
 	Base64,
 }
 
 /// A duplicate representation of LoadedAddresses
-#[serde_as]
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiLoadedAddresses {
-	#[serde_as(as = "Vec<DisplayFromStr>")]
-	pub writable: Vec<Pubkey>,
-	#[serde_as(as = "Vec<DisplayFromStr>")]
-	pub readonly: Vec<Pubkey>,
+	pub writable: Vec<String>,
+	pub readonly: Vec<String>,
 }
 
 impl From<&LoadedAddresses> for UiLoadedAddresses {
 	fn from(loaded_addresses: &LoadedAddresses) -> Self {
 		Self {
-			writable: loaded_addresses.writable.clone(),
-			readonly: loaded_addresses.readonly.clone(),
+			writable: loaded_addresses
+				.writable
+				.iter()
+				.map(ToString::to_string)
+				.collect(),
+			readonly: loaded_addresses
+				.readonly
+				.iter()
+				.map(ToString::to_string)
+				.collect(),
 		}
 	}
 }
 
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TransactionTokenBalance {
 	pub account_index: u8,
-	#[serde_as(as = "DisplayFromStr")]
-	pub mint: Pubkey,
+	pub mint: String,
 	pub ui_token_amount: UiTokenAmount,
-	#[serde_as(as = "Option<DisplayFromStr>")]
-	pub owner: Option<Pubkey>,
-	#[serde_as(as = "Option<DisplayFromStr>")]
-	pub program_id: Option<Pubkey>,
+	pub owner: String,
+	pub program_id: String,
 }
 
-#[serde_as]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiTransactionTokenBalance {
+	pub account_index: u8,
+	pub mint: String,
+	pub ui_token_amount: UiTokenAmount,
+	#[serde(
+		default = "OptionSerializer::skip",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub owner: OptionSerializer<String>,
+	#[serde(
+		default = "OptionSerializer::skip",
+		skip_serializing_if = "OptionSerializer::should_skip"
+	)]
+	pub program_id: OptionSerializer<String>,
+}
+
+impl From<TransactionTokenBalance> for UiTransactionTokenBalance {
+	fn from(token_balance: TransactionTokenBalance) -> Self {
+		Self {
+			account_index: token_balance.account_index,
+			mint: token_balance.mint,
+			ui_token_amount: token_balance.ui_token_amount,
+			owner: if !token_balance.owner.is_empty() {
+				OptionSerializer::Some(token_balance.owner)
+			} else {
+				OptionSerializer::Skip
+			},
+			program_id: if !token_balance.program_id.is_empty() {
+				OptionSerializer::Some(token_balance.program_id)
+			} else {
+				OptionSerializer::Skip
+			},
+		}
+	}
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiAccountsList {
-	#[serde_as(as = "Vec<DisplayFromStr>")]
-	pub signatures: Vec<Signature>,
+	pub signatures: Vec<String>,
 	pub account_keys: Vec<ParsedAccount>,
 }
 
 /// A duplicate representation of a Message, in raw format, for pretty JSON
 /// serialization
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiRawMessage {
@@ -495,6 +570,8 @@ pub struct UiRawMessage {
 	pub instructions: Vec<UiCompiledInstruction>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub address_table_lookups: Option<Vec<UiAddressTableLookup>>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub transaction_config: Option<UiTransactionConfig>,
 }
 
 /// A duplicate representation of a CompiledInstruction for pretty JSON
@@ -534,29 +611,22 @@ pub enum UiParsedInstruction {
 	PartiallyDecoded(UiPartiallyDecodedInstruction),
 }
 
-/// A partially decoded `CompiledInstruction` that includes explicit account
+/// A partially decoded CompiledInstruction that includes explicit account
 /// addresses
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiPartiallyDecodedInstruction {
-	#[serde_as(as = "DisplayFromStr")]
-	pub program_id: Pubkey,
-	#[serde_as(as = "Vec<DisplayFromStr>")]
-	pub accounts: Vec<Pubkey>,
+	pub program_id: String,
+	pub accounts: Vec<String>,
 	pub data: String,
 	pub stack_height: Option<u32>,
 }
 
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParsedInstruction {
 	pub program: String,
-	#[serde_as(as = "DisplayFromStr")]
-	pub program_id: Pubkey,
+	pub program_id: String,
 	pub parsed: Value,
 	pub stack_height: Option<u32>,
 }
@@ -590,7 +660,7 @@ impl From<InnerInstructions> for UiInnerInstructions {
 	}
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, SchemaRead, SchemaWrite)]
 pub struct InnerInstructions {
 	/// Transaction instruction index
 	pub index: u8,
@@ -598,7 +668,7 @@ pub struct InnerInstructions {
 	pub instructions: Vec<InnerInstruction>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, SchemaRead, SchemaWrite)]
 pub struct InnerInstruction {
 	/// Compiled instruction
 	pub instruction: CompiledInstruction,
@@ -643,20 +713,16 @@ impl Default for TransactionStatusMeta {
 	}
 }
 
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Eq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EncodedConfirmedBlock {
-	#[serde_as(as = "DisplayFromStr")]
-	pub previous_blockhash: Hash,
-	#[serde_as(as = "DisplayFromStr")]
-	pub blockhash: Hash,
-	pub parent_slot: Slot,
+	pub previous_blockhash: String,
+	pub blockhash: String,
+	pub parent_slot: u64,
 	pub transactions: Vec<EncodedTransactionWithStatusMeta>,
 	pub rewards: Rewards,
 	pub num_partitions: Option<u64>,
-	pub block_time: Option<UnixTimestamp>,
+	pub block_time: Option<i64>,
 	pub block_height: Option<u64>,
 }
 
@@ -675,19 +741,17 @@ impl From<UiConfirmedBlock> for EncodedConfirmedBlock {
 	}
 }
 
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EncodedConfirmedTransactionWithStatusMeta {
 	pub slot: u64,
 	#[serde(flatten)]
 	pub transaction: EncodedTransactionWithStatusMeta,
 	pub block_time: Option<i64>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub transaction_index: Option<u32>,
 }
 
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionStatus {
@@ -706,8 +770,8 @@ impl TransactionStatus {
 			if let Some(status) = &self.confirmation_status {
 				*status != TransactionConfirmationStatus::Processed
 			} else {
-				// These fallback cases handle TransactionStatus RPC responses from older
-				// software
+				// These fallback cases handle TransactionStatus RPC responses
+				// from older software
 				self.confirmations.is_some() && self.confirmations.unwrap() > 1
 					|| self.confirmations.is_none()
 			}
@@ -722,12 +786,14 @@ impl TransactionStatus {
 		match &self.confirmation_status {
 			Some(status) => status.clone(),
 			None => {
-				if self.confirmations.is_none() {
-					TransactionConfirmationStatus::Finalized
-				} else if self.confirmations.unwrap() > 0 {
-					TransactionConfirmationStatus::Confirmed
+				if let Some(confirmations) = self.confirmations {
+					if confirmations > 0 {
+						TransactionConfirmationStatus::Confirmed
+					} else {
+						TransactionConfirmationStatus::Processed
+					}
 				} else {
-					TransactionConfirmationStatus::Processed
+					TransactionConfirmationStatus::Finalized
 				}
 			}
 		}
@@ -755,6 +821,30 @@ mod test {
             TransactionBinaryEncoding::Base58,
         );
 		assert!(unsanitary_transaction.decode().is_none());
+	}
+
+	#[test]
+	fn test_decode_v1_wire_transaction() {
+		let transaction = VersionedTransaction {
+			signatures: vec![solana_signature::Signature::default()],
+			message: solana_message::VersionedMessage::V1(solana_message::v1::Message::new(
+				solana_message::MessageHeader {
+					num_required_signatures: 1,
+					num_readonly_signed_accounts: 0,
+					num_readonly_unsigned_accounts: 0,
+				},
+				solana_message::v1::TransactionConfig::empty(),
+				solana_message::Hash::default(),
+				vec![solana_message::Address::default()],
+				vec![],
+			)),
+		};
+		let encoded = EncodedTransaction::Binary(
+			BASE64_STANDARD.encode(wincode::serialize(&transaction).unwrap()),
+			TransactionBinaryEncoding::Base64,
+		);
+
+		assert_eq!(encoded.decode(), Some(transaction));
 	}
 
 	#[test]
@@ -851,7 +941,7 @@ mod test {
 		}
 
 		#[rustfmt::skip]
-		let json_input = "{\
+        let json_input = "{\
             \"err\":null,\
             \"status\":{\"Ok\":null},\
             \"fee\":1234,\
@@ -859,7 +949,7 @@ mod test {
             \"postBalances\":[4,5,6]\
         }";
 		#[rustfmt::skip]
-		let expected_json_output = "{\
+        let expected_json_output = "{\
             \"err\":null,\
             \"status\":{\"Ok\":null},\
             \"fee\":1234,\
@@ -869,46 +959,48 @@ mod test {
             \"logMessages\":null,\
             \"preTokenBalances\":null,\
             \"postTokenBalances\":null,\
-            \"rewards\":null
+            \"rewards\":null\
         }";
 		test_serde::<UiTransactionStatusMeta>(json_input, expected_json_output);
 
 		#[rustfmt::skip]
-		let json_input = "{\
+        let json_input = "{\
             \"accountIndex\":5,\
             \"mint\":\"DXM2yVSouSg1twmQgHLKoSReqXhtUroehWxrTgPmmfWi\",\
-            \"uiTokenAmount\": {\
-                \"amount\": \"1\",\"decimals\": 0,\"uiAmount\": 1.0,\"uiAmountString\": \"1\"\
+            \"uiTokenAmount\": {
+                \"amount\": \"1\",\
+                \"decimals\": 0,\
+                \"uiAmount\": 1.0,\
+                \"uiAmountString\": \"1\"\
             }\
         }";
 		#[rustfmt::skip]
-		let expected_json_output = "{\
+        let expected_json_output = "{\
             \"accountIndex\":5,\
             \"mint\":\"DXM2yVSouSg1twmQgHLKoSReqXhtUroehWxrTgPmmfWi\",\
-            \"uiTokenAmount\": {\
-                \"amount\": \"1\",\"decimals\": 0,\"uiAmount\": 1.0,\"uiAmountString\": \"1\"\
+            \"uiTokenAmount\": {
+                \"amount\": \"1\",\
+                \"decimals\": 0,\
+                \"uiAmount\": 1.0,\
+                \"uiAmountString\": \"1\"\
             }\
         }";
-		test_serde::<TransactionTokenBalance>(json_input, expected_json_output);
+		test_serde::<UiTransactionTokenBalance>(json_input, expected_json_output);
 	}
 
 	#[test_case(
         TransactionError::InstructionError (42, InstructionError::Custom(0xdeadbeef)),
-        json!({
-            "InstructionError": [
-                42,
-                { "Custom": 0xdeadbeef_u32 },
-            ]
-        });
+        json!({"InstructionError": [
+            42,
+            { "Custom": 0xdeadbeef_u32 },
+        ]});
         "`InstructionError`"
     )]
 	#[test_case(TransactionError::InsufficientFundsForRent {
         account_index: 42,
-    }, json!({
-        "InsufficientFundsForRent": {
-            "account_index": 42,
-        }
-    }); "Struct variant error")]
+    }, json!({"InsufficientFundsForRent": {
+        "account_index": 42,
+    }}); "Struct variant error")]
 	#[test_case(TransactionError::DuplicateInstruction(42), json!({ "DuplicateInstruction": 42 }); "Single-value tuple variant error")]
 	#[test_case(TransactionError::InsufficientFundsForFee, json!("InsufficientFundsForFee"); "Named variant error")]
 	fn test_serialize_ui_transaction_error(
@@ -922,21 +1014,17 @@ mod test {
 
 	#[test_case(
         TransactionError::InstructionError (42, InstructionError::Custom(0xdeadbeef)),
-        json!({
-            "InstructionError": [
-                42,
-                { "Custom": 0xdeadbeef_u32 },
-            ]
-        });
+        json!({"InstructionError": [
+            42,
+            { "Custom": 0xdeadbeef_u32 },
+        ]});
         "`InstructionError`"
     )]
 	#[test_case(TransactionError::InsufficientFundsForRent {
         account_index: 42,
-    }, json!({
-        "InsufficientFundsForRent": {
-            "account_index": 42,
-        }
-    }); "Struct variant error")]
+    }, json!({"InsufficientFundsForRent": {
+        "account_index": 42,
+    }}); "Struct variant error")]
 	#[test_case(TransactionError::DuplicateInstruction(42), json!({ "DuplicateInstruction": 42 }); "Single-value tuple variant error")]
 	#[test_case(TransactionError::InsufficientFundsForFee, json!("InsufficientFundsForFee"); "Named variant error")]
 	fn test_deserialize_ui_transaction_error(

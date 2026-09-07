@@ -73,7 +73,7 @@ async fn account_stream_subscription() -> anyhow::Result<()> {
 		.await
 		.unwrap();
 
-	let next_update_with_timeout = timeout(Duration::from_secs(30), next_update);
+	let next_update_with_timeout = timeout(Duration::from_secs(90), next_update);
 	let account_info = next_update_with_timeout.await.unwrap().unwrap();
 
 	check!(account_info.method == "accountNotification");

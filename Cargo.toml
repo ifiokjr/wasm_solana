@@ -18,11 +18,11 @@ edition = "2024"
 homepage = "https://github.com/ifiokjr/wasm_solana"
 license = "Unlicense"
 repository = "https://github.com/ifiokjr/wasm_solana"
-rust-version = "1.85.0"
+rust-version = "1.89.0"
 
 [workspace.dependencies]
 Inflector = { default-features = false, version = "^0.11" }
-agave-reserved-account-keys = { default-features = false, version = "=3.0" }
+agave-reserved-account-keys = { default-features = false, features = ["agave-unstable-api"], version = "^4.2" }
 anyhow = { default-features = false, version = "^1" }
 assert2 = { default-features = false, version = "^0.3" }
 assert_matches = { default-features = false, version = "^1" }
@@ -59,69 +59,71 @@ reqwest = { default-features = false, version = "^0.12" }
 reqwest-websocket = { default-features = false, version = "^0.5" }
 semver = { default-features = false, version = "^1" }
 send_wrapper = { default-features = false, version = "^0.6" }
-serde = { default-features = false, version = "^1" }
+serde = { default-features = false, features = ["derive"], version = "^1" }
 serde-wasm-bindgen = { default-features = false, version = "^0.6" }
 serde_bytes = { default-features = false, version = "^0.11" }
 serde_derive = { default-features = false, version = "^1" }
 serde_json = { default-features = false, version = "^1" }
 serde_tuple = { default-features = false, version = "^1" }
 serde_with = { default-features = false, version = "^3" }
-solana-account = { default-features = false, version = "^3.2" }
-solana-address-lookup-table-interface = { default-features = false, version = "^3" }
-solana-banks-client = { default-features = false, version = "^3" }
-solana-banks-interface = { default-features = false, version = "^3" }
-solana-clock = { default-features = false, features = ["serde"], version = "^3" }
-solana-commitment-config = { default-features = false, features = ["serde"], version = "^3" }
-solana-compute-budget = { default-features = false, version = "^3" }
+solana-account = { default-features = false, version = ">=4.3.1, <4.4.0" }
+solana-address-lookup-table-interface = { default-features = false, version = ">=3.1.0, <3.2.0" }
+solana-banks-client = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-banks-interface = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-clock = { default-features = false, features = ["serde"], version = ">=3.0.1, <3.2.0" }
+solana-commitment-config = { default-features = false, features = ["serde"], version = "^3.1" }
+solana-compute-budget = { features = ["agave-unstable-api"], default-features = false, version = "=4.2.0" }
 solana-compute-budget-interface = { default-features = false, features = ["borsh", "serde"], version = "^3" }
 solana-config-interface = { default-features = false, features = ["bincode", "serde"], version = "^2" }
-solana-epoch-info = { default-features = false, features = ["serde"], version = "^3" }
-solana-epoch-schedule = { default-features = false, features = ["serde"], version = "^3" }
-solana-faucet = { default-features = false, version = "=3.0" }
-solana-fee-calculator = { default-features = false, features = ["serde"], version = "^3" }
-solana-hash = { default-features = false, features = ["borsh", "bytemuck", "serde"], version = "^3" }
-solana-inflation = { default-features = false, features = ["serde"], version = "^3" }
-solana-instruction = { default-features = false, features = ["bincode", "borsh", "serde"], version = "^3" }
-solana-keypair = { default-features = false, version = "^3" }
+solana-epoch-info = { default-features = false, features = ["serde"], version = "^3.1" }
+solana-epoch-schedule = { default-features = false, features = ["serde"], version = ">=3.2.0, <3.3.0" }
+solana-faucet = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-fee-calculator = { default-features = false, features = ["serde"], version = ">=3.2.2, <3.3.0" }
+solana-hash = { default-features = false, features = ["borsh", "bytemuck", "serde"], version = ">=4.4.0, <4.6.0" }
+solana-inflation = { default-features = false, features = ["serde"], version = ">=3.1.1, <3.2.0" }
+solana-instruction = { default-features = false, features = ["bincode", "borsh", "serde"], version = ">=3.4.0, <3.5.0" }
+solana-keypair = { default-features = false, version = "^3.1" }
 solana-loader-v2-interface = { default-features = false, features = ["bincode", "serde"], version = "^3" }
-solana-loader-v3-interface = { default-features = false, features = ["bincode", "serde"], version = "^6" }
-solana-message = { default-features = false, features = ["bincode", "serde"], version = "^3" }
+solana-loader-v3-interface = { default-features = false, features = ["serde"], version = "^7" }
+solana-message = { default-features = false, features = ["serde"], version = ">=4.2.3, <4.5.0" }
 solana-native-token = { default-features = false, version = "^3" }
-solana-nonce = { default-features = false, features = ["serde"], version = "^3" }
+solana-nonce = { default-features = false, features = ["serde"], version = ">=3.2.0, <3.3.0" }
+solana-program-binaries = { default-features = false, version = "^4.2" }
 solana-program-error = { default-features = false, features = ["borsh", "serde"], version = "^3" }
-solana-program-option = { default-features = false, version = "^3" }
-solana-program-pack = { default-features = false, version = "^3" }
-solana-program-runtime = { default-features = false, version = "=3.0" }
-solana-program-test = { default-features = false, version = "^3" }
-solana-pubkey = { default-features = false, features = ["bytemuck", "borsh", "serde"], version = "^3" }
-solana-rent = { default-features = false, features = ["serde"], version = "^3" }
-solana-reward-info = { default-features = false, features = ["serde"], version = "^3" }
-solana-rpc = { default-features = false, version = "=3.0" }
-solana-sdk-ids = { default-features = false, version = "^3" }
-solana-signature = { default-features = false, features = ["bytemuck", "serde", "verify"], version = "^3" }
+solana-program-option = { default-features = false, version = "^3.1" }
+solana-program-pack = { default-features = false, version = "^3.1" }
+solana-program-runtime = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-program-test = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-pubkey = { default-features = false, features = ["bytemuck", "borsh", "serde"], version = ">=4.2.0, <4.3.0" }
+solana-rent = { default-features = false, features = ["serde"], version = ">=4.2.1, <4.4.0" }
+solana-reward-info = { default-features = false, features = ["serde"], version = ">=6.2.0, <6.3.0" }
+solana-rpc = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-sdk-ids = { default-features = false, version = "^3.1" }
+solana-signature = { default-features = false, features = ["bytemuck", "serde", "verify"], version = ">=3.4.1, <3.5.0" }
 solana-signer = { default-features = false, version = "^3" }
-solana-slot-hashes = { default-features = false, features = ["serde"], version = "^3" }
-solana-slot-history = { default-features = false, features = ["serde"], version = "^3" }
-solana-stake-interface = { default-features = false, features = ["bincode", "borsh", "serde"], version = "^2" }
-solana-system-interface = { default-features = false, features = ["bincode", "serde"], version = "^2" }
-solana-system-program = { default-features = false, version = "=3.0" }
-solana-sysvar = { default-features = false, features = ["bincode", "bytemuck", "serde"], version = "=3.0" }
-solana-test-validator = { default-features = false, version = "=3.0" }
-solana-transaction = { default-features = false, features = ["bincode", "serde"], version = "^3" }
-solana-transaction-context = { default-features = false, features = ["bincode", "serde"], version = "=3.0" }
-solana-transaction-error = { default-features = false, features = ["serde"], version = "^3" }
-solana-version = { default-features = false, version = "=3.0" }
-solana-vote-interface = { default-features = false, version = "^3" }
-solana-zk-token-sdk = { default-features = false, version = "=3.0" }
+solana-slot-hashes = { default-features = false, features = ["serde"], version = ">=3.1.0, <3.2.0" }
+solana-slot-history = { default-features = false, features = ["serde"], version = ">=3.0.1, <3.2.0" }
+solana-stake-interface = { default-features = false, features = ["bincode", "borsh", "serde"], version = ">=4.3.0, <4.3.1" }
+solana-system-interface = { default-features = false, features = ["bincode", "serde"], version = ">=3.2.0, <3.3.0" }
+solana-system-program = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-sysvar = { default-features = false, features = ["bincode", "bytemuck", "serde"], version = ">=4.0.0, <4.2.0" }
+solana-test-validator = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-transaction = { default-features = false, features = ["serde"], version = ">=4.1.4, <4.2.0" }
+solana-transaction-context = { default-features = false, features = ["agave-unstable-api", "bincode", "serde"], version = "^4.2" }
+solana-transaction-error = { default-features = false, features = ["serde"], version = ">=3.3.1, <3.4.0" }
+solana-version = { features = ["agave-unstable-api"], default-features = false, version = "^4.2" }
+solana-vote-interface = { default-features = false, version = ">=6.0.2, <6.1.0" }
+solana-zk-sdk-pod = { default-features = false, version = "^0.1" }
+solana-zk-token-sdk = { default-features = false, version = "^3.1" }
 spl-associated-token-account-interface = { default-features = false, version = "^2" }
 spl-generic-token = { default-features = false, version = "^2" }
-spl-memo-interface = { default-features = false, version = "^2" }
+spl-memo-interface = { default-features = false, version = "^2.1" }
 spl-pod = { default-features = false, version = "^0.7" }
-spl-token-2022-interface = { default-features = false, version = "^2" }
-spl-token-confidential-transfer-proof-extraction = { default-features = false, version = "^0.5" }
+spl-token-2022-interface = { default-features = false, version = "^3.1" }
+spl-token-confidential-transfer-proof-extraction = { default-features = false, version = "^0.6" }
 spl-token-group-interface = { default-features = false, version = "^0.7" }
-spl-token-interface = { default-features = false, version = "^2" }
-spl-token-metadata-interface = { default-features = false, version = "^0.8" }
+spl-token-interface = { default-features = false, version = "^3" }
+spl-token-metadata-interface = { default-features = false, version = "^1" }
 tarpc = { default-features = false, version = "^0.29" }
 tempfile = { default-features = false, version = "^3" }
 test-case = { default-features = false, version = "^3" }
@@ -129,17 +131,17 @@ test-log = { default-features = false, version = "^0.2" }
 thiserror = { default-features = false, version = "^2" }
 tokio = { default-features = false, version = "^1" }
 typed-builder = { default-features = false, version = "^0.23" }
-wallet_standard = { default-features = false, version = "^0.5.1" }
+wallet_standard = { default-features = false, version = "^0.6" }
 wasm-bindgen = { default-features = false, version = "^0.2" }
 wasm-bindgen-futures = { default-features = false, version = "^0.4" }
 wasm-bindgen-test = { default-features = false, version = "^0.3" }
 web-sys = { default-features = false, version = "^0.3" }
+wincode = { default-features = false, version = "^0.5" }
 zstd = { version = "0.13", default-features = false }
 
-# FIX: these are pinned to keep solana-hash@3 throughout the codebase
-solana-blake3-hasher = { default-features = false, version = "=3.0" }
-solana-epoch-rewards-hasher = { default-features = false, version = "=3.0" }
-solana-keccak-hasher = { default-features = false, version = "=3.0" }
+solana-blake3-hasher = { default-features = false, version = "^3.1" }
+solana-epoch-rewards-hasher = { default-features = false, version = "^3.1" }
+solana-keccak-hasher = { default-features = false, version = "^3.1" }
 
 # publishable crates
 memory_wallet = { path = "crates/memory_wallet", version = "0.2.0" }
@@ -155,22 +157,17 @@ solana-transaction-status-client-types-wasm = { path = "forks/solana-transaction
 solana-transaction-status-wasm = { path = "forks/solana-transaction-status-wasm", version = "3.0.10" }
 
 [workspace.metadata.bin]
-cargo-llvm-cov = { version = "0.6.21" }
-cargo-nextest = { version = "0.9.114" }
-cargo-semver-checks = { version = "0.45.0" }
+cargo-llvm-cov = { version = "0.9.1" }
+cargo-nextest = { version = "0.9.143" }
+cargo-semver-checks = { version = "0.50.0" }
 cargo-workspaces = { version = "0.4.1" }
 knope = { version = "0.21.5", bins = ["knope"] }
 wait-for-them = { version = "0.5.1", bins = ["wait-for-them"] }
-wasm-bindgen-cli = { version = "0.2.105", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
+wasm-bindgen-cli = { version = "0.2.128", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 
 [profile.dev.package]
 insta.opt-level = 3
 similar.opt-level = 3
-
-[profile.release.package.example_program]
-overflow-checks = true
-codegen-units = 1
-incremental = false
 
 [profile.release.build-override]
 opt-level = 3

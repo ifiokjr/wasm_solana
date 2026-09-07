@@ -86,7 +86,7 @@ mod tests {
 
 	#[test]
 	fn response() {
-		let raw_json = r#"{"jsonrpc":"2.0","result":[{"err":null,"memo":null,"signature":"5h6xBEauJ3PK6SWCZ1PGjBvj8vDdWG3KpwATGy1ARAXFSDwt8GFXM7W5Ncn16wmqokgpiKRLuS83KUxyZyv2sUYv","slot":114,"blockTime":null}],"id":1}"#;
+		let raw_json = r#"{"jsonrpc":"2.0","result":[{"err":null,"memo":null,"signature":"5h6xBEauJ3PK6SWCZ1PGjBvj8vDdWG3KpwATGy1ARAXFSDwt8GFXM7W5Ncn16wmqokgpiKRLuS83KUxyZyv2sUYv","slot":114,"blockTime":null,"index":0}],"id":1}"#;
 
 		let response: ClientResponse<GetSignaturesForAddressResponse> =
 			serde_json::from_str(raw_json).unwrap();
@@ -95,8 +95,11 @@ mod tests {
 			err: None,
 			memo: None,
 			slot: 114,
-			signature: "5h6xBEauJ3PK6SWCZ1PGjBvj8vDdWG3KpwATGy1ARAXFSDwt8GFXM7W5Ncn16wmqokgpiKRLuS83KUxyZyv2sUYv".parse().unwrap(),
-			confirmation_status: None
+			signature: "5h6xBEauJ3PK6SWCZ1PGjBvj8vDdWG3KpwATGy1ARAXFSDwt8GFXM7W5Ncn16wmqokgpiKRLuS83KUxyZyv2sUYv"
+				.parse()
+				.unwrap(),
+			index: 0,
+			confirmation_status: None,
 		};
 		check!(response.id == 1);
 		check!(response.jsonrpc == "2.0");

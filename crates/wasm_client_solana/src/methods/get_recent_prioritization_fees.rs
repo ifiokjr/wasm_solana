@@ -1,16 +1,24 @@
 use serde::Deserialize;
+use serde::Serializer;
 use serde_tuple::Serialize_tuple;
-use serde_with::DisplayFromStr;
-use serde_with::serde_as;
 use solana_pubkey::Pubkey;
 
 use crate::impl_http_method;
 use crate::rpc_response::RpcPrioritizationFee;
 
-#[serde_as]
+fn serialize_pubkey_strings<S: Serializer>(
+	accounts: &Option<Vec<Pubkey>>,
+	serializer: S,
+) -> Result<S::Ok, S::Error> {
+	match accounts {
+		Some(pubkeys) => serializer.collect_seq(pubkeys.iter().map(Pubkey::to_string)),
+		None => serializer.serialize_none(),
+	}
+}
+
 #[derive(Debug, Serialize_tuple)]
 pub struct GetRecentPrioritizationFeesRequest {
-	#[serde_as(as = "Option<Vec<DisplayFromStr>>")]
+	#[serde(serialize_with = "serialize_pubkey_strings")]
 	accounts: Option<Vec<Pubkey>>,
 }
 

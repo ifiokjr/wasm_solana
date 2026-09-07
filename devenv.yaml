@@ -1,5 +1,24 @@
+# yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
 inputs:
+  git-hooks:
+    url: github:cachix/git-hooks.nix
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
   nixpkgs:
+    # Pinned to the revision the CI runners can load: current nixpkgs-unstable
+    # builds every shared library against glibc 2.42, whose GLIBC_ABI_* symbols
+    # are missing from the ubuntu-24.04 runner image (glibc 2.39). The pinned
+    # revision uses glibc 2.40, so system-linked build scripts (bindgen in
+    # librocksdb-sys) can still load profile libraries. Bump only together
+    # with a runner image that carries glibc 2.42+.
+    url: github:NixOS/nixpkgs/a8d610af3f1a5fb71e23e08434d8d61a466fc942
+  ifiokjr-nixpkgs:
+    url: github:ifiokjr/nixpkgs
+  # cargo-audit in the pinned nixpkgs cannot parse CVSS 4.0 entries from the
+  # RustSec advisory database; source it from current nixpkgs instead. It is a
+  # self-contained nix binary, so the runner glibc does not matter.
+  nixpkgs-current:
     url: github:NixOS/nixpkgs/nixpkgs-unstable
   rust-overlay:
     url: github:oxalica/rust-overlay

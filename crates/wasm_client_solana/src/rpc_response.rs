@@ -610,6 +610,8 @@ pub struct RpcConfirmedTransactionStatusWithSignature {
 	pub err: Option<TransactionError>,
 	pub memo: Option<String>,
 	pub block_time: Option<UnixTimestamp>,
+	/// The transaction index within the block.
+	pub index: u32,
 	pub confirmation_status: Option<TransactionConfirmationStatus>,
 }
 
@@ -674,6 +676,7 @@ impl From<ConfirmedTransactionStatusWithSignature> for RpcConfirmedTransactionSt
 			err,
 			memo,
 			block_time,
+			index,
 		} = value;
 		Self {
 			signature,
@@ -681,6 +684,7 @@ impl From<ConfirmedTransactionStatusWithSignature> for RpcConfirmedTransactionSt
 			err,
 			memo,
 			block_time,
+			index,
 			confirmation_status: None,
 		}
 	}

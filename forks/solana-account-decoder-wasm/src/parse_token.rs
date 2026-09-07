@@ -184,11 +184,13 @@ mod test {
 	use spl_token_2022_interface::extension::interest_bearing_mint::InterestBearingConfig;
 	use spl_token_2022_interface::extension::memo_transfer::MemoTransfer;
 	use spl_token_2022_interface::extension::mint_close_authority::MintCloseAuthority;
+	use spl_token_2022_interface::extension::permissioned_burn::PermissionedBurnConfig;
 	use spl_token_2022_interface::extension::scaled_ui_amount::ScaledUiAmountConfig;
 
 	use super::*;
 	use crate::parse_token_extension::UiMemoTransfer;
 	use crate::parse_token_extension::UiMintCloseAuthority;
+	use crate::parse_token_extension::UiPermissionedBurnConfig;
 
 	const INT_SECONDS_PER_YEAR: i64 = 6 * 6 * 24 * 36524;
 
@@ -253,14 +255,14 @@ mod test {
 			}),
 		);
 
-		let first_signer = Pubkey::new_from_array([1; 32]);
-		let second_signer = Pubkey::new_from_array([2; 32]);
-		let third_signer = Pubkey::new_from_array([3; 32]);
+		let signer1 = Pubkey::new_from_array([1; 32]);
+		let signer2 = Pubkey::new_from_array([2; 32]);
+		let signer3 = Pubkey::new_from_array([3; 32]);
 		let mut multisig_data = vec![0; Multisig::get_packed_len()];
 		let mut signers = [Pubkey::default(); 11];
-		signers[0] = first_signer;
-		signers[1] = second_signer;
-		signers[2] = third_signer;
+		signers[0] = signer1;
+		signers[1] = signer2;
+		signers[2] = signer3;
 		let mut multisig = Multisig::unpack_unchecked(&multisig_data).unwrap();
 		multisig.m = 2;
 		multisig.n = 3;
@@ -275,9 +277,9 @@ mod test {
 				num_valid_signers: 3,
 				is_initialized: true,
 				signers: vec![
-					first_signer.to_string(),
-					second_signer.to_string(),
-					third_signer.to_string()
+					signer1.to_string(),
+					signer2.to_string(),
+					signer3.to_string()
 				],
 			}),
 		);
@@ -330,7 +332,7 @@ mod test {
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(1, 9)
 		);
-		assert_eq!(token_amount.ui_amount, Some(0.000_000_001));
+		assert_eq!(token_amount.ui_amount, Some(0.000000001));
 		assert_eq!(&real_number_string(1_000_000_000, 9), "1.000000000");
 		assert_eq!(&real_number_string_trimmed(1_000_000_000, 9), "1");
 		let token_amount = token_amount_to_ui_amount_v3(
@@ -352,7 +354,7 @@ mod test {
 			token_amount.ui_amount_string,
 			real_number_string_trimmed(1_234_567_890, 3)
 		);
-		assert_eq!(token_amount.ui_amount, Some(1_234_567.89));
+		assert_eq!(token_amount.ui_amount, Some(1234567.89));
 		assert_eq!(
 			&real_number_string(1_234_567_890, 25),
 			"0.0000000000000001234567890"
@@ -395,18 +397,14 @@ mod test {
 				.ui_amount_string
 				.starts_with("1.051271096376024117")
 		);
-		assert!(
-			(token_amount.ui_amount.unwrap() - 1.051_271_096_376_024_1_f64).abs() < f64::EPSILON
-		);
+		assert!((token_amount.ui_amount.unwrap() - 1.0512710963760241f64).abs() < f64::EPSILON);
 		let token_amount = token_amount_to_ui_amount_v3(TEN, &additional_data);
 		assert!(
 			token_amount
 				.ui_amount_string
 				.starts_with("10.512710963760241611")
 		);
-		assert!(
-			(token_amount.ui_amount.unwrap() - 10.512_710_963_760_242_f64).abs() < f64::EPSILON
-		);
+		assert!((token_amount.ui_amount.unwrap() - 10.512710963760242f64).abs() < f64::EPSILON);
 
 		// huge case
 		let config = InterestBearingConfig {
@@ -634,7 +632,8 @@ mod test {
 		let mint_close_authority = mint_state
 			.init_extension::<MintCloseAuthority>(true)
 			.unwrap();
-		mint_close_authority.close_authority = Some(owner_pubkey).try_into().unwrap();
+		mint_close_authority.close_authority = owner_pubkey.into();
+
 		mint_state.base = mint_base;
 		mint_state.pack_base();
 		mint_state.init_account_type().unwrap();
@@ -650,6 +649,50 @@ mod test {
 				extensions: vec![UiExtension::MintCloseAuthority(UiMintCloseAuthority {
 					close_authority: Some(owner_pubkey.to_string()),
 				})],
+			}),
+		);
+	}
+
+	#[test]
+	fn test_parse_token_mint_with_permissioned_burn() {
+		let owner_pubkey = Pubkey::new_from_array([3; 32]);
+		let authority_pubkey = Pubkey::new_from_array([4; 32]);
+		let mint_size =
+			ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::PermissionedBurn])
+				.unwrap();
+		let mint_base = Mint {
+			mint_authority: COption::Some(owner_pubkey),
+			supply: 42,
+			decimals: 3,
+			is_initialized: true,
+			freeze_authority: COption::Some(owner_pubkey),
+		};
+		let mut mint_data = vec![0; mint_size];
+		let mut mint_state =
+			StateWithExtensionsMut::<Mint>::unpack_uninitialized(&mut mint_data).unwrap();
+
+		let permissioned_burn = mint_state
+			.init_extension::<PermissionedBurnConfig>(true)
+			.unwrap();
+		permissioned_burn.authority = authority_pubkey.into();
+
+		mint_state.base = mint_base;
+		mint_state.pack_base();
+		mint_state.init_account_type().unwrap();
+
+		assert_eq!(
+			parse_token_v3(&mint_data, None).unwrap(),
+			TokenAccountType::Mint(UiMint {
+				mint_authority: Some(owner_pubkey.to_string()),
+				supply: 42.to_string(),
+				decimals: 3,
+				is_initialized: true,
+				freeze_authority: Some(owner_pubkey.to_string()),
+				extensions: vec![UiExtension::PermissionedBurnConfig(
+					UiPermissionedBurnConfig {
+						authority: Some(authority_pubkey.to_string()),
+					}
+				)],
 			}),
 		);
 	}

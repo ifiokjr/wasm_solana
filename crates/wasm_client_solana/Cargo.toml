@@ -6,6 +6,7 @@ categories = ["wasm", "web-programming"]
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
+publish = false
 readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
@@ -52,7 +53,6 @@ solana-account-decoder-wasm = { workspace = true, default-features = true }
 solana-address-lookup-table-interface = { workspace = true, default-features = true, features = ["serde"] }
 solana-clock = { workspace = true, default-features = true }
 solana-commitment-config = { workspace = true, default-features = true, features = ["serde"] }
-solana-compute-budget = { workspace = true, default-features = true }
 solana-compute-budget-interface = { workspace = true, default-features = true, features = ["serde"] }
 solana-epoch-info = { workspace = true, default-features = true }
 solana-epoch-schedule = { workspace = true, default-features = true }
@@ -68,7 +68,6 @@ solana-sdk-ids = { workspace = true, default-features = true }
 solana-signature = { workspace = true, default-features = true }
 solana-signer = { workspace = true, default-features = true }
 solana-system-interface = { workspace = true, default-features = true }
-solana-system-program = { workspace = true, default-features = true }
 solana-transaction = { workspace = true, default-features = true }
 solana-transaction-error = { workspace = true, default-features = true }
 solana-transaction-status-client-types-wasm = { workspace = true }
@@ -108,3 +107,6 @@ wasm-bindgen-test = { workspace = true, default-features = true }
 js = ["futures-timer/wasm-bindgen", "getrandom/wasm_js"]
 ssr = ["dep:reqwest", "dep:reqwest-websocket", "dep:tokio"]
 zstd = ["ssr", "dep:zstd"]
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom-04 = { default-features = false, features = ["wasm_js"], package = "getrandom", version = "^0.4" }

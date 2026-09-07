@@ -184,7 +184,8 @@ mod tests {
 						"Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri success".to_string()
 					]),
 					return_data: Some(UiTransactionReturnData {
-						program_id: pubkey!("83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri"),
+						program_id: pubkey!("83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri")
+							.to_string(),
 						data: ("Kg==".to_string(), UiReturnDataEncoding::Base64)
 					}),
 					units_consumed: Some(2366)

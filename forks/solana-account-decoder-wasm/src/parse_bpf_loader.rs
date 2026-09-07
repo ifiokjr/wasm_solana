@@ -24,8 +24,9 @@ pub fn parse_bpf_upgradeable_loader(
 			let offset = if authority_address.is_some() {
 				UpgradeableLoaderState::size_of_buffer_metadata()
 			} else {
-				// This case included for code completeness; in practice, a Buffer account will
-				// always have authority_address.is_some()
+				// This case included for code completeness; in practice, a
+				// Buffer account will always have
+				// authority_address.is_some()
 				UpgradeableLoaderState::size_of_buffer_metadata()
 					- serialized_size(&Pubkey::default()).unwrap() as usize
 			};
@@ -132,8 +133,8 @@ mod test {
 			})
 		);
 
-		// This case included for code completeness; in practice, a Buffer account will
-		// always have authority_address.is_some()
+		// This case included for code completeness; in practice, a Buffer
+		// account will always have authority_address.is_some()
 		let bpf_loader_state = UpgradeableLoaderState::Buffer {
 			authority_address: None,
 		};

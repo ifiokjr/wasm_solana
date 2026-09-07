@@ -21,7 +21,7 @@ use solana_message::v0;
 use solana_native_token::sol_str_to_lamports;
 use solana_program_option::COption;
 use solana_program_pack::Pack;
-use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
+use solana_program_runtime::invoke_context::BuiltinFunctionRegisterer;
 use solana_program_test::BanksTransactionResultWithMetadata;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
@@ -199,7 +199,7 @@ pub trait ProgramTestExtension {
 		program_name: &'static str,
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
-		process_instruction: Option<BuiltinFunctionWithContext>,
+		process_instruction: Option<BuiltinFunctionRegisterer>,
 	);
 	/// Adds a BPF program to the test environment.
 	/// The program is upgradeable if `Some` `program_authority` and then
@@ -212,7 +212,7 @@ pub trait ProgramTestExtension {
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
 		program_data: Pubkey,
-		process_instruction: Option<BuiltinFunctionWithContext>,
+		process_instruction: Option<BuiltinFunctionRegisterer>,
 	);
 }
 
@@ -360,7 +360,7 @@ impl ProgramTestExtension for ProgramTest {
 		program_name: &'static str,
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
-		process_instruction: Option<BuiltinFunctionWithContext>,
+		process_instruction: Option<BuiltinFunctionRegisterer>,
 	) {
 		if let Some(program_authority) = program_authority {
 			let program_file =
@@ -434,7 +434,7 @@ impl ProgramTestExtension for ProgramTest {
 		program_id: Pubkey,
 		program_authority: Option<Pubkey>,
 		program_data_pubkey: Pubkey,
-		process_instruction: Option<BuiltinFunctionWithContext>,
+		process_instruction: Option<BuiltinFunctionRegisterer>,
 	) {
 		if let Some(program_authority) = program_authority {
 			let program_file =

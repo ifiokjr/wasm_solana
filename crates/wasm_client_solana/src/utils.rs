@@ -32,11 +32,11 @@ pub(crate) fn get_ws_url(url: impl Into<String>) -> String {
 
 		// Increase the port number by 1 if the port is specified
 		let last_index = url.rfind(':').unwrap();
-		if last_index != first_index {
-			if let Some(Ok(mut port)) = url.get(last_index + 1..).map(str::parse::<u16>) {
-				port += 1;
-				url.replace_range(last_index + 1.., &port.to_string());
-			}
+		if last_index != first_index
+			&& let Some(Ok(mut port)) = url.get(last_index + 1..).map(str::parse::<u16>)
+		{
+			port += 1;
+			url.replace_range(last_index + 1.., &port.to_string());
 		}
 	}
 
