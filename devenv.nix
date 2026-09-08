@@ -155,12 +155,32 @@ in
   dotenv.disableHint = true;
 
   scripts = {
-    "knope" = {
+    "release:change" = {
       exec = ''
-        set -e
-        cargo bin knope $@
+        set -euo pipefail
+        monochange run change $@
       '';
-      description = "The `knope` executable";
+      description = "Create a changeset for the next release. Pass --package <name> --reason <text> and --bump <patch|minor|major>.";
+    };
+    "release:local" = {
+      exec = ''
+        set -euo pipefail
+        # Runs the same steps as the CI release-pr workflow: PrepareRelease,
+        # format, CommitRelease and (unless --create-pr=false) OpenReleaseRequest.
+        monochange run release $@
+      '';
+      description = "Run the release flow locally to prepare, commit and open the release pull request.";
+    };
+    "publish:local" = {
+      exec = ''
+        set -euo pipefail
+        # Escape hatch when CI publishing fails: verifies publish readiness
+        # from the release record, then publishes every package with the local
+        # cargo credentials (CARGO_REGISTRY_TOKEN or ~/.cargo/credentials).
+        monochange step publish-readiness --from HEAD --format json
+        monochange step publish-packages --log-level info --all
+      '';
+      description = "Publish the prepared release locally from the current release commit.";
     };
     "wasm-bindgen-test-runner" = {
       exec = ''
@@ -266,23 +286,9 @@ in
     "security:audit" = {
       exec = ''
         set -euo pipefail
-        # The advisory DB lives inside the cached target dir; a stale or partial
-        # clone from a cache restore makes cargo-audit refuse to (re)initialize
-        # it. Remove it so the clone always starts fresh.
-        rm -rf "$DEVENV_ROOT/target/advisory-db-audit"
-        # Ignore validator-stack advisories: these crates only run inside the
-        # host-side solana-test-validator harness and are never part of any
-        # published client API surface.
-        cargo-audit audit \
-          --db "$DEVENV_ROOT/target/advisory-db-audit" \
-          --url "https://github.com/RustSec/advisory-db.git" \
-          --deny yanked \
-          --ignore RUSTSEC-2022-0093 \
-          --ignore RUSTSEC-2024-0344 \
-          --ignore RUSTSEC-2024-0421 \
-          --file "$DEVENV_ROOT/Cargo.lock"
+        cargo audit --file Cargo.lock
       '';
-      description = "Run RustSec advisory audit for Cargo.lock.";
+      description = "Audit Rust dependencies against the RustSec advisory database.";
     };
     "security:zizmor" = {
       exec = ''
@@ -322,10 +328,18 @@ in
       '';
       description = "Fix clippy lints for rust.";
     };
+    "lint:monochange" = {
+      exec = ''
+        set -euo pipefail
+        monochange check
+      '';
+      description = "Validate monochange release metadata.";
+    };
     "lint:all" = {
       exec = ''
         set -e
         lint:clippy
+        lint:monochange
         lint:format
       '';
       description = "Run all checks.";
