@@ -1,0 +1,19 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## forks [4.0.0](https://github.com/pina-rs/wasm_solana/releases/tag/forks/v4.0.0) (2026-09-08)
+
+Grouped release for `forks`.
+
+### Breaking Changes
+
+#### Update Solana dependencies to Agave 4.x
+
+_Packages:_ _solana-account-decoder-client-types-wasm_, _solana-account-decoder-wasm_, _solana-transaction-status-client-types-wasm_, _solana-transaction-status-wasm_
+
+Move every Solana crate to the latest stable Agave 4.2 family, regenerate the wasm forks from `solana-account-decoder` / `solana-transaction-status` 4.2 sources, depend on `wallet_standard` 0.6, raise the MSRV to 1.89.0 and the pinned toolchain to 1.98.1. The forks re-version to 4.2.0 to mirror the upstream Agave family, and the workspace crates unify on a single release version.
+
+_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #128](https://github.com/pina-rs/wasm_solana/pull/128) · _Related issues:_ [#126](https://github.com/pina-rs/wasm_solana/issues/126)
