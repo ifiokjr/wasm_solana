@@ -1,0 +1,423 @@
+{
+	"schema_version": "0.5",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-09-08T05:08:11Z",
+	"command": "release",
+	"version": null,
+	"versions": {
+		"core": "0.11.1",
+		"forks": "4.0.1"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.11.1",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.11.1",
+			"members": [
+				"memory_wallet",
+				"test_utils_insta",
+				"test_utils_keypairs",
+				"test_utils_solana",
+				"wasm_client_solana"
+			]
+		},
+		{
+			"id": "forks",
+			"kind": "group",
+			"version": "4.0.1",
+			"version_format": "namespaced",
+			"tag": false,
+			"release": true,
+			"tag_name": "forks/v4.0.1",
+			"members": [
+				"solana-account-decoder-client-types-wasm",
+				"solana-account-decoder-wasm",
+				"solana-transaction-status-client-types-wasm",
+				"solana-transaction-status-wasm"
+			]
+		}
+	],
+	"released_packages": [
+		"memory_wallet",
+		"solana-account-decoder-client-types-wasm",
+		"solana-account-decoder-wasm",
+		"solana-transaction-status-client-types-wasm",
+		"solana-transaction-status-wasm",
+		"test_utils_insta",
+		"test_utils_keypairs",
+		"test_utils_solana",
+		"wasm_client_solana"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/memory_wallet/Cargo.toml",
+		"crates/test_utils_insta/Cargo.toml",
+		"crates/test_utils_keypairs/Cargo.toml",
+		"crates/test_utils_solana/Cargo.toml",
+		"crates/wasm_client_solana/Cargo.toml",
+		"forks/changelog.md",
+		"forks/solana-account-decoder-client-types-wasm/Cargo.toml",
+		"forks/solana-account-decoder-wasm/Cargo.toml",
+		"forks/solana-transaction-status-client-types-wasm/Cargo.toml",
+		"forks/solana-transaction-status-wasm/Cargo.toml"
+	],
+	"package_publications": [
+		{
+			"package": "memory_wallet",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.11.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "solana-account-decoder-client-types-wasm",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "4.0.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "solana-account-decoder-wasm",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "4.0.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "solana-transaction-status-client-types-wasm",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "4.0.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "solana-transaction-status-wasm",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "4.0.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "test_utils_insta",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.11.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "test_utils_keypairs",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.11.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "test_utils_solana",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.11.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "wasm_client_solana",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.11.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wasm_solana",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		}
+	],
+	"updated_changelogs": [
+		"changelog.md",
+		"forks/changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/republish-workspace-crates.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/republish-workspace-crates.md",
+			"summary": "Mark the workspace crates as publishable",
+			"details": "The v0.11.0 release record had no package publications because every crate manifest still carried `publish = false` from the knope era; crates.io never received the versioned crates. With `publish = true` restored this release publishes the already-versioned crates.",
+			"targets": [
+				{
+					"id": "memory_wallet",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "test_utils_insta",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "test_utils_keypairs",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "test_utils_solana",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "wasm_client_solana",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "solana-account-decoder-client-types-wasm",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "solana-account-decoder-wasm",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "solana-transaction-status-client-types-wasm",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "solana-transaction-status-wasm",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "2c37ab5d2c3ce88445ac7048840c37d948180f1d",
+						"short_sha": "2c37ab5",
+						"url": "https://github.com/pina-rs/wasm_solana/commit/2c37ab5d2c3ce88445ac7048840c37d948180f1d",
+						"authored_at": "2026-09-08T05:58:16+01:00",
+						"committed_at": "2026-09-08T05:58:16+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#139",
+						"title": "chore: add changeset to republish the versioned workspace crates",
+						"url": "https://github.com/pina-rs/wasm_solana/pull/139",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "2c37ab5d2c3ce88445ac7048840c37d948180f1d",
+						"short_sha": "2c37ab5",
+						"url": "https://github.com/pina-rs/wasm_solana/commit/2c37ab5d2c3ce88445ac7048840c37d948180f1d",
+						"authored_at": "2026-09-08T05:58:16+01:00",
+						"committed_at": "2026-09-08T05:58:16+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#139",
+						"title": "chore: add changeset to republish the versioned workspace crates",
+						"url": "https://github.com/pina-rs/wasm_solana/pull/139",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.11.1](https://github.com/pina-rs/wasm_solana/releases/tag/v0.11.1) (2026-09-08)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Fixes",
+						"collapsed": false,
+						"entries": [
+							"#### Mark the workspace crates as publishable\n_Packages:_ _memory_wallet_, _test_utils_insta_, _test_utils_keypairs_, _test_utils_solana_, _wasm_client_solana_\n\nThe v0.11.0 release record had no package publications because every crate manifest still carried `publish = false` from the knope era; crates.io never received the versioned crates. With `publish = true` restored this release publishes the already-versioned crates.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #139](https://github.com/pina-rs/wasm_solana/pull/139)"
+						]
+					}
+				]
+			},
+			"rendered": "## [0.11.1](https://github.com/pina-rs/wasm_solana/releases/tag/v0.11.1) (2026-09-08)\n\nGrouped release for `core`.\n### Fixes\n\n#### Mark the workspace crates as publishable\n_Packages:_ _memory_wallet_, _test_utils_insta_, _test_utils_keypairs_, _test_utils_solana_, _wasm_client_solana_\n\nThe v0.11.0 release record had no package publications because every crate manifest still carried `publish = false` from the knope era; crates.io never received the versioned crates. With `publish = true` restored this release publishes the already-versioned crates.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #139](https://github.com/pina-rs/wasm_solana/pull/139)"
+		},
+		{
+			"owner_id": "forks",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "forks/changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "forks [4.0.1](https://github.com/pina-rs/wasm_solana/releases/tag/forks/v4.0.1) (2026-09-08)",
+				"summary": [
+					"Grouped release for `forks`."
+				],
+				"sections": [
+					{
+						"title": "Fixes",
+						"collapsed": false,
+						"entries": [
+							"#### Mark the workspace crates as publishable\n_Packages:_ _solana-account-decoder-client-types-wasm_, _solana-account-decoder-wasm_, _solana-transaction-status-client-types-wasm_, _solana-transaction-status-wasm_\n\nThe v0.11.0 release record had no package publications because every crate manifest still carried `publish = false` from the knope era; crates.io never received the versioned crates. With `publish = true` restored this release publishes the already-versioned crates.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #139](https://github.com/pina-rs/wasm_solana/pull/139)"
+						]
+					}
+				]
+			},
+			"rendered": "## forks [4.0.1](https://github.com/pina-rs/wasm_solana/releases/tag/forks/v4.0.1) (2026-09-08)\n\nGrouped release for `forks`.\n### Fixes\n\n#### Mark the workspace crates as publishable\n_Packages:_ _solana-account-decoder-client-types-wasm_, _solana-account-decoder-wasm_, _solana-transaction-status-client-types-wasm_, _solana-transaction-status-wasm_\n\nThe v0.11.0 release record had no package publications because every crate manifest still carried `publish = false` from the knope era; crates.io never received the versioned crates. With `publish = true` restored this release publishes the already-versioned crates.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #139](https://github.com/pina-rs/wasm_solana/pull/139)"
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wasm_solana",
+		"host": null
+	}
+}
