@@ -80,7 +80,7 @@ jobs:
             --from HEAD \
             --output "$RUNNER_TEMP/publish-readiness.json" \
             --format json
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
 
       - name: publish packages with monochange
         env:
@@ -95,7 +95,7 @@ jobs:
             --all \
             --output "$RUNNER_TEMP/publish-result.json" \
             --format json
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
 
       - name: publish draft release
         env:

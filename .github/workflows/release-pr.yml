@@ -66,7 +66,7 @@ jobs:
           fi
 
           echo "is_release_commit=false" >> "$GITHUB_OUTPUT"
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
 
       - name: detect pending changesets
         id: pending_changesets
@@ -105,7 +105,7 @@ jobs:
             exit 1
           fi
           printf '%s\n' "$output"
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
 
       - name: skip refresh without changesets
         if: steps.release_record.outputs.is_release_commit != 'true' && steps.pending_changesets.outputs.has_changesets != 'true'
@@ -156,7 +156,7 @@ jobs:
         run: |
           set -euo pipefail
           monochange --log-level=debug step tag-release --from HEAD --push=true --format json | tee /tmp/tag-report.json
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
 
       - name: create draft releases
         env:
@@ -164,7 +164,7 @@ jobs:
         run: |
           set -euo pipefail
           monochange --log-level=debug step publish-release --from-ref="HEAD" --draft --format json
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
 
       # A tag pushed with GITHUB_TOKEN does not trigger another workflow. Use
       # workflow_dispatch explicitly so publish.yml always receives the release.
@@ -194,7 +194,7 @@ jobs:
               --ref main \
               --field "tag=$tag"
           done
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
 
       - name: comment on released issues
         env:
@@ -202,4 +202,4 @@ jobs:
         run: |
           set -euo pipefail
           monochange --log-level=debug step comment-released-issues --from-ref="HEAD" --auto-close-issues
-        shell: devenv shell -c -- bash -e {0}
+        shell: devenv shell -- bash -e {0}
