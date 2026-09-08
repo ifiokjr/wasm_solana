@@ -4141,7 +4141,7 @@ dependencies = [
 
 [[package]]
 name = "memory_wallet"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "assert2",
@@ -6409,7 +6409,7 @@ dependencies = [
 
 [[package]]
 name = "solana-account-decoder-client-types-wasm"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -6425,7 +6425,7 @@ dependencies = [
 
 [[package]]
 name = "solana-account-decoder-wasm"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "Inflector",
  "assert_matches",
@@ -9890,7 +9890,7 @@ dependencies = [
 
 [[package]]
 name = "solana-transaction-status-client-types-wasm"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -9918,7 +9918,7 @@ dependencies = [
 
 [[package]]
 name = "solana-transaction-status-wasm"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "Inflector",
  "agave-reserved-account-keys",
@@ -10892,7 +10892,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils_insta"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "assert2",
@@ -10901,14 +10901,14 @@ dependencies = [
 
 [[package]]
 name = "test_utils_keypairs"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "solana-keypair",
 ]
 
 [[package]]
 name = "test_utils_solana"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "assert2",
@@ -11912,7 +11912,7 @@ checksum = "f37b4f992cebe528ef34964ae69681ac0fe7080071e7298e46008f9d380302af"
 
 [[package]]
 name = "wasm_client_solana"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "assert2",
