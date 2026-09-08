@@ -1,0 +1,427 @@
+{
+	"schema_version": "0.5",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-09-08T01:37:24Z",
+	"command": "release",
+	"version": null,
+	"versions": {
+		"core": "0.11.0",
+		"forks": "4.0.0"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.11.0",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.11.0",
+			"members": [
+				"memory_wallet",
+				"test_utils_insta",
+				"test_utils_keypairs",
+				"test_utils_solana",
+				"wasm_client_solana"
+			]
+		},
+		{
+			"id": "forks",
+			"kind": "group",
+			"version": "4.0.0",
+			"version_format": "namespaced",
+			"tag": false,
+			"release": true,
+			"tag_name": "forks/v4.0.0",
+			"members": [
+				"solana-account-decoder-client-types-wasm",
+				"solana-account-decoder-wasm",
+				"solana-transaction-status-client-types-wasm",
+				"solana-transaction-status-wasm"
+			]
+		}
+	],
+	"released_packages": [
+		"memory_wallet",
+		"solana-account-decoder-client-types-wasm",
+		"solana-account-decoder-wasm",
+		"solana-transaction-status-client-types-wasm",
+		"solana-transaction-status-wasm",
+		"test_utils_insta",
+		"test_utils_keypairs",
+		"test_utils_solana",
+		"wasm_client_solana"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/memory_wallet/Cargo.toml",
+		"crates/test_utils_insta/Cargo.toml",
+		"crates/test_utils_keypairs/Cargo.toml",
+		"crates/test_utils_solana/Cargo.toml",
+		"crates/wasm_client_solana/Cargo.toml",
+		"forks/changelog.md",
+		"forks/solana-account-decoder-client-types-wasm/Cargo.toml",
+		"forks/solana-account-decoder-wasm/Cargo.toml",
+		"forks/solana-transaction-status-client-types-wasm/Cargo.toml",
+		"forks/solana-transaction-status-wasm/Cargo.toml"
+	],
+	"package_publications": [],
+	"updated_changelogs": [
+		"changelog.md",
+		"forks/changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/agave-4-and-wallet-standard-6.md",
+		".changeset/fix-wasm-streams.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/agave-4-and-wallet-standard-6.md",
+			"summary": "Update Solana dependencies to Agave 4.x",
+			"details": "Move every Solana crate to the latest stable Agave 4.2 family, regenerate the wasm forks from `solana-account-decoder` / `solana-transaction-status` 4.2 sources, depend on `wallet_standard` 0.6, raise the MSRV to 1.89.0 and the pinned toolchain to 1.98.1. The forks re-version to 4.2.0 to mirror the upstream Agave family, and the workspace crates unify on a single release version.",
+			"targets": [
+				{
+					"id": "memory_wallet",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "test_utils_insta",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "test_utils_keypairs",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "test_utils_solana",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "wasm_client_solana",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "solana-account-decoder-client-types-wasm",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "solana-account-decoder-wasm",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "solana-transaction-status-client-types-wasm",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "solana-transaction-status-wasm",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "c0a493d5117c7be6d83b1f028385fd6c2556dc78",
+						"short_sha": "c0a493d",
+						"url": "https://github.com/pina-rs/wasm_solana/commit/c0a493d5117c7be6d83b1f028385fd6c2556dc78",
+						"authored_at": "2026-09-08T00:30:47+01:00",
+						"committed_at": "2026-09-08T00:30:47+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#128",
+						"title": "feat: update Solana dependencies to the Agave 4.2 family",
+						"url": "https://github.com/pina-rs/wasm_solana/pull/128",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "e5c18cae6e439117a20d8ec5405de27f32b61325",
+						"short_sha": "e5c18ca",
+						"url": "https://github.com/pina-rs/wasm_solana/commit/e5c18cae6e439117a20d8ec5405de27f32b61325",
+						"authored_at": "2026-09-08T01:45:55+01:00",
+						"committed_at": "2026-09-08T01:45:55+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#130",
+						"title": "build: manage releases with monochange",
+						"url": "https://github.com/pina-rs/wasm_solana/pull/130",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": [
+					{
+						"provider": "github",
+						"host": "github.com",
+						"id": "#126",
+						"title": null,
+						"url": "https://github.com/pina-rs/wasm_solana/issues/126",
+						"relationship": "referenced_by_review_request"
+					}
+				]
+			}
+		},
+		{
+			"path": ".changeset/fix-wasm-streams.md",
+			"summary": "Remove unused runtime dependencies from the wasm graph",
+			"details": "Drop `solana-compute-budget` and `solana-system-program` from `wasm_client_solana`: they were unused and pulled `solana-program-runtime`, which cannot compile on wasm32-unknown-unknown.",
+			"targets": [
+				{
+					"id": "wasm_client_solana",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "c0a493d5117c7be6d83b1f028385fd6c2556dc78",
+						"short_sha": "c0a493d",
+						"url": "https://github.com/pina-rs/wasm_solana/commit/c0a493d5117c7be6d83b1f028385fd6c2556dc78",
+						"authored_at": "2026-09-08T00:30:47+01:00",
+						"committed_at": "2026-09-08T00:30:47+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#128",
+						"title": "feat: update Solana dependencies to the Agave 4.2 family",
+						"url": "https://github.com/pina-rs/wasm_solana/pull/128",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "c0a493d5117c7be6d83b1f028385fd6c2556dc78",
+						"short_sha": "c0a493d",
+						"url": "https://github.com/pina-rs/wasm_solana/commit/c0a493d5117c7be6d83b1f028385fd6c2556dc78",
+						"authored_at": "2026-09-08T00:30:47+01:00",
+						"committed_at": "2026-09-08T00:30:47+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#128",
+						"title": "feat: update Solana dependencies to the Agave 4.2 family",
+						"url": "https://github.com/pina-rs/wasm_solana/pull/128",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.11.0](https://github.com/pina-rs/wasm_solana/releases/tag/v0.11.0) (2026-09-08)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Breaking Changes",
+						"collapsed": false,
+						"entries": [
+							"#### Update Solana dependencies to Agave 4.x\n_Packages:_ _memory_wallet_, _test_utils_insta_, _test_utils_keypairs_, _test_utils_solana_, _wasm_client_solana_\n\nMove every Solana crate to the latest stable Agave 4.2 family, regenerate the wasm forks from `solana-account-decoder` / `solana-transaction-status` 4.2 sources, depend on `wallet_standard` 0.6, raise the MSRV to 1.89.0 and the pinned toolchain to 1.98.1. The forks re-version to 4.2.0 to mirror the upstream Agave family, and the workspace crates unify on a single release version.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #128](https://github.com/pina-rs/wasm_solana/pull/128) · _Related issues:_ [#126](https://github.com/pina-rs/wasm_solana/issues/126)"
+						]
+					},
+					{
+						"title": "Fixes",
+						"collapsed": false,
+						"entries": [
+							"#### Remove unused runtime dependencies from the wasm graph\n_Packages:_ _wasm_client_solana_\n\nDrop `solana-compute-budget` and `solana-system-program` from `wasm_client_solana`: they were unused and pulled `solana-program-runtime`, which cannot compile on wasm32-unknown-unknown.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #128](https://github.com/pina-rs/wasm_solana/pull/128)"
+						]
+					}
+				]
+			},
+			"rendered": "## [0.11.0](https://github.com/pina-rs/wasm_solana/releases/tag/v0.11.0) (2026-09-08)\n\nGrouped release for `core`.\n### Breaking Changes\n\n#### Update Solana dependencies to Agave 4.x\n_Packages:_ _memory_wallet_, _test_utils_insta_, _test_utils_keypairs_, _test_utils_solana_, _wasm_client_solana_\n\nMove every Solana crate to the latest stable Agave 4.2 family, regenerate the wasm forks from `solana-account-decoder` / `solana-transaction-status` 4.2 sources, depend on `wallet_standard` 0.6, raise the MSRV to 1.89.0 and the pinned toolchain to 1.98.1. The forks re-version to 4.2.0 to mirror the upstream Agave family, and the workspace crates unify on a single release version.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #128](https://github.com/pina-rs/wasm_solana/pull/128) · _Related issues:_ [#126](https://github.com/pina-rs/wasm_solana/issues/126)\n\n### Fixes\n\n#### Remove unused runtime dependencies from the wasm graph\n_Packages:_ _wasm_client_solana_\n\nDrop `solana-compute-budget` and `solana-system-program` from `wasm_client_solana`: they were unused and pulled `solana-program-runtime`, which cannot compile on wasm32-unknown-unknown.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #128](https://github.com/pina-rs/wasm_solana/pull/128)"
+		},
+		{
+			"owner_id": "forks",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "forks/changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "forks [4.0.0](https://github.com/pina-rs/wasm_solana/releases/tag/forks/v4.0.0) (2026-09-08)",
+				"summary": [
+					"Grouped release for `forks`."
+				],
+				"sections": [
+					{
+						"title": "Breaking Changes",
+						"collapsed": false,
+						"entries": [
+							"#### Update Solana dependencies to Agave 4.x\n_Packages:_ _solana-account-decoder-client-types-wasm_, _solana-account-decoder-wasm_, _solana-transaction-status-client-types-wasm_, _solana-transaction-status-wasm_\n\nMove every Solana crate to the latest stable Agave 4.2 family, regenerate the wasm forks from `solana-account-decoder` / `solana-transaction-status` 4.2 sources, depend on `wallet_standard` 0.6, raise the MSRV to 1.89.0 and the pinned toolchain to 1.98.1. The forks re-version to 4.2.0 to mirror the upstream Agave family, and the workspace crates unify on a single release version.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #128](https://github.com/pina-rs/wasm_solana/pull/128) · _Related issues:_ [#126](https://github.com/pina-rs/wasm_solana/issues/126)"
+						]
+					}
+				]
+			},
+			"rendered": "## forks [4.0.0](https://github.com/pina-rs/wasm_solana/releases/tag/forks/v4.0.0) (2026-09-08)\n\nGrouped release for `forks`.\n### Breaking Changes\n\n#### Update Solana dependencies to Agave 4.x\n_Packages:_ _solana-account-decoder-client-types-wasm_, _solana-account-decoder-wasm_, _solana-transaction-status-client-types-wasm_, _solana-transaction-status-wasm_\n\nMove every Solana crate to the latest stable Agave 4.2 family, regenerate the wasm forks from `solana-account-decoder` / `solana-transaction-status` 4.2 sources, depend on `wallet_standard` 0.6, raise the MSRV to 1.89.0 and the pinned toolchain to 1.98.1. The forks re-version to 4.2.0 to mirror the upstream Agave family, and the workspace crates unify on a single release version.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #128](https://github.com/pina-rs/wasm_solana/pull/128) · _Related issues:_ [#126](https://github.com/pina-rs/wasm_solana/issues/126)"
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wasm_solana",
+		"host": null
+	}
+}
