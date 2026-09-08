@@ -36,7 +36,7 @@ Releases are planned by [MonoChange](https://github.com/pina-rs/monochange):
 
 3. **Publish** — merging the release PR tags the release, creates the draft GitHub release and dispatches the `publish` workflow, which publishes every package in dependency order using crates.io **trusted publishing** (OIDC, `environment: publisher`). No registry tokens are stored in the repository.
 
-All nine publishable crates (five workspace crates plus four forks) version together as a single release group: the forks move in lockstep with the client so the wasm stack never mixes Agave families.
+The five workspace crates version together as one release group (they share `workspace.package.version`), so the client and test utilities always ship as a matched set. The four `solana-*-wasm` forks version independently (group `forks`): they carry their own semver train so an Agave family bump can move them a full major (3.0.x → 4.0.0) while the workspace crates bump separately. Both groups publish in the same release flow and publish order respects the dependency graph (client-types forks first, then the decoders, then the client).
 
 ## Publishing locally
 

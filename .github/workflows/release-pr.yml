@@ -1,0 +1,205 @@
+name: release-pr
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  create:
+    if: github.repository_owner == 'pina-rs'
+    outputs:
+      is_release_commit: ${{ steps.release_record.outputs.is_release_commit }}
+    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: configure release git credentials
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        shell: bash
+
+      - name: refresh tags from origin
+        run: git fetch --force --tags origin
+        shell: bash
+
+      - name: detect current release commit
+        id: release_record
+        run: |
+          set -euo pipefail
+
+          release_record_error="$(mktemp)"
+          if is_release_commit="$(monochange --log-level=debug step release-record --from HEAD --format json --jq '.resolved_commit == .record_commit' 2>"$release_record_error")"; then
+            echo "is_release_commit=${is_release_commit}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          subject="$(git log -1 --pretty=%s)"
+          body="$(git log -1 --pretty=%B)"
+          if [[ "$subject" == chore\(release\):\ prepare\ release* ]] || grep -q '<!-- monochange:release-record:start -->' <<<"$body"; then
+            echo "::error::Release-looking commit could not be read as a release record; failing instead of silently skipping release automation."
+            cat "$release_record_error" >&2
+            exit 1
+          fi
+
+          echo "is_release_commit=false" >> "$GITHUB_OUTPUT"
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: detect pending changesets
+        id: pending_changesets
+        if: steps.release_record.outputs.is_release_commit != 'true'
+        run: |
+          set -euo pipefail
+          has_changesets=false
+          if [ -d .changeset ] && find .changeset -type f -name '*.md' -print -quit | grep -q .; then
+            has_changesets=true
+          fi
+          echo "has_changesets=${has_changesets}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: configure git authentication
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh auth setup-git
+
+      - name: refresh release pull request
+        if: steps.release_record.outputs.is_release_commit != 'true' && steps.pending_changesets.outputs.has_changesets == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # A changeset that only bumps `docs`/`none` produces no releaseable
+          # packages; monochange exits non-zero with that message. Treat that
+          # specific case as "nothing to release" rather than failing the
+          # workflow, so a docs-only changeset can sit until a releaseable one
+          # arrives. Any other failure is re-raised.
+          if ! output="$(monochange run release 2>&1)"; then
+            if printf '%s\n' "$output" | grep -q 'no releaseable packages were found in discovered changesets'; then
+              echo "No releaseable packages in current changesets; skipping release PR refresh."
+              exit 0
+            fi
+            printf '%s\n' "$output" >&2
+            exit 1
+          fi
+          printf '%s\n' "$output"
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: skip refresh without changesets
+        if: steps.release_record.outputs.is_release_commit != 'true' && steps.pending_changesets.outputs.has_changesets != 'true'
+        run: echo "No pending changesets found; skipping release PR refresh."
+
+      - name: skip refresh on merged release commit
+        if: steps.release_record.outputs.is_release_commit == 'true'
+        run: echo "HEAD is already a merged release commit; skipping release PR refresh."
+
+  tag:
+    if: github.repository_owner == 'pina-rs' && needs.create.outputs.is_release_commit == 'true'
+    needs: create
+    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: configure release git credentials
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        shell: bash
+
+      - name: configure git authentication
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh auth setup-git
+
+      - name: create release tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          monochange --log-level=debug step tag-release --from HEAD --push=true --format json | tee /tmp/tag-report.json
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: create draft releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          monochange --log-level=debug step publish-release --from-ref="HEAD" --draft --format json
+        shell: devenv shell -c -- bash -e {0}
+
+      # A tag pushed with GITHUB_TOKEN does not trigger another workflow. Use
+      # workflow_dispatch explicitly so publish.yml always receives the release.
+      - name: dispatch release publishing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          release_record="$RUNNER_TEMP/release-record.json"
+          monochange step release-record --from HEAD --format json > "$release_record"
+
+          mapfile -t release_tags < <(
+            jq -r '.record.release_targets[] | select(.tag == true) | .tag_name' "$release_record"
+          )
+          if [ "${#release_tags[@]}" -eq 0 ]; then
+            echo "::error::The release record does not contain a publishable tag." >&2
+            exit 1
+          fi
+
+          for tag in "${release_tags[@]}"; do
+            if [[ "$tag" != v* ]]; then
+              echo "::error::Refusing to dispatch unexpected release tag '$tag'." >&2
+              exit 1
+            fi
+            gh workflow run publish.yml \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref main \
+              --field "tag=$tag"
+          done
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: comment on released issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          monochange --log-level=debug step comment-released-issues --from-ref="HEAD" --auto-close-issues
+        shell: devenv shell -c -- bash -e {0}

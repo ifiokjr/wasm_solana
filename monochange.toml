@@ -1,0 +1,183 @@
+# :schema https://monochange.github.io/monochange/schemas/monochange.schema.json
+
+[defaults]
+parent_bump = "patch"
+include_private = false
+warn_on_group_mismatch = true
+package_type = "cargo"
+changelog = false
+
+[changelog.sections]
+breaking = { heading = "Breaking Changes", priority = 10 }
+feat = { heading = "Features", priority = 20 }
+fix = { heading = "Fixes", priority = 30 }
+docs = { heading = "Documentation", priority = 40 }
+other = { heading = "Notes", priority = 50 }
+
+[changelog.types]
+major = { bump = "major", section = "breaking" }
+breaking = { bump = "major", section = "breaking" }
+feat = { bump = "minor", section = "feat" }
+fix = { bump = "patch", section = "fix" }
+docs = { bump = "none", section = "docs" }
+none = { bump = "none", section = "other" }
+
+[source]
+provider = "github"
+owner = "pina-rs"
+repo = "wasm_solana"
+
+[source.releases]
+enabled = true
+source = "monochange"
+branches = ["main"]
+enforce_for_tags = true
+enforce_for_publish = true
+enforce_for_commit = false
+changeset_context_timeout_seconds = 120
+
+[source.pull_requests]
+enabled = true
+branch_prefix = "monochange/release"
+base = "main"
+title = "chore(release): prepare release"
+labels = ["release", "automated"]
+auto_merge = false
+
+[cli.change]
+help_text = "Create a changeset"
+inputs = [
+	{ name = "package", type = "string_list", required = true },
+	{ name = "bump", type = "choice", choices = ["none", "patch", "minor", "major"], default = "patch" },
+	{ name = "reason", type = "string", required = true },
+	{ name = "type", type = "string" },
+	{ name = "details", type = "string" },
+	{ name = "caused_by", type = "string_list" },
+	{ name = "output", type = "string" },
+]
+steps = [
+	{ name = "create change file", type = "CreateChangeFile", inputs = ["package", "bump", "type", "caused_by", "reason", "details", "output"] },
+]
+
+[cli.release]
+help_text = "Prepare, format, commit, and open the release pull request."
+inputs = [
+	{ name = "create_pr", help_text = "Whether to open or update the release pull request after creating the local release commit", type = "boolean", default = true },
+]
+steps = [
+	{ name = "prepare release", type = "PrepareRelease", allow_empty_changesets = true, inputs = { format = "json" } },
+	{ name = "format release commit", type = "Command", shell = "bash", command = "fix:format", when = "{{ number_of_changesets > 0 }}" },
+	{ name = "commit release", type = "CommitRelease", inputs = { stage_all = true, no_verify = true }, when = "{{ number_of_changesets > 0 }}" },
+	{ name = "open release request", type = "OpenReleaseRequest", inputs = { stage_all = true, no_verify = true }, when = "{{ number_of_changesets > 0 && inputs.create_pr }}" },
+]
+
+[package.memory_wallet]
+path = "crates/memory_wallet"
+type = "cargo"
+
+[package.test_utils_insta]
+path = "crates/test_utils_insta"
+type = "cargo"
+
+[package.test_utils_keypairs]
+path = "crates/test_utils_keypairs"
+type = "cargo"
+
+[package.test_utils_solana]
+path = "crates/test_utils_solana"
+type = "cargo"
+
+[package.wasm_client_solana]
+path = "crates/wasm_client_solana"
+type = "cargo"
+
+[package.solana-account-decoder-client-types-wasm]
+path = "forks/solana-account-decoder-client-types-wasm"
+type = "cargo"
+
+[package.solana-account-decoder-wasm]
+path = "forks/solana-account-decoder-wasm"
+type = "cargo"
+
+[package.solana-transaction-status-client-types-wasm]
+path = "forks/solana-transaction-status-client-types-wasm"
+type = "cargo"
+
+[package.solana-transaction-status-wasm]
+path = "forks/solana-transaction-status-wasm"
+type = "cargo"
+
+# The workspace crates release as one versioned identity: they share
+# workspace.package.version and move in lockstep.
+[group.core]
+packages = [
+	"memory_wallet",
+	"test_utils_insta",
+	"test_utils_keypairs",
+	"test_utils_solana",
+	"wasm_client_solana",
+]
+release = true
+tag = true
+version_format = "primary"
+changelog = { path = "changelog.md", format = "keep_a_changelog", include = "all" }
+versioned_files = [
+	{ path = "Cargo.toml", type = "cargo", fields = ["workspace.package.version"] },
+]
+
+# The forks mirror the upstream Agave crate versions they are vendored from
+# (4.2.x for the Agave 4.2 family). They version independently so a fork
+# manifest can be re-pinned when the workspace adopts a new Agave family.
+[group.forks]
+packages = [
+	"solana-account-decoder-client-types-wasm",
+	"solana-account-decoder-wasm",
+	"solana-transaction-status-client-types-wasm",
+	"solana-transaction-status-wasm",
+]
+release = true
+tag = false
+version_format = "namespaced"
+# The forks track upstream Agave versions, so their release history lives
+# beside them rather than in the root changelog.
+changelog = { path = "forks/changelog.md", format = "keep_a_changelog", include = "all" }
+
+[ecosystems.cargo]
+enabled = true
+versioned_files = ["Cargo.toml"]
+# Refresh Cargo.lock after a release bumps the workspace version. All workspace
+# crates inherit `version = { workspace = true }`, so `cargo update --workspace`
+# syncs exactly those lockfile entries without touching dependency pins.
+lockfile_commands = [
+	{ command = "cargo update --workspace", cwd = ".", shell = "bash" },
+]
+
+[ecosystems.cargo.publish]
+enabled = true
+mode = "builtin"
+trusted_publishing = { enabled = true, repository = "pina-rs/wasm_solana", workflow = "publish.yml", environment = "publisher" }
+
+[ecosystems.cargo.publish_order]
+dependency_fields = ["dependencies", "build-dependencies"]
+
+[changesets.affected]
+enabled = true
+required = true
+skip_labels = ["release", "dependencies"]
+comment_on_failure = true
+ignored_paths = [
+	"changelog.md",
+	"docs/**",
+	"license",
+	"readme.md",
+	"codecov.json",
+	"test-ledger/**",
+]
+
+[lints]
+use = ["cargo/baseline"]
+
+[lints.rules]
+# Crates inherit `repository` from `[workspace.package]`; the per-crate
+# subdirectory URL is a nice-to-have, not a correctness requirement.
+"cargo/manifest-repository" = "off"

@@ -13,6 +13,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
+version = "0.10.0"
 authors = ["Ifiok Jr. <ifiokotung@gmail.com>"]
 edition = "2024"
 homepage = "https://github.com/ifiokjr/wasm_solana"
@@ -144,24 +145,22 @@ solana-epoch-rewards-hasher = { default-features = false, version = "^3.1" }
 solana-keccak-hasher = { default-features = false, version = "^3.1" }
 
 # publishable crates
-memory_wallet = { path = "crates/memory_wallet", version = "0.2.0" }
-test_utils_insta = { path = "crates/test_utils_insta", version = "0.1.6" }
-test_utils_keypairs = { path = "crates/test_utils_keypairs", version = "0.2.0" }
-test_utils_solana = { path = "crates/test_utils_solana", version = "0.8.0" }
+memory_wallet = { path = "crates/memory_wallet", version = "0.10.0" }
+test_utils_insta = { path = "crates/test_utils_insta", version = "0.10.0" }
+test_utils_keypairs = { path = "crates/test_utils_keypairs", version = "0.10.0" }
+test_utils_solana = { path = "crates/test_utils_solana", version = "0.10.0" }
 wasm_client_solana = { path = "crates/wasm_client_solana", version = "0.10.0" }
 
 # forks
-solana-account-decoder-client-types-wasm = { path = "forks/solana-account-decoder-client-types-wasm", version = "3.0.10" }
-solana-account-decoder-wasm = { path = "forks/solana-account-decoder-wasm", version = "3.0.10" }
-solana-transaction-status-client-types-wasm = { path = "forks/solana-transaction-status-client-types-wasm", version = "3.0.10" }
-solana-transaction-status-wasm = { path = "forks/solana-transaction-status-wasm", version = "3.0.10" }
+solana-account-decoder-client-types-wasm = { path = "forks/solana-account-decoder-client-types-wasm", version = "^3.0" }
+solana-account-decoder-wasm = { path = "forks/solana-account-decoder-wasm", version = "^3.0" }
+solana-transaction-status-client-types-wasm = { path = "forks/solana-transaction-status-client-types-wasm", version = "^3.0" }
+solana-transaction-status-wasm = { path = "forks/solana-transaction-status-wasm", version = "^3.0" }
 
 [workspace.metadata.bin]
 cargo-llvm-cov = { version = "0.9.1" }
 cargo-nextest = { version = "0.9.143" }
 cargo-semver-checks = { version = "0.50.0" }
-cargo-workspaces = { version = "0.4.1" }
-knope = { version = "0.21.5", bins = ["knope"] }
 wait-for-them = { version = "0.5.1", bins = ["wait-for-them"] }
 wasm-bindgen-cli = { version = "0.2.128", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 

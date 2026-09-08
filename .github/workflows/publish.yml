@@ -1,22 +1,65 @@
 name: publish
 
+# Publishes the release that the release-pr workflow tagged and published as a
+# draft. release-pr explicitly dispatches this workflow after creating the tag
+# and draft release because a GITHUB_TOKEN tag push cannot trigger another
+# workflow. The tag trigger remains as a fallback for tags created with
+# credentials that are not subject to GitHub's recursion guard, and
+# workflow_dispatch supports manual retries.
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (for example v0.6.0). Used by the automated release handoff and manual retries."
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.tag || github.ref_name }}
+  # Never cancel a publish mid-flight: a partial registry publish is worse than
+  # a queued run waiting its turn.
+  cancel-in-progress: false
+
+# On a tag push github.ref_name is the tag (e.g. v0.6.0); on a manual
+# workflow_dispatch retry inputs.tag is the tag.
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+
 jobs:
-  publish-crates:
-    if: (github.head_ref == 'knope/release' && github.event.pull_request.merged == true) || github.event_name == 'workflow_dispatch'
+  publish:
+    name: publish packages and release
+    environment: publisher
+    if: >-
+      github.repository_owner == 'pina-rs' &&
+      startsWith(inputs.tag || github.ref_name, 'v')
+    # Use OIDC for crates.io trusted publishing, then publish the draft
+    # GitHub release.
+    permissions:
+      contents: write # Publish the draft GitHub release after registry publication.
+      id-token: write # Authenticate to crates.io trusted publishing.
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
-      - name: checkout repository
+      - name: validate release tag input
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_TAG" != v* ]]; then
+            echo "::error::Tag '$RELEASE_TAG' must be a release tag like v0.6.0" >&2
+            exit 1
+          fi
+        shell: bash
+
+      - name: checkout release tag
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
           persist-credentials: false
 
       - name: setup
@@ -24,8 +67,38 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: publish workspace packages
-        run: knope publish
-        shell: devenv shell -c -- bash -e {0}
+      - name: get crates oidc auth token
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+        id: crates-oidc
+
+      - name: check publish readiness
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          monochange step publish-readiness \
+            --from HEAD \
+            --output "$RUNNER_TEMP/publish-readiness.json" \
+            --format json
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: publish packages with monochange
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-oidc.outputs.token }}
+          # Stream child publish output so any auth prompt or hang is visible
+          # in the job log instead of being buffered until process exit.
+          PUBLISH_STREAM_OUTPUT: "true"
+        run: |
+          set -euo pipefail
+          monochange step publish-packages \
+            --log-level info \
+            --all \
+            --output "$RUNNER_TEMP/publish-result.json" \
+            --format json
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: publish draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --latest --repo "$GITHUB_REPOSITORY"
+        shell: bash
