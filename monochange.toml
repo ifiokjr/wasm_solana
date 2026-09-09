@@ -107,6 +107,11 @@ type = "cargo"
 path = "forks/solana-transaction-status-wasm"
 type = "cargo"
 
+[package.test_utils_solana.publish.timeout]
+# The publish dry-run compiles the whole validator stack, which takes
+# minutes cold; the 60-second default is a cold-runner timeout, not a hang.
+timeout_seconds = 900
+
 # The workspace crates release as one versioned identity: they share
 # workspace.package.version and move in lockstep.
 [group.core]
