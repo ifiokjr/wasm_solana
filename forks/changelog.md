@@ -31,3 +31,17 @@ _Packages:_ _solana-account-decoder-client-types-wasm_, _solana-account-decoder-
 The v0.11.0 release record had no package publications because every crate manifest still carried `publish = false` from the knope era; crates.io never received the versioned crates. With `publish = true` restored this release publishes the already-versioned crates.
 
 _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #139](https://github.com/pina-rs/wasm_solana/pull/139)
+
+## forks [4.0.2](https://github.com/pina-rs/wasm_solana/releases/tag/forks/v4.0.2) (2026-09-09)
+
+Grouped release for `forks`.
+
+### Fixes
+
+#### Publish the versioned crates that missed the v0.11.1 release
+
+_Packages:_ _solana-account-decoder-client-types-wasm_, _solana-account-decoder-wasm_, _solana-transaction-status-client-types-wasm_, _solana-transaction-status-wasm_
+
+The v0.11.1 publish published the forks and `wasm_client_solana`, but `memory_wallet` failed because `cargo publish --locked` resolves dev-dependencies and `test_utils_solana ^0.11.1` was not on crates.io yet. The publish order now includes dev-dependencies, so this release publishes the remaining crates.
+
+_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #142](https://github.com/pina-rs/wasm_solana/pull/142)

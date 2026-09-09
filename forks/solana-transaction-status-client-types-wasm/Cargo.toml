@@ -1,6 +1,6 @@
 [package]
 name = "solana-transaction-status-client-types-wasm"
-version = "4.0.1"
+version = "4.0.2"
 authors = { workspace = true }
 documentation = "https://docs.rs/solana-transaction-status-client-types"
 edition = { workspace = true }
