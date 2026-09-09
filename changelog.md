@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.2](https://github.com/pina-rs/wasm_solana/releases/tag/v0.11.2) (2026-09-09)
+
+Grouped release for `core`.
+
+### Fixes
+
+#### Publish the versioned crates that missed the v0.11.1 release
+
+_Packages:_ _memory_wallet_, _test_utils_insta_, _test_utils_keypairs_, _test_utils_solana_, _wasm_client_solana_
+
+The v0.11.1 publish published the forks and `wasm_client_solana`, but `memory_wallet` failed because `cargo publish --locked` resolves dev-dependencies and `test_utils_solana ^0.11.1` was not on crates.io yet. The publish order now includes dev-dependencies, so this release publishes the remaining crates.
+
+_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #142](https://github.com/pina-rs/wasm_solana/pull/142)
+
 ## [0.11.1](https://github.com/pina-rs/wasm_solana/releases/tag/v0.11.1) (2026-09-08)
 
 Grouped release for `core`.
