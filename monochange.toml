@@ -158,7 +158,10 @@ mode = "builtin"
 trusted_publishing = { enabled = true, repository = "pina-rs/wasm_solana", workflow = "publish.yml", environment = "publisher" }
 
 [ecosystems.cargo.publish_order]
-dependency_fields = ["dependencies", "build-dependencies"]
+# dev-dependencies are included because `cargo publish --locked` resolves them
+# during packaging: a workspace dev-dependency that is not on the registry yet
+# fails the publish of the dependent crate.
+dependency_fields = ["dependencies", "build-dependencies", "dev-dependencies"]
 
 [changesets.affected]
 enabled = true
